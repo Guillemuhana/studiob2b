@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Particles, ParticlesProvider } from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
 import {
   ArrowUpRight, ArrowRight, ArrowLeft, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, Mail, MapPin, Check,
@@ -102,14 +104,34 @@ const CSS = `
 /* ---------- nav ---------- */
 .s2b-nav { position: sticky; top:0; z-index:80; transition: background .3s, box-shadow .3s; }
 .s2b-nav.is-stuck { background: rgba(255,255,255,.9); backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 1px 0 rgba(24,12,60,.08); }
-.s2b-nav-in { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:14px 0; }
-.s2b-brand { display:flex; align-items:center; gap:11px; }
-.s2b-mark { width:40px; height:40px; flex:none; object-fit:contain; display:block;
-  filter: drop-shadow(0 4px 12px rgba(109,74,255,.45)); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
-.s2b-brand:hover .s2b-mark { transform: scale(1.06); }
-.s2b-brand-txt { font-family: var(--display); font-weight:700; font-size:15px; line-height:1.1; color:#fff; }
+.s2b-nav-in { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:12px 0; }
+.s2b-brand { display:flex; align-items:center; gap:14px; }
+.s2b-nav .s2b-brand { --mark:70px; }
+.s2b-foot .s2b-brand { --mark:62px; }
+.s2b-mark-halo { position:relative; width:var(--mark,58px); height:var(--mark,58px); flex:none; display:grid; place-items:center; }
+.s2b-mark-halo::before {
+  content:''; position:absolute; inset:-28%; border-radius:50%; pointer-events:none;
+  background: radial-gradient(circle, rgba(167,140,255,.62), rgba(109,74,255,.24) 46%, transparent 72%);
+  filter: blur(13px); animation: s2b-halo 5s ease-in-out infinite;
+}
+.s2b-mark-halo::after {
+  content:''; position:absolute; inset:-9%; border-radius:50%; pointer-events:none; opacity:0;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(199,182,255,.75) 55deg, transparent 125deg);
+  -webkit-mask: radial-gradient(circle, transparent 61%, #000 63%);
+          mask: radial-gradient(circle, transparent 61%, #000 63%);
+  transition: opacity .4s; animation: s2b-mark-spin 3.4s linear infinite;
+}
+.s2b-brand:hover .s2b-mark-halo::after { opacity:1; }
+@keyframes s2b-halo { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:.95; transform:scale(1.14); } }
+@keyframes s2b-mark-spin { to { transform: rotate(360deg); } }
+.s2b-mark { position:relative; width:100%; height:100%; object-fit:contain; display:block;
+  filter: drop-shadow(0 6px 16px rgba(109,74,255,.5));
+  transition: transform .45s cubic-bezier(.2,.7,.2,1), filter .45s; }
+.s2b-brand:hover .s2b-mark { transform: scale(1.09) translateY(-2px); filter: drop-shadow(0 11px 26px rgba(139,107,255,.85)); }
+.s2b-nav.is-stuck .s2b-mark-halo::before { animation:none; opacity:.32; }
+.s2b-brand-txt { font-family: var(--display); font-weight:700; font-size:19px; letter-spacing:-.01em; line-height:1.15; color:#fff; }
 .s2b-nav.is-stuck .s2b-brand-txt { color: var(--title); }
-.s2b-brand-txt small { display:block; font-family: var(--mono); font-size:9px; letter-spacing:.18em; font-weight:400; color:#9E97C4; }
+.s2b-brand-txt small { display:block; margin-top:2px; font-family: var(--mono); font-size:9.5px; letter-spacing:.2em; font-weight:400; color:#9E97C4; }
 .s2b-nav.is-stuck .s2b-brand-txt small { color: var(--muted); }
 
 .s2b-menu { display:flex; align-items:center; gap:2px; }
@@ -157,6 +179,10 @@ const CSS = `
 @keyframes s2b-drift { to { transform: translate3d(70px, 46px, 0) scale(1.16); } }
 
 /* retícula fina */
+.s2b-neural { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 96%);
+          mask-image: linear-gradient(180deg, #000 58%, transparent 96%); }
+.s2b-neural > div, .s2b-neural canvas { position:absolute !important; inset:0; width:100% !important; height:100% !important; }
 .s2b-grid { position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.5;
   background-image: linear-gradient(rgba(167,140,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(167,140,255,.08) 1px, transparent 1px);
   background-size: 72px 72px;
@@ -176,7 +202,7 @@ const CSS = `
 @keyframes s2b-rot { to { --s2b-ang: 360deg; } }
 
 /* titular */
-.s2b-sweep { margin-top:30px; max-width:19ch;
+.s2b-sweep { margin-top:30px; width:100%;
   -webkit-mask-image: linear-gradient(104deg, #000 34%, rgba(0,0,0,.28) 50%, transparent 66%);
           mask-image: linear-gradient(104deg, #000 34%, rgba(0,0,0,.28) 50%, transparent 66%);
   -webkit-mask-size: 320% 100%; mask-size: 320% 100%;
@@ -186,7 +212,8 @@ const CSS = `
   from { -webkit-mask-position:100% 0; mask-position:100% 0; opacity:0; filter: blur(14px); transform: translateY(20px); }
   to   { -webkit-mask-position:0% 0;   mask-position:0% 0;   opacity:1; filter: blur(0);    transform: none; }
 }
-.s2b-hero h1 { font-size: clamp(42px, 7.4vw, 88px); font-weight:700; letter-spacing:-.05em; line-height:1.02; color:#fff; text-wrap: balance; }
+.s2b-hero h1 { font-size: clamp(34px, 6.4vw, 84px); font-weight:700; letter-spacing:-.045em; line-height:1.04; color:#fff;
+  text-wrap: balance; max-width:19ch; width:100%; margin:0 auto; overflow-wrap:break-word; }
 .s2b-hero h1 span {
   background: linear-gradient(96deg in oklab, var(--s2b-g1), var(--s2b-g2) 46%, var(--s2b-g3));
   -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
@@ -268,18 +295,21 @@ const CSS = `
 .s2b-ul svg { flex:none; margin-top:3px; color:var(--lilac); }
 
 /* ---------- tecnologías ---------- */
-.s2b-tech-head { max-width:760px; }
+.s2b-tech-head { max-width:760px; margin-bottom:30px; }
 .s2b-tech-lead { margin-top:16px; font-size:16.5px; color:var(--muted); max-width:660px; }
 
 .s2b-tech-panel {
-  position:relative; margin-top:42px; padding:30px 30px 34px; border-radius:30px; overflow:hidden;
-  border:1px solid rgba(167,140,255,.16);
+  position:relative; width:100%; margin-top:8px; padding:60px 0 64px; overflow:hidden;
+  border-top:1px solid rgba(167,140,255,.16); border-bottom:1px solid rgba(167,140,255,.16);
   background:
     radial-gradient(720px circle at 84% -12%, rgba(109,74,255,.34), transparent 62%),
     radial-gradient(560px circle at 2% 110%, rgba(167,140,255,.16), transparent 60%),
     linear-gradient(168deg,#150B3F 0%, #0B0718 74%);
   box-shadow: 0 44px 90px -54px rgba(24,12,60,.95);
+  --title:#FFFFFF; --text:#C9C2E6; --muted:#9E97C4; color:var(--text);
 }
+.s2b-tech-panel .s2b-eyebrow { color: var(--lilac); }
+.s2b-tech-inner { position:relative; width:100%; padding:0 clamp(20px,3.4vw,56px); }
 .s2b-tech-panel::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background-image:
@@ -298,9 +328,9 @@ const CSS = `
 .s2b-tab:hover { color:#EDE9FF; }
 .s2b-tab.is-on { background: linear-gradient(120deg,var(--violet),#4B2FD6); color:#fff; }
 
-.s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(6,1fr); gap:14px; }
+.s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
 .s2b-tile {
-  position:relative; aspect-ratio:1/1; border-radius:20px; display:grid; place-items:center;
+  position:relative; min-width:0; aspect-ratio:1/1; border-radius:20px; display:grid; place-items:center;
   background:rgba(255,255,255,.045); border:1px solid rgba(167,140,255,.12);
   transition: transform .3s cubic-bezier(.2,.7,.2,1), background .3s, border-color .3s, box-shadow .3s;
 }
@@ -320,16 +350,17 @@ const CSS = `
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .s2b-tile:hover .s2b-tile-name { opacity:1; transform:none; }
-/* desfase por columna: el mosaico escalonado de la referencia */
-.s2b-tiles > *:nth-child(6n+2) { margin-top:26px; }
-.s2b-tiles > *:nth-child(6n+3) { margin-top:10px; }
-.s2b-tiles > *:nth-child(6n+4) { margin-top:32px; }
-.s2b-tiles > *:nth-child(6n+5) { margin-top:4px; }
-.s2b-tiles > *:nth-child(6n+6) { margin-top:18px; }
+/* desfase alternado: funciona con cualquier cantidad de columnas */
+.s2b-tiles > *:nth-child(even) { margin-top:26px; }
+
+@media (max-width: 1500px) { .s2b-tiles { grid-template-columns:repeat(8,1fr); } }
+@media (max-width: 1180px) { .s2b-tiles { grid-template-columns:repeat(6,1fr); } }
 
 /* ---------- métricas ---------- */
-.s2b-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-radius:26px; overflow:hidden; border:1px solid rgba(167,140,255,.22);
-  background: linear-gradient(140deg, rgba(109,74,255,.22), rgba(20,10,60,.5)); }
+.s2b-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-radius:26px; overflow:hidden;
+  border:1px solid rgba(167,140,255,.22);
+  background: linear-gradient(140deg, #2A1A6B 0%, #150B3F 52%, #0B0718 100%);
+  box-shadow: 0 40px 80px -50px rgba(24,12,60,.85); }
 .s2b-stat { padding:34px 22px; border-right:1px solid rgba(167,140,255,.18); }
 .s2b-stat:last-child { border-right:none; }
 .s2b-stat b { display:block; font-family:var(--display); font-size:clamp(28px,3.2vw,40px); font-weight:700; color:#fff; }
@@ -386,6 +417,9 @@ const CSS = `
 .s2b-cline { display:flex; align-items:center; gap:11px; color:#BDB4E4; font-size:15px; margin-top:13px; }
 .s2b-cline svg { color:var(--lilac); flex:none; }
 .s2b-sent { display:flex; align-items:center; gap:10px; color:#7FE3A8; font-size:15px; padding:14px 0 20px; }
+.s2b-formerr { font-size:13.5px; color:#FFB4B4; background:rgba(255,90,90,.09); border:1px solid rgba(255,120,120,.3);
+  border-radius:12px; padding:11px 13px; margin-bottom:13px; }
+.s2b-formerr a { color:#fff; text-decoration:underline; }
 
 /* ---------- footer ---------- */
 .s2b-foot { border-top:1px solid rgba(167,140,255,.16); padding:56px 0 34px; }
@@ -409,10 +443,7 @@ const CSS = `
   .s2b-row:nth-child(even) .s2b-row-txt { order:0; }
   .s2b-row-vis { min-height:230px; order:-1; }
   .s2b-tiles { grid-template-columns:repeat(4,1fr); }
-  .s2b-tiles > * { margin-top:0 !important; }
-  .s2b-tiles > *:nth-child(4n+2) { margin-top:22px !important; }
-  .s2b-tiles > *:nth-child(4n+4) { margin-top:12px !important; }
-  .s2b-tech-panel { padding:24px 20px 28px; border-radius:26px; }
+  .s2b-tech-panel { padding:28px 0 32px; }
   .s2b-stats { grid-template-columns:repeat(2,1fr); }
   .s2b-stat { border-bottom:1px solid rgba(167,140,255,.18); }
   .s2b-qcard { grid-template-columns:1fr; gap:22px; }
@@ -423,8 +454,10 @@ const CSS = `
   .s2b-head { align-items:start; }
 }
 @media (max-width: 600px) {
+  .s2b-brand { --mark:46px; gap:11px; }
+  .s2b-brand-txt { font-size:15.5px; }
   .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
-  .s2b-tiles > * { margin-top:0 !important; }
+  .s2b-tiles > *:nth-child(even) { margin-top:14px; }
   .s2b-tile-logo { width:30px; height:30px; }
   .s2b-mosaic { grid-template-columns:repeat(3,1fr); }
   .s2b-foot-grid { grid-template-columns:1fr; }
@@ -621,6 +654,7 @@ const FAQS = [
   { q: "¿Se puede empezar chico?", a: "Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción." },
 ];
 
+const FORM_TO = "guillemuhana@gmail.com";
 const WA_NUM = "5493515931673";
 const WA_SHOW = "+54 9 351 593-1673";
 const waLink = (msg) => "https://wa.me/" + WA_NUM + "?text=" + encodeURIComponent(msg);
@@ -651,6 +685,59 @@ function BrandLogo({ icon }) {
     <svg className="s2b-tile-logo" viewBox="0 0 24 24" role="img" aria-label={icon.title} fill={brandColor(icon.hex)}>
       <path d={icon.path} />
     </svg>
+  );
+}
+
+/* Fondo del hero: nodos que se enlazan cuando se acercan, como una red que
+   arma una idea. El canvas no recibe clicks; la interaccion se escucha en window. */
+const NEURAL_OPTS = {
+  fullScreen: { enable: false },
+  fpsLimit: 60,
+  detectRetina: true,
+  particles: {
+    number: { value: 88, density: { enable: true, width: 1600, height: 900 } },
+    color: { value: ["#FFFFFF", "#C9B6FF", "#8B6BFF"] },
+    shape: { type: "circle" },
+    opacity: {
+      value: { min: 0.25, max: 0.85 },
+      animation: { enable: true, speed: 0.55, sync: false, startValue: "random" },
+    },
+    size: { value: { min: 1, max: 2.7 } },
+    links: { enable: true, distance: 150, color: "#9B7DFF", opacity: 0.34, width: 1 },
+    move: {
+      enable: true, speed: 0.62, direction: "none", straight: false,
+      outModes: { default: "bounce" },
+    },
+    shadow: { enable: true, color: "#6D4AFF", blur: 9 },
+  },
+  interactivity: {
+    detectsOn: "window",
+    events: {
+      onHover: { enable: true, mode: "grab" },
+      resize: { enable: true },
+    },
+    modes: { grab: { distance: 200, links: { opacity: 0.8, color: "#D6C9FF" } } },
+  },
+};
+
+function NeuralBg() {
+  const [ok, setOk] = useState(false);
+
+  /* no lo montamos si el visitante pidio menos movimiento */
+  useEffect(() => {
+    const q = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!q || !q.matches) setOk(true);
+  }, []);
+
+  const init = useMemo(() => async (engine) => { await loadSlim(engine); }, []);
+  if (!ok) return null;
+
+  return (
+    <div className="s2b-neural" aria-hidden="true">
+      <ParticlesProvider init={init}>
+        <Particles id="s2b-neural-canvas" options={NEURAL_OPTS} />
+      </ParticlesProvider>
+    </div>
   );
 }
 
@@ -791,6 +878,8 @@ export default function StudioB2B() {
   const [qi, setQi] = useState(0);
   const [faq, setFaq] = useState(0);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [formErr, setFormErr] = useState("");
   const [form, setForm] = useState({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" });
 
   useEffect(() => {
@@ -832,7 +921,37 @@ export default function StudioB2B() {
   }, []);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  const send = () => { if (form.nombre && form.email) setSent(true); };
+  const send = async () => {
+    if (!form.nombre.trim() || !form.email.trim()) {
+      setFormErr("Necesitamos al menos tu nombre y tu email.");
+      return;
+    }
+    setSending(true);
+    setFormErr("");
+    try {
+      const r = await fetch("https://formsubmit.co/ajax/" + FORM_TO, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          _subject: "Consulta desde studiob2b · " + form.nombre,
+          _template: "table",
+          _captcha: "false",
+          Nombre: form.nombre,
+          Empresa: form.empresa || "-",
+          Email: form.email,
+          Telefono: form.tel || "-",
+          "Tipo de proyecto": form.tipo,
+          Contexto: form.msg || "-",
+        }),
+      });
+      if (!r.ok) throw new Error("status " + r.status);
+      setSent(true);
+    } catch {
+      setFormErr("No pudimos enviar el mensaje. Escribinos por WhatsApp y lo resolvemos.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="s2b">
@@ -843,7 +962,7 @@ export default function StudioB2B() {
         <header className={"s2b-nav" + (stuck ? " is-stuck" : "")}>
           <div className="s2b-wrap s2b-nav-in">
             <button className="s2b-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              <img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" />
+              <span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span>
               <div className="s2b-brand-txt">STUDIO B2B<small>DESDE 2015</small></div>
             </button>
 
@@ -879,7 +998,7 @@ export default function StudioB2B() {
         {drawer && (
           <div className="s2b-drawer">
             <div className="s2b-drawer-top">
-              <div className="s2b-brand"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /><div className="s2b-brand-txt">STUDIO B2B</div></div>
+              <div className="s2b-brand"><span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span><div className="s2b-brand-txt">STUDIO B2B</div></div>
               <button aria-label="Cerrar" onClick={() => setDrawer(false)}><X size={26} /></button>
             </div>
             {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
@@ -893,6 +1012,7 @@ export default function StudioB2B() {
         <section className="s2b-hero" ref={heroRef}>
           <div className="s2b-aurora" aria-hidden="true"><i /><i /><i /></div>
           <div className="s2b-grid" aria-hidden="true" />
+          <NeuralBg />
           <div className="s2b-halo" aria-hidden="true" />
           <div className="s2b-wrap">
             <div className="s2b-hero-in">
@@ -1045,17 +1165,16 @@ export default function StudioB2B() {
 
       {/* ============ TECNOLOGÍAS ============ */}
       <section className="s2b-sec s2b-sec--sm" id="tecnologias">
-        <div className="s2b-wrap">
-          <div className="s2b-rv s2b-tech-head">
-            <div className="s2b-eyebrow">Stack</div>
-            <h2 className="s2b-h2">Tecnologías que <b>potencian nuestras soluciones</b></h2>
-            <p className="s2b-tech-lead">
-              Trabajamos con un stack robusto y actualizado, que nos permite integrar sistemas
-              complejos, acelerar desarrollos y garantizar seguridad en cada proyecto.
-            </p>
-          </div>
-
-          <div className="s2b-tech-panel s2b-rv">
+        <div className="s2b-tech-panel s2b-rv">
+          <div className="s2b-tech-inner">
+            <div className="s2b-tech-head">
+              <div className="s2b-eyebrow">Stack</div>
+              <h2 className="s2b-h2">Tecnologías que <b>potencian nuestras soluciones</b></h2>
+              <p className="s2b-tech-lead">
+                Trabajamos con un stack robusto y actualizado, que nos permite integrar sistemas
+                complejos, acelerar desarrollos y garantizar seguridad en cada proyecto.
+              </p>
+            </div>
             <div className="s2b-tech-tabs" role="tablist" aria-label="Categorías de tecnologías">
               {Object.keys(TECNOLOGIAS).map((k) => (
                 <button
@@ -1216,7 +1335,7 @@ export default function StudioB2B() {
             <div className="s2b-panel s2b-rv">
               {sent ? (
                 <div>
-                  <div className="s2b-sent"><Check size={20} /> Mensaje enviado. Te escribimos a {form.email}.</div>
+                  <div className="s2b-sent"><Check size={20} /> Mensaje enviado. Te respondemos a {form.email}.</div>
                   <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" }); }}>
                     Enviar otro
                   </button>
@@ -1235,8 +1354,19 @@ export default function StudioB2B() {
                     </select>
                   </div>
                   <div className="s2b-f"><label htmlFor="f6">Contexto</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder="Qué problema querés resolver y en qué plazo" /></div>
-                  <button className="s2b-btn s2b-btn--chrome" style={{ width: "100%", justifyContent: "center" }} onClick={send}>
-                    Enviar mensaje <ArrowUpRight size={16} />
+                  {formErr && (
+                    <div className="s2b-formerr" role="alert">
+                      {formErr}{" "}
+                      <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
+                    </div>
+                  )}
+                  <button
+                    className="s2b-btn s2b-btn--chrome"
+                    style={{ width: "100%", justifyContent: "center", opacity: sending ? 0.7 : 1 }}
+                    onClick={send}
+                    disabled={sending}
+                  >
+                    {sending ? "Enviando…" : "Enviar mensaje"} <ArrowUpRight size={16} />
                   </button>
                 </div>
               )}
@@ -1248,7 +1378,7 @@ export default function StudioB2B() {
           <div className="s2b-wrap">
             <div className="s2b-foot-grid">
               <div>
-                <div className="s2b-brand"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /><div className="s2b-brand-txt">STUDIO B2B<small>PRODUCTO DIGITAL &amp; IA</small></div></div>
+                <div className="s2b-brand"><span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span><div className="s2b-brand-txt">STUDIO B2B<small>PRODUCTO DIGITAL &amp; IA</small></div></div>
                 <p style={{ fontSize: 14, color: "#9E97C4", marginTop: 16, maxWidth: "34ch" }}>
                   Diseñamos y construimos software a medida y agentes de IA para empresas que necesitan que las cosas funcionen.
                 </p>
