@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Particles, ParticlesProvider } from "@tsparticles/react";
-import { loadSlim } from "@tsparticles/slim";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowUpRight, ArrowRight, ArrowLeft, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, Mail, MapPin, Check,
@@ -182,7 +180,7 @@ const CSS = `
 .s2b-neural { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
   -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 96%);
           mask-image: linear-gradient(180deg, #000 58%, transparent 96%); }
-.s2b-neural > div, .s2b-neural canvas { position:absolute !important; inset:0; width:100% !important; height:100% !important; }
+.s2b-neural canvas { display:block; width:100%; height:100%; }
 .s2b-grid { position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.5;
   background-image: linear-gradient(rgba(167,140,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(167,140,255,.08) 1px, transparent 1px);
   background-size: 72px 72px;
@@ -247,6 +245,8 @@ const CSS = `
 @keyframes s2b-slide { to { transform: translateX(-50%); } }
 .s2b-clogo { font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.02em; color:#A9A3BE; opacity:.75; white-space:nowrap; filter: grayscale(1); transition: color .25s, opacity .25s; }
 .s2b-clogo:hover { color: var(--violet); opacity:1; }
+.s2b-clogo--img { height:46px; width:auto; object-fit:contain; opacity:.8; border-radius:8px; }
+.s2b-clogo--img:hover { filter:none; opacity:1; }
 
 /* ---------- servicios (filas alternadas) ---------- */
 .s2b-rows { display:grid; gap:20px; margin-top:52px; }
@@ -532,7 +532,13 @@ const SOLUCIONES = [
   { id: "agentes", icon: Bot, t: "Agentes de IA", d: "Asistentes que atienden y resuelven dentro de tus herramientas." },
 ];
 
-const CLIENTES = ["Nuevo Munich", "Numera", "Patagonia Spa Home", "Pecifa Nacional", "NTG Group"];
+const CLIENTES = [
+  { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png" },
+  { n: "Numera" },
+  { n: "Patagonia Spa Home" },
+  { n: "Pecifa Nacional", src: "/clientes/pecifa.png" },
+  { n: "Ninit Group", src: "/clientes/ninit-group.png" },
+];
 
 const SERVICIOS = [
   {
@@ -667,55 +673,254 @@ function BrandLogo({ icon }) {
   );
 }
 
-/* Fondo del hero: nodos que se enlazan cuando se acercan, como una red que
-   arma una idea. El canvas no recibe clicks; la interaccion se escucha en window. */
-const NEURAL_OPTS = {
-  fullScreen: { enable: false },
-  fpsLimit: 60,
-  detectRetina: true,
-  particles: {
-    number: { value: 88, density: { enable: true, width: 1600, height: 900 } },
-    color: { value: ["#FFFFFF", "#C9B6FF", "#8B6BFF"] },
-    shape: { type: "circle" },
-    opacity: {
-      value: { min: 0.25, max: 0.85 },
-      animation: { enable: true, speed: 0.55, sync: false, startValue: "random" },
-    },
-    size: { value: { min: 1, max: 2.7 } },
-    links: { enable: true, distance: 150, color: "#9B7DFF", opacity: 0.34, width: 1 },
-    move: {
-      enable: true, speed: 0.62, direction: "none", straight: false,
-      outModes: { default: "bounce" },
-    },
-    shadow: { enable: true, color: "#6D4AFF", blur: 9 },
-  },
-  interactivity: {
-    detectsOn: "window",
-    events: {
-      onHover: { enable: true, mode: "grab" },
-      resize: { enable: true },
-    },
-    modes: { grab: { distance: 200, links: { opacity: 0.8, color: "#D6C9FF" } } },
-  },
+/* Fondo del hero: una red de nodos que se enlazan al acercarse.
+   Cuando varios coinciden en una zona, esa zona se "calienta" y vira del
+   violeta al ambar: la idea que se termina de formar. Canvas propio, sin
+   dependencias, porque el color depende de cuantos vecinos tiene cada nodo. */
+const RED = {
+  densidad: 13000,   // un nodo cada N px2 de hero
+  min: 34,
+  max: 108,
+  enlace: 152,       // distancia a la que dos nodos se unen
+  velocidad: 0.24,
+  puntero: 190,      // radio de influencia del mouse
+  arco: 88,          // a esta distancia de un boton o del header, el nodo hace chispa
 };
 
-function NeuralBg() {
-  const [ok, setOk] = useState(false);
+/* Un rayo quebrado entre dos puntos: se dibuja dos veces, una gruesa y
+   difusa para el resplandor y otra fina para el nucleo. */
+function rayo(ctx, x1, y1, x2, y2, fuerza) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const largo = Math.hypot(dx, dy) || 1;
+  const nx = -dy / largo, ny = dx / largo;
+  const tramos = 5;
 
-  /* no lo montamos si el visitante pidio menos movimiento */
+  const trazo = () => {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    for (let i = 1; i < tramos; i++) {
+      const t = i / tramos;
+      const desvio = (Math.random() - 0.5) * 15 * (1 - Math.abs(t - 0.5) * 1.6);
+      ctx.lineTo(x1 + dx * t + nx * desvio, y1 + dy * t + ny * desvio);
+    }
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  };
+
+  ctx.lineWidth = 3.2;
+  ctx.strokeStyle = "rgba(255,168,42," + (0.16 * fuerza).toFixed(3) + ")";
+  trazo();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255,238,190," + (0.85 * fuerza).toFixed(3) + ")";
+  trazo();
+}
+
+const FRIO_NODO = [201, 182, 255];
+const FRIO_LINK = [139, 107, 255];
+const CALIDO = [255, 168, 42];
+const CALIDO_CLARO = [255, 226, 140];
+
+const mezcla = (a, b, t) => [
+  Math.round(a[0] + (b[0] - a[0]) * t),
+  Math.round(a[1] + (b[1] - a[1]) * t),
+  Math.round(a[2] + (b[2] - a[2]) * t),
+];
+
+function NeuralBg() {
+  const host = useRef(null);
+  const lienzo = useRef(null);
+
   useEffect(() => {
-    const q = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!q || !q.matches) setOk(true);
+    const box = host.current;
+    const cv = lienzo.current;
+    if (!box || !cv) return;
+    const ctx = cv.getContext("2d");
+    if (!ctx) return;
+
+    const quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let w = 0, h = 0, nodos = [], raf = 0, vivo = true;
+    const puntero = { x: 0, y: 0, activo: false };
+
+    /* header, pill y botones del hero: los nodos les tiran chispas al pasar cerca */
+    let objetivos = [];
+    let cuadro = 0;
+    const medirObjetivos = () => {
+      const r = box.getBoundingClientRect();
+      objetivos = Array.from(
+        document.querySelectorAll(".s2b-nav-in, .s2b-hero .s2b-btn, .s2b-pill")
+      ).map((el) => {
+        const b = el.getBoundingClientRect();
+        return { x: b.left - r.left, y: b.top - r.top, w: b.width, h: b.height };
+      });
+    };
+
+    const sembrar = () => {
+      const n = Math.round(Math.min(RED.max, Math.max(RED.min, (w * h) / RED.densidad)));
+      nodos = Array.from({ length: n }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * RED.velocidad,
+        vy: (Math.random() - 0.5) * RED.velocidad,
+        r: 0.9 + Math.random() * 1.7,
+        calor: 0,
+      }));
+    };
+
+    const medir = () => {
+      const r = box.getBoundingClientRect();
+      w = Math.max(1, Math.round(r.width));
+      h = Math.max(1, Math.round(r.height));
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cv.width = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+      cv.style.width = w + "px";
+      cv.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sembrar();
+      medirObjetivos();
+    };
+
+    const pintar = () => {
+      ctx.clearRect(0, 0, w, h);
+      const D = RED.enlace, D2 = D * D;
+      /* los botones se mueven con el scroll y el nav es sticky: refrescamos seguido pero no cada cuadro */
+      if (cuadro++ % 20 === 0) medirObjetivos();
+      const chispas = [];
+
+      for (const p of nodos) {
+        if (!quieto) { p.x += p.vx; p.y += p.vy; }
+        if (p.x < 0 || p.x > w) { p.vx *= -1; p.x = Math.min(w, Math.max(0, p.x)); }
+        if (p.y < 0 || p.y > h) { p.vy *= -1; p.y = Math.min(h, Math.max(0, p.y)); }
+      }
+
+      /* enlaces, y de paso contamos con cuantos se conecta cada nodo */
+      const vecinos = new Array(nodos.length).fill(0);
+      ctx.lineWidth = 1;
+      for (let i = 0; i < nodos.length; i++) {
+        const a = nodos[i];
+        for (let j = i + 1; j < nodos.length; j++) {
+          const b = nodos[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 > D2) continue;
+          vecinos[i]++; vecinos[j]++;
+          const cerca = 1 - Math.sqrt(d2) / D;
+          const calor = Math.max(a.calor, b.calor);
+          const c = mezcla(FRIO_LINK, CALIDO, calor);
+          const alfa = (0.06 + cerca * 0.34) * (1 + calor * 1.9);
+          ctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + alfa.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+
+      /* el calor sube donde hay racimo, y baja solo: nunca salta de golpe */
+      for (let i = 0; i < nodos.length; i++) {
+        const p = nodos[i];
+        let objetivo = Math.min(1, Math.max(0, (vecinos[i] - 2) / 3));
+
+        if (puntero.activo) {
+          const d = Math.hypot(p.x - puntero.x, p.y - puntero.y);
+          if (d < RED.puntero) objetivo = Math.min(1, objetivo + (1 - d / RED.puntero) * 0.85);
+        }
+
+        for (const t of objetivos) {
+          const cx = Math.max(t.x, Math.min(p.x, t.x + t.w));
+          const cy = Math.max(t.y, Math.min(p.y, t.y + t.h));
+          const d = Math.hypot(p.x - cx, p.y - cy);
+          if (d > RED.arco) continue;
+          const fuerza = 1 - d / RED.arco;
+          objetivo = Math.min(1, objetivo + fuerza * 0.9);
+          /* no todos los cuadros, para que chisporrotee en vez de quedar fijo */
+          if (Math.random() < 0.07 + fuerza * 0.2) {
+            chispas.push([p.x, p.y, cx, cy, fuerza]);
+          }
+        }
+
+        p.calor += (objetivo - p.calor) * 0.06;
+      }
+
+      /* el resplandor de la idea, detras de los nodos calientes */
+      for (const p of nodos) {
+        if (p.calor < 0.22) continue;
+        const R = 26 + p.calor * 70;
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
+        g.addColorStop(0, "rgba(255,186,72," + (0.28 * p.calor).toFixed(3) + ")");
+        g.addColorStop(1, "rgba(255,186,72,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (const p of nodos) {
+        const c = mezcla(FRIO_NODO, CALIDO_CLARO, p.calor);
+        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.45 + p.calor * 0.55).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r + p.calor * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (const c of chispas) rayo(ctx, c[0], c[1], c[2], c[3], c[4]);
+      ctx.lineWidth = 1;
+
+      /* el mouse funciona como disparador: tira hilos hacia lo que tiene cerca */
+      if (puntero.activo) {
+        for (const p of nodos) {
+          const d = Math.hypot(p.x - puntero.x, p.y - puntero.y);
+          if (d > RED.puntero) continue;
+          const alfa = (1 - d / RED.puntero) * 0.4;
+          ctx.strokeStyle = "rgba(255,206,124," + alfa.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.moveTo(puntero.x, puntero.y);
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+        }
+      }
+    };
+
+    const bucle = () => {
+      if (!vivo) return;
+      if (!document.hidden) pintar();
+      raf = requestAnimationFrame(bucle);
+    };
+
+    const alMover = (e) => {
+      const r = box.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      puntero.x = x;
+      puntero.y = y;
+      puntero.activo = x > -80 && y > -80 && x < r.width + 80 && y < r.height + 80;
+    };
+    const alSalir = () => { puntero.activo = false; };
+
+    medir();
+    if (quieto) {
+      pintar();
+    } else {
+      window.addEventListener("pointermove", alMover, { passive: true });
+      window.addEventListener("pointerleave", alSalir);
+      raf = requestAnimationFrame(bucle);
+    }
+
+    const ro = new ResizeObserver(medir);
+    ro.observe(box);
+
+    return () => {
+      vivo = false;
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("pointermove", alMover);
+      window.removeEventListener("pointerleave", alSalir);
+    };
   }, []);
 
-  const init = useMemo(() => async (engine) => { await loadSlim(engine); }, []);
-  if (!ok) return null;
-
   return (
-    <div className="s2b-neural" aria-hidden="true">
-      <ParticlesProvider init={init}>
-        <Particles id="s2b-neural-canvas" options={NEURAL_OPTS} />
-      </ParticlesProvider>
+    <div className="s2b-neural" ref={host} aria-hidden="true">
+      <canvas ref={lienzo} />
     </div>
   );
 }
@@ -1006,7 +1211,7 @@ export default function StudioB2B() {
               <div className="s2b-hero-cta">
                 <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>Contanos tu proyecto <ArrowRight size={16} /></button>
                 <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("metodo")}>
-                  <Play size={15} /> Ver el Ciclo B2B
+                  <Play size={15} /> Cómo trabajamos
                 </button>
               </div>
               <div className="s2b-hero-note"><span className="s2b-dot" /> 2 lugares para arrancar este trimestre</div>
@@ -1034,7 +1239,11 @@ export default function StudioB2B() {
           <div className="s2b-logos-t">Empresas que confían en Studio B2B</div>
           <div className="s2b-marq">
             <div className="s2b-marq-track">
-              {[...CLIENTES, ...CLIENTES, ...CLIENTES, ...CLIENTES].map((c, i) => <div className="s2b-clogo" key={i}>{c}</div>)}
+              {[...CLIENTES, ...CLIENTES, ...CLIENTES, ...CLIENTES].map((c, i) =>
+                c.src
+                  ? <img className="s2b-clogo s2b-clogo--img" key={i} src={c.src} alt={c.n} loading="lazy" />
+                  : <div className="s2b-clogo" key={i}>{c.n}</div>
+              )}
             </div>
           </div>
         </div>
@@ -1089,7 +1298,7 @@ export default function StudioB2B() {
           <div className="s2b-head s2b-rv">
             <div>
               <div className="s2b-eyebrow">Nuestro método</div>
-              <h2 className="s2b-h2">El <b>Ciclo B2B</b>, la forma en que trabajamos</h2>
+              <h2 className="s2b-h2">El <b>Método Studio</b>, la forma en que trabajamos</h2>
             </div>
             <p className="s2b-lead">
               Cuatro etapas con entregables definidos. Sabés en qué punto está tu proyecto
@@ -1100,7 +1309,7 @@ export default function StudioB2B() {
           <div className="s2b-method">
             <div className="s2b-video s2b-rv">
               <button className="s2b-play" aria-label="Reproducir video del método"><Play size={28} fill="currentColor" /></button>
-              <div className="s2b-video-cap">Ciclo B2B · 2 min con el equipo</div>
+              <div className="s2b-video-cap">Método Studio · 2 min con el equipo</div>
             </div>
             <div className="s2b-rv">
               <div className="s2b-stages">
@@ -1337,7 +1546,7 @@ export default function StudioB2B() {
                 <h5>Soluciones</h5>
                 <ul>
                   {SOLUCIONES.map((s) => <li key={s.id}><a href={"#servicios"} onClick={(e) => { e.preventDefault(); goTo("servicios"); }}>{s.t}</a></li>)}
-                  <li><a href="#metodo" onClick={(e) => { e.preventDefault(); goTo("metodo"); }}>Ciclo B2B</a></li>
+                  <li><a href="#metodo" onClick={(e) => { e.preventDefault(); goTo("metodo"); }}>Método Studio</a></li>
                 </ul>
               </div>
               <div>
