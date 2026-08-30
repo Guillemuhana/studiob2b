@@ -385,17 +385,6 @@ const CSS = `
 .s2b-qdots i { width:7px; height:7px; border-radius:50%; background:var(--line); transition: width .3s, background .3s; }
 .s2b-qdots i.on { width:22px; border-radius:999px; background:var(--violet); }
 
-/* ---------- equipo ---------- */
-.s2b-team { display:grid; grid-template-columns: 1fr .9fr; gap:52px; align-items:center; }
-.s2b-mosaic { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-.s2b-face { aspect-ratio:1; border-radius:16px; display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:17px; color:rgba(255,255,255,.9); }
-.s2b-face:nth-child(3n) { border-radius:50%; }
-.s2b-values { display:grid; gap:14px; margin-top:26px; }
-.s2b-value { display:grid; grid-template-columns:auto 1fr; gap:13px; align-items:start; }
-.s2b-value .k { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; background: rgba(109,74,255,.12); color:var(--violet); }
-.s2b-value b { display:block; color:var(--title); font-size:15px; }
-.s2b-value p { font-size:14px; color:var(--muted); }
-
 /* ---------- faq ---------- */
 .s2b-faq { margin-top:40px; border-top:1px solid var(--line); }
 .s2b-fq { width:100%; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:22px 0; text-align:left; font-family:var(--display); font-size:clamp(17px,1.9vw,20px); color:var(--title); }
@@ -436,7 +425,7 @@ const CSS = `
 /* ---------- responsive ---------- */
 @media (max-width: 1000px) {
   .s2b-sec { padding:80px 0; }
-  .s2b-split, .s2b-method, .s2b-team, .s2b-form-grid, .s2b-head { grid-template-columns:1fr; gap:36px; }
+  .s2b-split, .s2b-method, .s2b-form-grid, .s2b-head { grid-template-columns:1fr; gap:36px; }
   .s2b-hero { padding-top:64px; }
   .s2b-shortcuts { grid-template-columns:1fr; margin-top:48px; padding-bottom:48px; }
   .s2b-row { grid-template-columns:1fr; }
@@ -459,7 +448,6 @@ const CSS = `
   .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
   .s2b-tiles > *:nth-child(even) { margin-top:14px; }
   .s2b-tile-logo { width:30px; height:30px; }
-  .s2b-mosaic { grid-template-columns:repeat(3,1fr); }
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
 }
@@ -638,14 +626,6 @@ const TESTIMONIOS = [
   { q: "Trabajan con orden y comunicación real. Cada dos semanas veíamos el producto funcionando, no un informe de avance. Eso cambió la relación con nuestro directorio.", n: "Pablo Iriarte", r: "CIO", e: "Vialta", cat: "Diseño de producto", ic: PenTool, i: "PI", g: "linear-gradient(150deg,#8FB4FF,#3B2296)" },
 ];
 
-const EQUIPO = ["AL", "MR", "JC", "SP", "NF", "TG", "VD", "LM", "RB", "CE", "FA", "PQ"];
-
-const VALORES = [
-  { k: "01", t: "Equipo estable", d: "El mismo equipo de principio a fin. No rotamos gente entre proyectos." },
-  { k: "02", t: "Todo documentado", d: "Código, decisiones y accesos a tu nombre desde el primer commit." },
-  { k: "03", t: "Sin intermediarios", d: "Hablás con quien diseña y con quien programa, no con un cuentas." },
-];
-
 const FAQS = [
   { q: "¿Cuánto tarda un proyecto?", a: "Un agente de IA acotado sale en 4 a 6 semanas. Una plataforma completa, entre 3 y 6 meses, con entregas usables cada dos semanas desde la tercera." },
   { q: "¿Cómo cobran?", a: "El diagnóstico tiene precio cerrado. Después, por ciclos mensuales o por alcance fijo, según prefieras. Sin horas sorpresa al final del mes." },
@@ -668,7 +648,6 @@ const NAV_LINKS = [
   { id: "servicios", label: "Servicios" },
   { id: "metodo", label: "Método" },
   { id: "clientes", label: "Clientes" },
-  { id: "equipo", label: "Equipo" },
 ];
 
 /* ================= utilidades ================= */
@@ -1258,40 +1237,6 @@ export default function StudioB2B() {
         </div>
       </section>
 
-      {/* ============ EQUIPO ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="equipo" style={{ background: "linear-gradient(180deg,#FFFFFF,var(--paper))" }}>
-        <div className="s2b-wrap s2b-team">
-          <div className="s2b-mosaic s2b-rv">
-            {EQUIPO.map((f, i) => (
-              <div className="s2b-face" key={f} style={{
-                background: i % 3 === 0 ? "linear-gradient(150deg,#6D4AFF,#2A1568)"
-                  : i % 3 === 1 ? "linear-gradient(150deg,#A78CFF,#4B2FD6)"
-                    : "linear-gradient(150deg,#C3C8D8,#7C8095)",
-              }}>{f}</div>
-            ))}
-          </div>
-          <div className="s2b-rv">
-            <div className="s2b-eyebrow">Equipo</div>
-            <h2 className="s2b-h2">Dieciocho personas, <b>ningún intermediario</b></h2>
-            <p className="s2b-lead">
-              Diseñadores, desarrolladores e ingenieros de IA trabajando juntos desde Córdoba
-              para clientes de tres continentes.
-            </p>
-            <div className="s2b-values">
-              {VALORES.map((v) => (
-                <div className="s2b-value" key={v.k}>
-                  <div className="k" style={{ fontFamily: "var(--mono)", fontSize: 11 }}>{v.k}</div>
-                  <div><b>{v.t}</b><p>{v.d}</p></div>
-                </div>
-              ))}
-            </div>
-            <button className="s2b-btn s2b-btn--line" style={{ marginTop: 26 }} onClick={() => goTo("contacto")}>
-              Trabajá con nosotros <ArrowUpRight size={16} />
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* ============ FAQ ============ */}
       <section className="s2b-sec s2b-sec--sm">
         <div className="s2b-wrap" style={{ maxWidth: 900 }}>
@@ -1398,7 +1343,6 @@ export default function StudioB2B() {
               <div>
                 <h5>Estudio</h5>
                 <ul>
-                  <li><a href="#equipo" onClick={(e) => { e.preventDefault(); goTo("equipo"); }}>Equipo</a></li>
                   <li><a href="#clientes" onClick={(e) => { e.preventDefault(); goTo("clientes"); }}>Clientes</a></li>
                   <li><a href="#contacto" onClick={(e) => { e.preventDefault(); goTo("contacto"); }}>Trabajá con nosotros</a></li>
                 </ul>
