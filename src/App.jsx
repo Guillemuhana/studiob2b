@@ -103,9 +103,9 @@ const CSS = `
 .s2b-nav.is-stuck { background: rgba(255,255,255,.9); backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 1px 0 rgba(24,12,60,.08); }
 .s2b-nav-in { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:14px 0; }
 .s2b-brand { display:flex; align-items:center; gap:11px; }
-.s2b-mark { width:34px; height:34px; border-radius:32%; transform: rotate(45deg); flex:none;
-  background: radial-gradient(120% 120% at 30% 24%, #DCD6FF, #A78CFF 30%, #6D4AFF 58%, #2A1568 100%);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.32), inset 0 4px 10px rgba(255,255,255,.3); }
+.s2b-mark { width:40px; height:40px; flex:none; object-fit:contain; display:block;
+  filter: drop-shadow(0 4px 12px rgba(109,74,255,.45)); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+.s2b-brand:hover .s2b-mark { transform: scale(1.06); }
 .s2b-brand-txt { font-family: var(--display); font-weight:700; font-size:15px; line-height:1.1; color:#fff; }
 .s2b-nav.is-stuck .s2b-brand-txt { color: var(--title); }
 .s2b-brand-txt small { display:block; font-family: var(--mono); font-size:9px; letter-spacing:.18em; font-weight:400; color:#9E97C4; }
@@ -663,7 +663,7 @@ export default function StudioB2B() {
         <header className={"s2b-nav" + (stuck ? " is-stuck" : "")}>
           <div className="s2b-wrap s2b-nav-in">
             <button className="s2b-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              <div className="s2b-mark" />
+              <img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" />
               <div className="s2b-brand-txt">STUDIO B2B<small>DESDE 2015</small></div>
             </button>
 
@@ -699,7 +699,7 @@ export default function StudioB2B() {
         {drawer && (
           <div className="s2b-drawer">
             <div className="s2b-drawer-top">
-              <div className="s2b-brand"><div className="s2b-mark" /><div className="s2b-brand-txt">STUDIO B2B</div></div>
+              <div className="s2b-brand"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /><div className="s2b-brand-txt">STUDIO B2B</div></div>
               <button aria-label="Cerrar" onClick={() => setDrawer(false)}><X size={26} /></button>
             </div>
             {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
@@ -1068,7 +1068,7 @@ export default function StudioB2B() {
           <div className="s2b-wrap">
             <div className="s2b-foot-grid">
               <div>
-                <div className="s2b-brand"><div className="s2b-mark" /><div className="s2b-brand-txt">STUDIO B2B<small>PRODUCTO DIGITAL &amp; IA</small></div></div>
+                <div className="s2b-brand"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /><div className="s2b-brand-txt">STUDIO B2B<small>PRODUCTO DIGITAL &amp; IA</small></div></div>
                 <p style={{ fontSize: 14, color: "#9E97C4", marginTop: 16, maxWidth: "34ch" }}>
                   Diseñamos y construimos software a medida y agentes de IA para empresas que necesitan que las cosas funcionen.
                 </p>
