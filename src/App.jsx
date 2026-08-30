@@ -11,6 +11,7 @@ import {
   siNginx, siTerraform, siAnsible, siGithubactions, siRedis, siGrafana,
   siOwasp, siAuth0, siKeycloak, siLetsencrypt, siJsonwebtokens, siVault,
   siWireshark, siKalilinux, siBurpsuite, siWireguard, siSnyk, siBitwarden,
+  siWhatsapp,
 } from "simple-icons";
 
 /* ==================================================================
@@ -429,7 +430,74 @@ const CSS = `
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
 }
+/* ---------- burbuja de WhatsApp ---------- */
+.s2b-wa {
+  position:fixed; right:22px; bottom:22px; z-index:92;
+  display:flex; flex-direction:column; align-items:flex-end; gap:14px;
+  opacity:0; transform:translateY(18px) scale(.9); pointer-events:none;
+  transition: opacity .5s cubic-bezier(.2,.7,.2,1), transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.s2b-wa.is-shown { opacity:1; transform:none; pointer-events:auto; }
+
+.s2b-wa-fab {
+  position:relative; width:60px; height:60px; border-radius:50%; flex:none; display:grid; place-items:center;
+  color:#fff; background: linear-gradient(150deg,#4AE083,#1FA855 62%,#128C7E);
+  box-shadow: 0 14px 34px -10px rgba(18,140,126,.75), inset 0 1px 0 rgba(255,255,255,.35);
+  transition: transform .3s cubic-bezier(.2,.7,.2,1), box-shadow .3s;
+}
+.s2b-wa-fab:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 20px 44px -12px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.35); }
+.s2b-wa-fab .s2b-wa-ico { width:31px; height:31px; }
+.s2b-wa-fab::before {
+  content:''; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+  border:2px solid rgba(74,224,131,.55); animation: s2b-wa-ring 2.6s cubic-bezier(.2,.7,.2,1) infinite;
+}
+.s2b-wa-fab.is-open::before { display:none; }
+@keyframes s2b-wa-ring { 0% { transform:scale(1); opacity:.75; } 70%, 100% { transform:scale(1.7); opacity:0; } }
+
+.s2b-wa-tip {
+  position:absolute; right:74px; top:50%; transform:translateY(-50%) translateX(6px); white-space:nowrap;
+  background:#14102C; color:#fff; font-size:13px; font-weight:600; padding:9px 14px; border-radius:12px;
+  box-shadow:0 12px 28px -14px rgba(0,0,0,.85); opacity:0; pointer-events:none;
+  transition:opacity .25s, transform .25s;
+}
+.s2b-wa-fab:hover .s2b-wa-tip { opacity:1; transform:translateY(-50%); }
+.s2b-wa-fab.is-open .s2b-wa-tip { display:none; }
+
+.s2b-wa-panel {
+  width:314px; max-width:calc(100vw - 44px); border-radius:22px; overflow:hidden; background:#fff;
+  border:1px solid rgba(24,12,60,.10); box-shadow:0 30px 70px -28px rgba(11,7,24,.6);
+  animation: s2b-wa-in .32s cubic-bezier(.2,.7,.2,1); transform-origin:bottom right;
+}
+@keyframes s2b-wa-in { from { opacity:0; transform:translateY(12px) scale(.94); } }
+.s2b-wa-top { display:flex; align-items:center; gap:11px; padding:15px 16px; background: linear-gradient(140deg,#1FA855,#128C7E); color:#fff; }
+.s2b-wa-top img { width:38px; height:38px; object-fit:contain; flex:none; border-radius:11px; background:rgba(255,255,255,.16); padding:3px; }
+.s2b-wa-top b { display:block; font-family:var(--display); font-size:14.5px; line-height:1.3; }
+.s2b-wa-top span { display:flex; align-items:center; gap:6px; font-size:11.5px; color:rgba(255,255,255,.88); }
+.s2b-wa-top span i { width:7px; height:7px; border-radius:50%; background:#7DFFAE; box-shadow:0 0 0 3px rgba(125,255,174,.25); }
+.s2b-wa-x { margin-left:auto; color:rgba(255,255,255,.85); display:grid; place-items:center; width:27px; height:27px; border-radius:9px; transition:background .2s, color .2s; }
+.s2b-wa-x:hover { background:rgba(255,255,255,.2); color:#fff; }
+
+.s2b-wa-body { padding:18px 16px 4px; background:#F3F0E9; }
+.s2b-wa-msg { margin:0 0 14px; background:#fff; border-radius:4px 15px 15px 15px; padding:11px 13px; font-size:14px; line-height:1.5; color:#14102C; box-shadow:0 2px 6px -2px rgba(0,0,0,.16); }
+.s2b-wa-chips { display:grid; gap:8px; padding-bottom:16px; }
+.s2b-wa-chips button {
+  text-align:left; font-size:13px; font-weight:600; color:#0E7A6E; background:#fff;
+  border:1px solid rgba(18,140,126,.26); border-radius:13px; padding:9px 12px;
+  transition: background .2s, transform .2s, border-color .2s;
+}
+.s2b-wa-chips button:hover { background:#E9FBF2; border-color:rgba(18,140,126,.5); transform:translateX(2px); }
+.s2b-wa-cta { width:100%; display:flex; align-items:center; justify-content:center; gap:9px; padding:14px; font-size:14.5px; font-weight:700; color:#fff; background: linear-gradient(140deg,#1FA855,#128C7E); transition:filter .2s; }
+.s2b-wa-cta:hover { filter:brightness(1.09); }
+.s2b-wa-cta .s2b-wa-ico { width:19px; height:19px; }
+
+@media (max-width: 600px) {
+  .s2b-wa { right:16px; bottom:16px; }
+  .s2b-wa-fab { width:56px; height:56px; }
+  .s2b-wa-fab .s2b-wa-ico { width:28px; height:28px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .s2b-wa-fab::before { display:none; }
   .s2b *, .s2b *::before, .s2b *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
   .s2b-rv { opacity:1; transform:none; }
 }
@@ -553,6 +621,15 @@ const FAQS = [
   { q: "¿Se puede empezar chico?", a: "Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción." },
 ];
 
+const WA_NUM = "5493515931673";
+const WA_SHOW = "+54 9 351 593-1673";
+const waLink = (msg) => "https://wa.me/" + WA_NUM + "?text=" + encodeURIComponent(msg);
+const WA_CHIPS = [
+  "Hola, quiero un agente de IA para mi empresa.",
+  "Hola, necesito desarrollar un software a medida.",
+  "Hola, quiero hacerles una consulta.",
+];
+
 const NAV_LINKS = [
   { id: "servicios", label: "Servicios" },
   { id: "metodo", label: "Método" },
@@ -574,6 +651,109 @@ function BrandLogo({ icon }) {
     <svg className="s2b-tile-logo" viewBox="0 0 24 24" role="img" aria-label={icon.title} fill={brandColor(icon.hex)}>
       <path d={icon.path} />
     </svg>
+  );
+}
+
+function Terminal() {
+  const [n, setN] = useState(0);
+
+  /* escribe las lineas de a una y vuelve a empezar */
+  useEffect(() => {
+    const quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (quieto) { setN(AGENT_LINES.length); return; }
+    if (n >= AGENT_LINES.length) {
+      const t = setTimeout(() => setN(0), 3400);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setN((v) => v + 1), n === 0 ? 480 : 760);
+    return () => clearTimeout(t);
+  }, [n]);
+
+  return (
+    <div className="s2b-term">
+      <div className="s2b-term-bar">
+        <i /><i /><i />
+        <b>agente-comercial · producción</b>
+      </div>
+      <div className="s2b-term-body">
+        {AGENT_LINES.slice(0, n).map((l, i) => (
+          <div key={i} className={l.c}>{l.t}</div>
+        ))}
+        <div className="cmd">{"> "}<span className="s2b-caret" /></div>
+      </div>
+    </div>
+  );
+}
+
+function WhatsappGlyph() {
+  return (
+    <svg className="s2b-wa-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d={siWhatsapp.path} />
+    </svg>
+  );
+}
+
+function WhatsAppBubble() {
+  const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(false);
+  const box = useRef(null);
+
+  /* entra sola despues de un momento, para no tapar el hero de arranque */
+  useEffect(() => {
+    const t = setTimeout(() => setShown(true), 1600);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const onDown = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [open]);
+
+  const go = (msg) => {
+    window.open(waLink(msg), "_blank", "noopener,noreferrer");
+    setOpen(false);
+  };
+
+  return (
+    <div className={"s2b-wa" + (shown ? " is-shown" : "")} ref={box}>
+      {open && (
+        <div className="s2b-wa-panel" role="dialog" aria-label="Escribinos por WhatsApp">
+          <div className="s2b-wa-top">
+            <img src="/logo.png" alt="" aria-hidden="true" />
+            <div>
+              <b>Studio B2B</b>
+              <span><i /> Respondemos en el día</span>
+            </div>
+            <button className="s2b-wa-x" onClick={() => setOpen(false)} aria-label="Cerrar"><X size={16} /></button>
+          </div>
+          <div className="s2b-wa-body">
+            <p className="s2b-wa-msg">¡Hola! 👋 Contanos qué necesitás y seguimos la charla por WhatsApp.</p>
+            <div className="s2b-wa-chips">
+              {WA_CHIPS.map((c) => <button key={c} onClick={() => go(c)}>{c}</button>)}
+            </div>
+          </div>
+          <button className="s2b-wa-cta" onClick={() => go("Hola Studio B2B, quiero hacerles una consulta.")}>
+            <WhatsappGlyph /> Abrir WhatsApp
+          </button>
+        </div>
+      )}
+      <button
+        className={"s2b-wa-fab" + (open ? " is-open" : "")}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={open ? "Cerrar el chat de WhatsApp" : "Escribinos por WhatsApp"}
+      >
+        {open ? <X size={24} /> : <WhatsappGlyph />}
+        <span className="s2b-wa-tip">Escribinos por WhatsApp</span>
+      </button>
+    </div>
   );
 }
 
@@ -1025,7 +1205,7 @@ export default function StudioB2B() {
                 lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.
               </p>
               <div className="s2b-cline"><Mail size={17} /> hola@studiob2b.com</div>
-              <div className="s2b-cline"><Phone size={17} /> +54 9 351 000-0000</div>
+              <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
               <div className="s2b-cline"><MapPin size={17} /> Córdoba, Argentina · trabajo remoto</div>
               <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
                 <Quote size={20} style={{ color: "var(--lilac)" }} />
@@ -1097,7 +1277,7 @@ export default function StudioB2B() {
                 <h5>Contacto</h5>
                 <ul>
                   <li><a href="mailto:hola@studiob2b.com">hola@studiob2b.com</a></li>
-                  <li><a href="#">+54 9 351 000-0000</a></li>
+                  <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
                   <li><a href="#">Córdoba, Argentina</a></li>
                 </ul>
               </div>
@@ -1109,6 +1289,8 @@ export default function StudioB2B() {
           </div>
         </footer>
       </div>
+
+      <WhatsAppBubble />
     </div>
   );
 }
