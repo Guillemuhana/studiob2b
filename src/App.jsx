@@ -4,6 +4,14 @@ import {
   Workflow, Smartphone, Plus, Minus, Menu, X, Mail, MapPin, Check,
   Instagram, Linkedin, Github, Play, ChevronDown, Phone, Quote,
 } from "lucide-react";
+import {
+  siReact, siNextdotjs, siTypescript, siNodedotjs, siPython, siSupabase,
+  siPostgresql, siTailwindcss, siFlutter, siExpo, siGraphql, siPrisma,
+  siDocker, siKubernetes, siGooglecloud, siVercel, siCloudflare, siLinux,
+  siNginx, siTerraform, siAnsible, siGithubactions, siRedis, siGrafana,
+  siOwasp, siAuth0, siKeycloak, siLetsencrypt, siJsonwebtokens, siVault,
+  siWireshark, siKalilinux, siBurpsuite, siWireguard, siSnyk, siBitwarden,
+} from "simple-icons";
 
 /* ==================================================================
    STUDIO B2B — sitio de agencia · v2
@@ -258,15 +266,65 @@ const CSS = `
 .s2b-ul li { display:flex; gap:11px; align-items:flex-start; font-size:15px; color:var(--text); }
 .s2b-ul svg { flex:none; margin-top:3px; color:var(--lilac); }
 
-/* ---------- stack tabs ---------- */
-.s2b-tabs { display:flex; gap:6px; flex-wrap:wrap; margin:34px 0 26px; padding:5px; border-radius:999px; background:#fff; border:1px solid var(--line); width:max-content; max-width:100%; }
-.s2b-tab { padding:10px 18px; border-radius:999px; font-size:14px; font-weight:600; color:var(--muted); transition: background .25s, color .25s; }
+/* ---------- tecnologías ---------- */
+.s2b-tech-head { max-width:760px; }
+.s2b-tech-lead { margin-top:16px; font-size:16.5px; color:var(--muted); max-width:660px; }
+
+.s2b-tech-panel {
+  position:relative; margin-top:42px; padding:30px 30px 34px; border-radius:30px; overflow:hidden;
+  border:1px solid rgba(167,140,255,.16);
+  background:
+    radial-gradient(720px circle at 84% -12%, rgba(109,74,255,.34), transparent 62%),
+    radial-gradient(560px circle at 2% 110%, rgba(167,140,255,.16), transparent 60%),
+    linear-gradient(168deg,#150B3F 0%, #0B0718 74%);
+  box-shadow: 0 44px 90px -54px rgba(24,12,60,.95);
+}
+.s2b-tech-panel::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(167,140,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167,140,255,.055) 1px, transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image: radial-gradient(72% 62% at 50% 38%, #000, transparent);
+  mask-image: radial-gradient(72% 62% at 50% 38%, #000, transparent);
+}
+.s2b-tech-tabs {
+  position:relative; display:flex; gap:6px; flex-wrap:wrap; margin-bottom:28px; padding:5px;
+  border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(167,140,255,.18);
+  width:max-content; max-width:100%;
+}
+.s2b-tab { padding:10px 18px; border-radius:999px; font-size:14px; font-weight:600; color:#9E97C4; transition: background .25s, color .25s; }
+.s2b-tab:hover { color:#EDE9FF; }
 .s2b-tab.is-on { background: linear-gradient(120deg,var(--violet),#4B2FD6); color:#fff; }
-.s2b-techs { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
-.s2b-tech { display:grid; gap:9px; place-items:center; padding:20px 10px; border-radius:16px; background:#fff; border:1px solid var(--line); transition: transform .25s, border-color .25s, box-shadow .25s; }
-.s2b-tech:hover { transform: translateY(-4px); border-color: rgba(109,74,255,.35); box-shadow:0 16px 34px -20px rgba(109,74,255,.7); }
-.s2b-tech .bad { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:14px; color:#fff; background: linear-gradient(150deg,var(--violet),#3B2296); }
-.s2b-tech span { font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center; }
+
+.s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(6,1fr); gap:14px; }
+.s2b-tile {
+  position:relative; aspect-ratio:1/1; border-radius:20px; display:grid; place-items:center;
+  background:rgba(255,255,255,.045); border:1px solid rgba(167,140,255,.12);
+  transition: transform .3s cubic-bezier(.2,.7,.2,1), background .3s, border-color .3s, box-shadow .3s;
+}
+.s2b-tile--void { background:rgba(255,255,255,.018); border-color:rgba(167,140,255,.07); }
+.s2b-tile:not(.s2b-tile--void) { animation: s2b-tile-in .5s cubic-bezier(.2,.7,.2,1) backwards; }
+@keyframes s2b-tile-in { from { opacity:0; transform:translateY(14px) scale(.94); } }
+.s2b-tile:not(.s2b-tile--void):hover {
+  transform:translateY(-6px); background:rgba(255,255,255,.075);
+  border-color:rgba(167,140,255,.42); box-shadow:0 24px 46px -24px rgba(109,74,255,.85);
+}
+.s2b-tile-logo { width:38px; height:38px; transition: transform .3s; }
+.s2b-tile:hover .s2b-tile-logo { transform:scale(1.09); }
+.s2b-tile-name {
+  position:absolute; left:6px; right:6px; bottom:11px; text-align:center;
+  font-family:var(--mono); font-size:10px; letter-spacing:.03em; color:#B3ABD6;
+  opacity:0; transform:translateY(5px); transition:opacity .3s, transform .3s;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.s2b-tile:hover .s2b-tile-name { opacity:1; transform:none; }
+/* desfase por columna: el mosaico escalonado de la referencia */
+.s2b-tiles > *:nth-child(6n+2) { margin-top:26px; }
+.s2b-tiles > *:nth-child(6n+3) { margin-top:10px; }
+.s2b-tiles > *:nth-child(6n+4) { margin-top:32px; }
+.s2b-tiles > *:nth-child(6n+5) { margin-top:4px; }
+.s2b-tiles > *:nth-child(6n+6) { margin-top:18px; }
 
 /* ---------- métricas ---------- */
 .s2b-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-radius:26px; overflow:hidden; border:1px solid rgba(167,140,255,.22);
@@ -349,7 +407,11 @@ const CSS = `
   .s2b-row { grid-template-columns:1fr; }
   .s2b-row:nth-child(even) .s2b-row-txt { order:0; }
   .s2b-row-vis { min-height:230px; order:-1; }
-  .s2b-techs { grid-template-columns:repeat(3,1fr); }
+  .s2b-tiles { grid-template-columns:repeat(4,1fr); }
+  .s2b-tiles > * { margin-top:0 !important; }
+  .s2b-tiles > *:nth-child(4n+2) { margin-top:22px !important; }
+  .s2b-tiles > *:nth-child(4n+4) { margin-top:12px !important; }
+  .s2b-tech-panel { padding:24px 20px 28px; border-radius:26px; }
   .s2b-stats { grid-template-columns:repeat(2,1fr); }
   .s2b-stat { border-bottom:1px solid rgba(167,140,255,.18); }
   .s2b-qcard { grid-template-columns:1fr; gap:22px; }
@@ -360,7 +422,9 @@ const CSS = `
   .s2b-head { align-items:start; }
 }
 @media (max-width: 600px) {
-  .s2b-techs { grid-template-columns:repeat(2,1fr); }
+  .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
+  .s2b-tiles > * { margin-top:0 !important; }
+  .s2b-tile-logo { width:30px; height:30px; }
   .s2b-mosaic { grid-template-columns:repeat(3,1fr); }
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
@@ -431,11 +495,33 @@ const AGENT_PTS = [
   "Corre sobre tu infraestructura, con tus datos donde vos decidas.",
 ];
 
-const STACK = {
-  "Producto y diseño": [["Fg", "Figma"], ["Fr", "Framer"], ["Ds", "Design system"], ["Ux", "Maze"], ["Ln", "Lottie"], ["St", "Storybook"]],
-  "Desarrollo": [["Re", "React"], ["Nx", "Next.js"], ["Ts", "TypeScript"], ["Nd", "Node.js"], ["Pg", "PostgreSQL"], ["Rn", "React Native"], ["Aw", "AWS"], ["Vc", "Vercel"], ["Dk", "Docker"], ["Sb", "Supabase"], ["Gh", "GitHub"], ["Py", "Python"]],
-  "IA y automatización": [["An", "Anthropic"], ["Oa", "OpenAI"], ["Lc", "LangChain"], ["n8", "n8n"], ["Pv", "pgvector"], ["Vx", "Vertex AI"], ["Ws", "Whisper"], ["Ev", "Evals"]],
+const TECNOLOGIAS = {
+  "Desarrollo de Software": [
+    siReact, siNextdotjs, siTypescript, siNodedotjs, siPython, siSupabase,
+    siPostgresql, siTailwindcss, siFlutter, siExpo, siGraphql, siPrisma,
+  ],
+  "Infraestructura IT": [
+    siDocker, siKubernetes, siGooglecloud, siVercel, siCloudflare, siLinux,
+    siNginx, siTerraform, siAnsible, siGithubactions, siRedis, siGrafana,
+  ],
+  "Ciberseguridad": [
+    siOwasp, siAuth0, siKeycloak, siLetsencrypt, siJsonwebtokens, siVault,
+    siWireshark, siKalilinux, siBurpsuite, siWireguard, siSnyk, siBitwarden,
+  ],
 };
+
+/* Mosaico de 6x4: true = celda con logo, false = celda vacía decorativa.
+   MASK_INDEX mapea cada celda llena a su posición en el array de logos. */
+const TILE_MASK = [
+  true, false, false, true, false, true,
+  false, true, true, false, true, false,
+  true, false, true, false, false, true,
+  false, true, false, true, true, false,
+];
+const MASK_INDEX = (() => {
+  let n = 0;
+  return TILE_MASK.map((f) => (f ? n++ : -1));
+})();
 
 const STATS = [
   { to: 10, sfx: "+", l: "Años en el mercado" },
@@ -476,6 +562,21 @@ const NAV_LINKS = [
 
 /* ================= utilidades ================= */
 
+/* Los logos casi negros (Next.js, OWASP, JWT) se aclaran para leerse sobre el panel oscuro. */
+function brandColor(hex) {
+  const n = parseInt(hex, 16);
+  const lum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+  return lum < 0.26 ? "#E7E1FF" : "#" + hex;
+}
+
+function BrandLogo({ icon }) {
+  return (
+    <svg className="s2b-tile-logo" viewBox="0 0 24 24" role="img" aria-label={icon.title} fill={brandColor(icon.hex)}>
+      <path d={icon.path} />
+    </svg>
+  );
+}
+
 function Counter({ to, sfx }) {
   const ref = useRef(null);
   const [v, setV] = useState(0);
@@ -506,7 +607,7 @@ export default function StudioB2B() {
   const [stuck, setStuck] = useState(false);
   const [pop, setPop] = useState(false);
   const [drawer, setDrawer] = useState(false);
-  const [tab, setTab] = useState("Desarrollo");
+  const [tab, setTab] = useState("Desarrollo de Software");
   const [qi, setQi] = useState(0);
   const [faq, setFaq] = useState(0);
   const [sent, setSent] = useState(false);
@@ -762,25 +863,45 @@ export default function StudioB2B() {
         </section>
       </div>
 
-      {/* ============ STACK ============ */}
-      <section className="s2b-sec s2b-sec--sm">
+      {/* ============ TECNOLOGÍAS ============ */}
+      <section className="s2b-sec s2b-sec--sm" id="tecnologias">
         <div className="s2b-wrap">
-          <div className="s2b-rv">
-            <div className="s2b-eyebrow">Tecnologías</div>
-            <h2 className="s2b-h2">Un stack <b>elegido, no acumulado</b></h2>
-            <div className="s2b-tabs" role="tablist">
-              {Object.keys(STACK).map((k) => (
-                <button key={k} role="tab" aria-selected={tab === k} className={"s2b-tab" + (tab === k ? " is-on" : "")} onClick={() => setTab(k)}>{k}</button>
+          <div className="s2b-rv s2b-tech-head">
+            <div className="s2b-eyebrow">Stack</div>
+            <h2 className="s2b-h2">Tecnologías que <b>potencian nuestras soluciones</b></h2>
+            <p className="s2b-tech-lead">
+              Trabajamos con un stack robusto y actualizado, que nos permite integrar sistemas
+              complejos, acelerar desarrollos y garantizar seguridad en cada proyecto.
+            </p>
+          </div>
+
+          <div className="s2b-tech-panel s2b-rv">
+            <div className="s2b-tech-tabs" role="tablist" aria-label="Categorías de tecnologías">
+              {Object.keys(TECNOLOGIAS).map((k) => (
+                <button
+                  key={k}
+                  role="tab"
+                  aria-selected={tab === k}
+                  className={"s2b-tab" + (tab === k ? " is-on" : "")}
+                  onClick={() => setTab(k)}
+                >
+                  {k}
+                </button>
               ))}
             </div>
-          </div>
-          <div className="s2b-techs">
-            {STACK[tab].map(([ab, name]) => (
-              <div className="s2b-tech" key={name}>
-                <div className="bad">{ab}</div>
-                <span>{name}</span>
-              </div>
-            ))}
+
+            <div className="s2b-tiles" key={tab}>
+              {TILE_MASK.map((filled, i) => {
+                const ic = filled ? TECNOLOGIAS[tab][MASK_INDEX[i]] : null;
+                if (!ic) return <div className="s2b-tile s2b-tile--void" key={i} aria-hidden="true" />;
+                return (
+                  <div className="s2b-tile" key={i} style={{ animationDelay: i * 32 + "ms" }}>
+                    <BrandLogo icon={ic} />
+                    <span className="s2b-tile-name">{ic.title}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
