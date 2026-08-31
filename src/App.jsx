@@ -191,6 +191,23 @@ const CSS = `
   -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 96%);
           mask-image: linear-gradient(180deg, #000 58%, transparent 96%); }
 .s2b-neural canvas { display:block; width:100%; height:100%; }
+
+/* arriba al costado: el nombre de la red y como se juega con ella */
+.s2b-hint-wrap { position:absolute; top:16px; left:0; right:0; z-index:2; pointer-events:none; }
+.s2b-hint { display:inline-flex; align-items:center; gap:9px; max-width:100%;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:#9E97C4; opacity:0; animation: s2b-hint-in 1.1s 1.4s ease-out forwards; }
+.s2b-hint b { color:#D8CDFF; font-weight:500; letter-spacing:.18em; }
+.s2b-hint i { width:6px; height:6px; border-radius:50%; flex:none; background:#C9B6FF;
+  box-shadow:0 0 0 4px rgba(201,182,255,.16); animation: s2b-hint-late 2.4s ease-in-out infinite; }
+.s2b-hint span { letter-spacing:.1em; text-transform:none; font-size:11px; color:#8F88B8; }
+.s2b-hint .solo-dedo { display:none; }
+@keyframes s2b-hint-in { to { opacity:1; } }
+@keyframes s2b-hint-late { 0%,100% { transform:scale(1); opacity:.75; } 50% { transform:scale(1.35); opacity:1; } }
+@media (hover: none) {
+  .s2b-hint .solo-mouse { display:none; }
+  .s2b-hint .solo-dedo { display:inline; }
+}
 .s2b-grid { position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.5;
   background-image: linear-gradient(rgba(167,140,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(167,140,255,.08) 1px, transparent 1px);
   background-size: 72px 72px;
@@ -273,6 +290,20 @@ const CSS = `
 .s2b-chip { font-family:var(--mono); font-size:11px; padding:5px 11px; border-radius:999px; background:var(--paper); border:1px solid var(--line); color:var(--muted); }
 .s2b-row-vis { position:relative; min-height:280px; overflow:hidden; display:grid; place-items:center; }
 .s2b-blob { position:absolute; border-radius:50%; filter: blur(46px); opacity:.85; }
+/* la captura de un trabajo real, en vez del panel de mentira. Se ve entera:
+   la altura la pone la propia imagen, nada se recorta. */
+.s2b-shot { position:relative; width:88%; border-radius:14px; overflow:hidden;
+  background:#fff; border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 26px 60px -26px rgba(24,12,60,.55);
+  transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
+.s2b-shot img { width:100%; height:auto; display:block; }
+.s2b-row:hover .s2b-shot { transform:translateY(-6px) scale(1.02);
+  box-shadow:0 34px 70px -28px rgba(24,12,60,.6); }
+/* el vidrio de arriba, para que se lea como pantalla y no como foto pegada */
+.s2b-shot::after { content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:linear-gradient(150deg, rgba(255,255,255,.28), rgba(255,255,255,0) 42%);
+  box-shadow: inset 0 0 0 1px rgba(24,12,60,.06); }
+
 .s2b-glass { position:relative; width:78%; border-radius:18px; border:1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.55); backdrop-filter: blur(14px); padding:18px; box-shadow: 0 22px 50px -22px rgba(24,12,60,.5); }
 .s2b-glass .gl-bar { height:8px; border-radius:999px; background: rgba(24,12,60,.14); margin-bottom:10px; }
 .s2b-glass .gl-bar.w1{width:62%} .s2b-glass .gl-bar.w2{width:88%} .s2b-glass .gl-bar.w3{width:44%}
@@ -497,6 +528,9 @@ const CSS = `
   .s2b-tile--void { display:none; }
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
+  .s2b-hint-wrap { top:12px; }
+  .s2b-hint { font-size:9.5px; gap:7px; }
+  .s2b-hint span { font-size:10px; }
 }
 /* ---------- burbuja de WhatsApp ---------- */
 .s2b-wa {
@@ -595,6 +629,8 @@ const SERVICIOS = [
     d: "Asistentes que atienden por WhatsApp, califican consultas y escriben en tu CRM. Con la información real del negocio adentro, no respuestas de manual. Y con una persona que toma el control cuando el caso lo pide.",
     chips: ["RAG", "Function calling", "Evaluaciones", "Handoff humano"],
     cta: "Ver cómo funciona", to: "agentes",
+    img: "/trabajos/agente-n8n.png", an: 1400, al: 483,
+    alt: "Flujo de un agente en producción: entra por WhatsApp o SMS, decide, consulta la base y escribe en el CRM",
     blobs: ["#A78CFF", "#6D4AFF"], bg: "linear-gradient(150deg,#F0ECFF,#E4DCFF)",
   },
   {
@@ -602,6 +638,8 @@ const SERVICIOS = [
     d: "Sistemas de gestión, portales de clientes y plataformas de operación. Arquitectura simple y documentada, para que tu equipo pueda sostenerla sin depender de nosotros para cada cambio.",
     chips: ["React", "Node", "PostgreSQL", "APIs", "AWS"],
     cta: "Conocer el enfoque", to: "metodo",
+    img: "/trabajos/numera.jpg", an: 1400, al: 793,
+    alt: "Numera, la plataforma de presupuestos y facturas que desarrollamos a medida",
     blobs: ["#8FB4FF", "#6D4AFF"], bg: "linear-gradient(150deg,#EAF0FF,#E1E7FF)",
   },
   {
@@ -609,6 +647,8 @@ const SERVICIOS = [
     d: "Investigación, flujos, prototipo navegable y sistema de diseño. Las decisiones caras se toman acá, cuando cambiar una pantalla cuesta una tarde y no dos sprints.",
     chips: ["UX research", "UI", "Design system", "React Native"],
     cta: "Ver trabajos", to: "clientes",
+    img: "/trabajos/ipicsmo.jpg", an: 1400, al: 646,
+    alt: "IPIC SMO, sitio y sistema de diseño que armamos para una organización de investigación clínica",
     blobs: ["#FFC6E8", "#A78CFF"], bg: "linear-gradient(150deg,#FBEDFF,#F0E6FF)",
   },
 ];
@@ -705,6 +745,18 @@ const FAQS = [
   { q: "¿Se puede empezar chico?", a: "Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción." },
 ];
 
+/* Las mismas preguntas, en el formato que Google entiende. Se genera desde
+   FAQS para que no se despegue nunca de lo que dice la pagina. */
+const FAQ_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 const FORM_TO = "guillemuhana@gmail.com";
 const WA_NUM = "5493515931673";
 const WA_SHOW = "+54 9 351 593-1673";
@@ -744,9 +796,9 @@ function BrandLogo({ icon }) {
    viaja por el axon, carga a la neurona de la otra punta y, si junta suficiente,
    la hace disparar. De ahi salen las cascadas que recorren la red sola. */
 const RED = {
-  densidad: 17000,   // un area de N px2 por neurona
-  min: 20,
-  max: 72,
+  densidad: 27000,   // un area de N px2 por neurona
+  min: 14,
+  max: 44,
   axones: 2,         // cuantos axones saca cada neurona
   alcance: 260,      // hasta donde busca con quien conectarse
   puntero: 250,      // radio en el que el puntero estimula
@@ -1117,6 +1169,59 @@ function interiorIdea(ctx, tipo, x, y, an, al, a, apar, acento) {
   }
 }
 
+/* La forma de una neurona: un soma irregular y un arbol de dendritas que sale
+   en estrella, con sus botones sinapticos. Se arma una sola vez por celula, en
+   coordenadas locales y guardada en Path2D, asi cada cuadro son cuatro trazos
+   por neurona y no cientos. */
+function morfologia(esc) {
+  const soma = new Path2D();
+  const puntas = 7 + Math.floor(Math.random() * 4);
+  const cuerpo = (3.2 + Math.random() * 1.7) * esc;
+  for (let i = 0; i <= puntas; i++) {
+    const a = (i / puntas) * Math.PI * 2;
+    const r = cuerpo * (0.74 + Math.random() * 0.55);
+    const x = Math.cos(a) * r, y = Math.sin(a) * r;
+    if (i === 0) soma.moveTo(x, y); else soma.lineTo(x, y);
+  }
+  soma.closePath();
+
+  const gruesa = new Path2D(), fina = new Path2D(), cuentas = new Path2D();
+
+  const rama = (x0, y0, a, largo, nivel) => {
+    const c = (Math.random() - 0.5) * 0.55;
+    const mx = x0 + Math.cos(a) * largo * 0.5 - Math.sin(a) * largo * c;
+    const my = y0 + Math.sin(a) * largo * 0.5 + Math.cos(a) * largo * c;
+    const x1 = x0 + Math.cos(a + c * 0.7) * largo;
+    const y1 = y0 + Math.sin(a + c * 0.7) * largo;
+    (nivel === 0 ? gruesa : fina).moveTo(x0, y0);
+    (nivel === 0 ? gruesa : fina).quadraticCurveTo(mx, my, x1, y1);
+    /* los botones: las cuentitas que se ven prendidas sobre la fibra */
+    if (Math.random() < 0.66) {
+      const t = 0.5 + Math.random() * 0.45, u = 1 - t;
+      const bx = u * u * x0 + 2 * u * t * mx + t * t * x1;
+      const by = u * u * y0 + 2 * u * t * my + t * t * y1;
+      const br = (0.9 + Math.random() * 0.7) * esc;
+      cuentas.moveTo(bx + br, by);
+      cuentas.arc(bx, by, br, 0, Math.PI * 2);
+    }
+    if (nivel < 2) {
+      const hijas = nivel === 0 ? 2 : (Math.random() < 0.45 ? 1 : 0);
+      for (let k = 0; k < hijas; k++) {
+        rama(x1, y1, a + (Math.random() - 0.5) * 1.6, largo * (0.48 + Math.random() * 0.3), nivel + 1);
+      }
+    }
+  };
+
+  const troncos = 9 + Math.floor(Math.random() * 8);
+  const giro = Math.random() * Math.PI * 2;
+  for (let i = 0; i < troncos; i++) {
+    const a = giro + (i / troncos) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    const l = (17 + Math.random() * 18) * esc;
+    rama(Math.cos(a) * cuerpo * 0.8, Math.sin(a) * cuerpo * 0.8, a, l, 0);
+  }
+  return { soma, gruesa, fina, cuentas, r: cuerpo };
+}
+
 function NeuralBg() {
   const host = useRef(null);
   const lienzo = useRef(null);
@@ -1167,21 +1272,17 @@ function NeuralBg() {
           if (neuronas.length >= n) break;
           const hx = (c + 0.5) * cw + (Math.random() - 0.5) * cw * 0.75;
           const hy = (f + 0.5) * ch + (Math.random() - 0.5) * ch * 0.75;
-          const cuantas = 3 + Math.floor(Math.random() * 3);
-          const giro = Math.random() * Math.PI * 2;
+          /* casi todas medianas y alguna celula grande, como en el tejido real */
+          const esc = Math.random() < 0.18 ? 1.25 + Math.random() * 0.5 : 0.72 + Math.random() * 0.4;
+          const forma = morfologia(esc);
           neuronas.push({
             x: hx, y: hy, hx, hy,
             f1: Math.random() * Math.PI * 2, f2: Math.random() * Math.PI * 2,
             v1: 0.16 + Math.random() * 0.2, v2: 0.11 + Math.random() * 0.16,
             amp: 3 + Math.random() * 5,
-            r: 2.2 + Math.random() * 2,
-            /* dendritas: ramitas cortas alrededor del soma, cada una con su quiebre */
-            den: Array.from({ length: cuantas }, (_, i) => ({
-              a: giro + (i / cuantas) * Math.PI * 2 + (Math.random() - 0.5) * 0.7,
-              l: 14 + Math.random() * 17,
-              c: (Math.random() - 0.5) * 0.9,
-              rama: Math.random() < 0.55,
-            })),
+            esc,
+            r: forma.r,
+            soma: forma.soma, gruesa: forma.gruesa, fina: forma.fina, cuentas: forma.cuentas,
             carga: Math.random() * 0.4,
             brillo: 0,
             descanso: Math.random() * 0.6,
@@ -1201,6 +1302,14 @@ function NeuralBg() {
           .filter((o) => o.j !== i && o.d < RED.alcance)
           .sort((a, b) => a.d - b.d)
           .slice(0, RED.axones + (Math.random() < 0.3 ? 1 : 0));
+        /* una de cada cinco saca ademas un axon largo, de los que cruzan */
+        if (Math.random() < 0.2) {
+          const lejos = neuronas
+            .map((q, j) => ({ j, d: Math.hypot(q.hx - p.hx, q.hy - p.hy) }))
+            .filter((o) => o.j !== i && o.d > RED.alcance && o.d < RED.alcance * 2.4)
+            .sort((a, b) => a.d - b.d)[0];
+          if (lejos) cerca.push(lejos);
+        }
         for (const o of cerca) {
           const llave = Math.min(i, o.j) + "-" + Math.max(i, o.j);
           if (hechos.has(llave)) continue;
@@ -1534,39 +1643,40 @@ function NeuralBg() {
         const [cx, cy] = control(ax);
         const encendido = Math.max(ax.luz, Math.max(p.brillo, q.brillo) * 0.55);
         const c = tono(FRIO_LINK, CLARO_LINK, encendido);
-        ctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," +
-          ((0.26 + encendido * 0.5) * vis).toFixed(3) + ")";
-        ctx.lineWidth = 1 + encendido * 0.9;
+        const col = (op) => "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (op * vis).toFixed(3) + ")";
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
         ctx.quadraticCurveTo(cx, cy, q.x, q.y);
+        /* el halo primero, el nucleo del axon despues: asi la fibra brilla */
+        ctx.strokeStyle = col(0.08 + encendido * 0.22);
+        ctx.lineWidth = 3.2 + encendido * 2.4;
+        ctx.stroke();
+        ctx.strokeStyle = col(0.28 + encendido * 0.5);
+        ctx.lineWidth = 1 + encendido * 0.9;
         ctx.stroke();
       }
       ctx.lineWidth = 1;
 
-      /* dendritas: las ramitas cortas que le dan cara de neurona */
+      /* el arbol de dendritas: halo, tronco, puntas y botones */
       for (const p of neuronas) {
         if (p.fibra < 0.02) continue;
-        const alfa = (0.24 + p.brillo * 0.5) * p.fibra;
         const c = tono(FRIO_LINK, CLARO_LINK, p.brillo);
-        ctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + alfa.toFixed(3) + ")";
-        ctx.lineWidth = 0.9 + p.brillo * 0.5;
-        for (const d of p.den) {
-          const px = p.x + Math.cos(d.a) * d.l, py = p.y + Math.sin(d.a) * d.l;
-          const mx = p.x + Math.cos(d.a) * d.l * 0.55 - Math.sin(d.a) * d.l * d.c;
-          const my = p.y + Math.sin(d.a) * d.l * 0.55 + Math.cos(d.a) * d.l * d.c;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.quadraticCurveTo(mx, my, px, py);
-          ctx.stroke();
-          if (d.rama) {
-            const ra = d.a + d.c * 1.8;
-            ctx.beginPath();
-            ctx.moveTo(px, py);
-            ctx.lineTo(px + Math.cos(ra) * d.l * 0.45, py + Math.sin(ra) * d.l * 0.45);
-            ctx.stroke();
-          }
-        }
+        const col = (op) => "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (op * p.fibra).toFixed(3) + ")";
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.strokeStyle = col(0.07 + p.brillo * 0.2);
+        ctx.lineWidth = 3.6 * p.esc;
+        ctx.stroke(p.gruesa);
+        ctx.strokeStyle = col(0.34 + p.brillo * 0.46);
+        ctx.lineWidth = 1.25 * p.esc;
+        ctx.stroke(p.gruesa);
+        ctx.strokeStyle = col(0.2 + p.brillo * 0.42);
+        ctx.lineWidth = 0.75 * p.esc;
+        ctx.stroke(p.fina);
+        const cn = tono(FRIO_NODO, CLARO_NODO, p.brillo);
+        ctx.fillStyle = "rgba(" + cn[0] + "," + cn[1] + "," + cn[2] + "," + ((0.3 + p.brillo * 0.55) * p.fibra).toFixed(3) + ")";
+        ctx.fill(p.cuentas);
+        ctx.restore();
       }
       ctx.lineWidth = 1;
 
@@ -1653,21 +1763,27 @@ function NeuralBg() {
       /* los somas */
       for (const p of neuronas) {
         const c = tono(FRIO_NODO, CLARO_NODO, p.brillo);
-        /* la membrana: el soma no es un punto, tiene cuerpo */
-        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + ((0.12 + p.brillo * 0.25) * p.fibra).toFixed(3) + ")";
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        /* la membrana difusa alrededor del cuerpo */
+        const R = p.r * 3.2 * (1 + p.brillo * 0.4);
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+        g.addColorStop(0, "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + ((0.3 + p.brillo * 0.4) * p.fibra).toFixed(3) + ")");
+        g.addColorStop(1, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0)");
+        ctx.fillStyle = g;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, (p.r + 2.6) * (1 + p.brillo * 0.35), 0, Math.PI * 2);
+        ctx.arc(0, 0, R, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.5 + p.brillo * 0.5).toFixed(3) + ")";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r + p.brillo * 1.8, 0, Math.PI * 2);
-        ctx.fill();
+        /* y el cuerpo, que no es un circulo perfecto */
+        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.62 + p.brillo * 0.38).toFixed(3) + ")";
+        ctx.fill(p.soma);
+        ctx.restore();
         /* el anillo del disparo, apenas un instante */
         if (p.brillo > 0.25 && !p.tomado) {
           ctx.strokeStyle = "rgba(236,230,255," + (0.4 * p.brillo).toFixed(3) + ")";
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r + 4 + (1 - p.brillo) * 12, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, p.r + 5 + (1 - p.brillo) * 16 * p.esc, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
@@ -2008,6 +2124,15 @@ export default function StudioB2B() {
           <div className="s2b-aurora" aria-hidden="true"><i /><i /><i /></div>
           <div className="s2b-grid" aria-hidden="true" />
           <NeuralBg />
+          <div className="s2b-hint-wrap">
+            <div className="s2b-wrap">
+              <div className="s2b-hint">
+                <i /> <b>Tus neuronas</b>
+                <span className="solo-mouse">dejá el mouse quieto y se arma una idea</span>
+                <span className="solo-dedo">mantené el dedo apoyado y se arma una idea</span>
+              </div>
+            </div>
+          </div>
           <div className="s2b-halo" aria-hidden="true" />
           <div className="s2b-wrap">
             <div className="s2b-hero-in">
@@ -2098,10 +2223,16 @@ export default function StudioB2B() {
                   <div className="s2b-row-vis" style={{ background: s.bg }}>
                     <div className="s2b-blob" style={{ width: 240, height: 240, top: -50, right: -40, background: s.blobs[0] }} />
                     <div className="s2b-blob" style={{ width: 200, height: 200, bottom: -60, left: -30, background: s.blobs[1], opacity: .55 }} />
-                    <div className="s2b-glass">
-                      <div className="gl-bar w1" /><div className="gl-bar w2" /><div className="gl-bar w3" />
-                      <div className="gl-row"><div className="gl-tile" /><div className="gl-tile" /><div className="gl-tile" /></div>
-                    </div>
+                    {s.img ? (
+                      <div className="s2b-shot">
+                        <img src={s.img} alt={s.alt} loading="lazy" width={s.an} height={s.al} />
+                      </div>
+                    ) : (
+                      <div className="s2b-glass">
+                        <div className="gl-bar w1" /><div className="gl-bar w2" /><div className="gl-bar w3" />
+                        <div className="gl-row"><div className="gl-tile" /><div className="gl-tile" /><div className="gl-tile" /></div>
+                      </div>
+                    )}
                   </div>
                 </article>
               );
@@ -2386,7 +2517,7 @@ export default function StudioB2B() {
                 <ul>
                   <li><a href="mailto:hola@studiob2b.com">hola@studiob2b.com</a></li>
                   <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
-                  <li><a href="#">Córdoba, Argentina</a></li>
+                  <li>Córdoba capital · Buenos Aires · toda Argentina</li>
                 </ul>
               </div>
             </div>
@@ -2399,6 +2530,10 @@ export default function StudioB2B() {
       </div>
 
       <WhatsAppBubble />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_LD) }}
+      />
     </div>
   );
 }
