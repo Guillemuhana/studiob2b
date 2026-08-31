@@ -811,7 +811,7 @@ const RED = {
 };
 
 /* Tiempos de una idea, en segundos: pensar, apretarse, abrirse, vivir, irse */
-const IDEA = { nodos: 34, piensa: 1.8, junta: 0.46, arma: 0.62, vive: 2.1, sale: 0.8, pausa: 0.7, anillo: 22 };
+const IDEA = { nodos: 34, piensa: 2.3, junta: 0.62, arma: 0.62, vive: 2.1, sale: 0.8, pausa: 0.7, anillo: 22 };
 
 /* Lo que le construimos al cliente. Salen en este orden, una atras de otra:
    primero la app movil, despues otra cosa, y asi. Cada una tiene su acento. */
@@ -1585,7 +1585,7 @@ function NeuralBg() {
         if (!p.tomado) {
           /* la casa se corre hacia el puntero mientras se piensa: la red se
              estira hacia donde miramos, pero nadie sale volando */
-          let cx = p.hx, cy = p.hy;
+          let cx = p.hx, cy = p.hy, atrae = 0;
           if (puntero.activo) {
             const dx = puntero.x - p.hx, dy = puntero.y - p.hy;
             const d = Math.hypot(dx, dy) || 1;
@@ -1593,6 +1593,7 @@ function NeuralBg() {
               const cerca = 1 - d / RED.puntero;
               const tiron = cerca * (0.06 + puntero.carga * 0.42);
               cx += dx * tiron; cy += dy * tiron;
+              atrae = Math.min(1, cerca * (0.4 + puntero.carga * 0.6));
               /* y las estimula: cerca del puntero la red se pone a disparar */
               p.carga += dt * cerca * (0.45 + puntero.carga * 1.6);
             }
@@ -1602,8 +1603,11 @@ function NeuralBg() {
             cx += Math.cos(p.f1) * p.amp;
             cy += Math.sin(p.f2) * p.amp * 0.8;
           }
-          p.x += (cx - p.x) * Math.min(1, dt * 3.2);
-          p.y += (cy - p.y) * Math.min(1, dt * 3.2);
+          /* juntarse es lento a proposito: cuanto mas la tira el foco, mas
+             despacio se acerca, para que se vea el movimiento */
+          const paso = 3.2 - 2.3 * atrae;
+          p.x += (cx - p.x) * Math.min(1, dt * paso);
+          p.y += (cy - p.y) * Math.min(1, dt * paso);
           p.fibra += (1 - p.fibra) * Math.min(1, dt * 3);
         } else {
           p.fibra += (0 - p.fibra) * Math.min(1, dt * 6);
