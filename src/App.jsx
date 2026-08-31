@@ -674,7 +674,7 @@ const TESTIMONIOS = [
 
 const FAQS = [
   { q: "¿Cuánto tarda un proyecto?", a: "Un agente de IA acotado sale en 4 a 6 semanas. Una plataforma completa, entre 3 y 6 meses, con entregas usables cada dos semanas desde la tercera." },
-  { q: "¿Cómo cobran?", a: "El diagnóstico tiene precio cerrado. Después, por ciclos mensuales o por alcance fijo, según prefieras. Sin horas sorpresa al final del mes." },
+  { q: "¿Cómo cobran?", a: "Arrancamos con una reunión virtual para entender qué necesitás. Tu idea o tu sistema a medida pasa al área de desarrollo: lo analizamos y te armamos una demo sin ningún cargo, gratis. Recién ahí decidís si avanzás o no. Si avanzás, te entregamos el presupuesto y se arranca con una seña del 10% del trabajo, que es lo que nos deja en confianza a las dos partes; después un 40% y el resto al finalizar." },
   { q: "¿El código queda nuestro?", a: "Sí. Repositorio, infraestructura y documentación a tu nombre desde el primer día. Si mañana querés seguir con otro equipo, podés hacerlo sin trabas." },
   { q: "¿Trabajan fuera de Argentina?", a: "Sí. Hoy tenemos clientes en Latinoamérica, España y Estados Unidos, en modalidad remota con reuniones fijas semanales." },
   { q: "¿Se puede empezar chico?", a: "Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción." },
