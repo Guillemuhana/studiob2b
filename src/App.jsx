@@ -396,15 +396,6 @@ const CSS = `
 @media (max-width: 1180px) { .s2b-tiles { grid-template-columns:repeat(6,1fr); } }
 
 /* ---------- métricas ---------- */
-.s2b-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-radius:26px; overflow:hidden;
-  border:1px solid rgba(167,140,255,.22);
-  background: linear-gradient(140deg, #2A1A6B 0%, #150B3F 52%, #0B0718 100%);
-  box-shadow: 0 40px 80px -50px rgba(24,12,60,.85); }
-.s2b-stat { padding:34px 22px; border-right:1px solid rgba(167,140,255,.18); }
-.s2b-stat:last-child { border-right:none; }
-.s2b-stat b { display:block; font-family:var(--display); font-size:clamp(28px,3.2vw,40px); font-weight:700; color:#fff; }
-.s2b-stat span { font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#A79EC8; }
-
 /* ---------- testimonios ---------- */
 .s2b-quotes { position:relative; margin-top:44px; overflow:hidden; }
 .s2b-qtrack { display:flex; transition: transform .55s cubic-bezier(.2,.8,.2,1); }
@@ -486,8 +477,6 @@ const CSS = `
   .s2b-row-vis { min-height:230px; order:-1; }
   .s2b-tiles { grid-template-columns:repeat(4,1fr); }
   .s2b-tech-panel { padding:28px 0 32px; }
-  .s2b-stats { grid-template-columns:repeat(2,1fr); }
-  .s2b-stat { border-bottom:1px solid rgba(167,140,255,.18); }
   .s2b-qcard { grid-template-columns:1fr; gap:22px; }
   .s2b-qphoto { width:96px; height:96px; border-radius:22px; font-size:26px; }
   .s2b-foot-grid { grid-template-columns:1fr 1fr; }
@@ -701,14 +690,6 @@ function armarMosaico(cant) {
   while (celdas.length && celdas[celdas.length - 1] === -1) celdas.pop();
   return celdas;
 }
-
-const STATS = [
-  { to: 10, sfx: "+", l: "Años en el mercado" },
-  { to: 140, sfx: "+", l: "Proyectos entregados" },
-  { to: 32, sfx: "", l: "Agentes en operación" },
-  { to: 18, sfx: "", l: "Personas en el equipo" },
-  { to: 98, sfx: "%", l: "Clientes que repiten" },
-];
 
 const TESTIMONIOS = [
   { q: "Entendieron el negocio antes de proponer tecnología. En diez años trabajando con proveedores, no me había pasado. El sistema salió en el plazo que dijeron y sigue creciendo con nosotros.", n: "Marina Ferreyra", r: "Directora de Operaciones", e: "Grupo Andino", cat: "Software a medida", ic: Code2, i: "MF", g: "linear-gradient(150deg,#6D4AFF,#2A1568)" },
@@ -1793,29 +1774,6 @@ function WhatsAppBubble() {
   );
 }
 
-function Counter({ to, sfx }) {
-  const ref = useRef(null);
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    let raf;
-    const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return;
-      io.disconnect();
-      const t0 = performance.now();
-      const tick = (t) => {
-        const p = Math.min((t - t0) / 1500, 1);
-        setV(to * (1 - Math.pow(1 - p, 3)));
-        if (p < 1) raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-    }, { threshold: .4 });
-    io.observe(el);
-    return () => { io.disconnect(); cancelAnimationFrame(raf); };
-  }, [to]);
-  return <span ref={ref}>{Math.round(v)}{sfx}</span>;
-}
-
 /* ================= página ================= */
 
 export default function StudioB2B() {
@@ -2186,22 +2144,8 @@ export default function StudioB2B() {
         </div>
       </section>
 
-      {/* ============ MÉTRICAS ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="clientes">
-        <div className="s2b-wrap">
-          <div className="s2b-stats s2b-rv">
-            {STATS.map((s) => (
-              <div className="s2b-stat" key={s.l}>
-                <b><Counter to={s.to} sfx={s.sfx} /></b>
-                <span>{s.l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ============ TESTIMONIOS ============ */}
-      <section className="s2b-sec s2b-sec--sm">
+      <section className="s2b-sec s2b-sec--sm" id="clientes">
         <div className="s2b-wrap">
           <div className="s2b-rv">
             <div className="s2b-eyebrow">Resultados</div>
