@@ -5,14 +5,21 @@ import {
   Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
 } from "lucide-react";
 import {
-  siReact, siNextdotjs, siTypescript, siNodedotjs, siPython, siSupabase,
-  siPostgresql, siTailwindcss, siFlutter, siExpo, siGraphql, siPrisma,
+  siReact, siNextdotjs, siJavascript, siTypescript, siNodedotjs, siPython,
+  siSupabase, siPostgresql, siTailwindcss, siFlutter, siGraphql, siWordpress,
   siDocker, siKubernetes, siGooglecloud, siVercel, siCloudflare, siLinux,
   siNginx, siTerraform, siAnsible, siGithubactions, siRedis, siGrafana,
   siOwasp, siAuth0, siKeycloak, siLetsencrypt, siJsonwebtokens, siVault,
   siWireshark, siKalilinux, siBurpsuite, siWireguard, siSnyk, siBitwarden,
+  siClaude, siGooglegemini, siMistralai, siDeepseek, siPerplexity,
+  siHuggingface, siLangchain, siOllama, siN8n, siElevenlabs,
   siWhatsapp,
 } from "simple-icons";
+
+/* OpenAI y Groq salieron de simple-icons por pedido de sus marcas, asi que
+   van con su path propio en el mismo formato que el resto: viewBox 24x24. */
+const siOpenai = { title: "OpenAI", hex: "412991", path: "M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" };
+const siGroq = { title: "Groq", hex: "F55036", regla: "evenodd", path: "M12.036 2c-3.853-.035-7 3-7.036 6.781-.035 3.782 3.055 6.872 6.908 6.907h2.42v-2.566h-2.292c-2.407.028-4.38-1.866-4.408-4.23-.029-2.362 1.901-4.298 4.308-4.326h.1c2.407 0 4.358 1.915 4.365 4.278v6.305c0 2.342-1.944 4.25-4.323 4.279a4.375 4.375 0 01-3.033-1.252l-1.851 1.818A7 7 0 0012.029 22h.092c3.803-.056 6.858-3.083 6.879-6.816v-6.5C18.907 4.963 15.817 2 12.036 2z" };
 
 /* ==================================================================
    STUDIO B2B — sitio de agencia · v2
@@ -237,7 +244,7 @@ const CSS = `
 .s2b-shortcut span { font-size:13.5px; color:#A79EC8; line-height:1.55; }
 
 /* ---------- logos clientes ---------- */
-.s2b-logos { padding:60px 0; }
+.s2b-logos { padding:60px 0; --clogo-h:104px; }
 .s2b-logos-t { text-align:center; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:28px; }
 .s2b-marq { overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); }
 .s2b-marq-track { display:flex; gap:74px; width:max-content; align-items:center; animation: s2b-slide 46s linear infinite; }
@@ -245,7 +252,7 @@ const CSS = `
 @keyframes s2b-slide { to { transform: translateX(-50%); } }
 .s2b-clogo { font-family:var(--display); font-weight:700; font-size:30px; letter-spacing:-.02em; color:#A9A3BE; opacity:1; white-space:nowrap; filter:none; transition: color .25s, opacity .25s; }
 .s2b-clogo:hover { color: var(--violet); opacity:1; }
-.s2b-clogo--img { height:104px; width:auto; object-fit:contain; opacity:1; border-radius:12px; filter:none; background:rgba(255,255,255,.12); padding:10px 16px; }
+.s2b-clogo--img { height:var(--clogo-h); width:auto; object-fit:contain; opacity:1; border-radius:12px; filter:none; background:rgba(255,255,255,.12); padding:10px 16px; }
 .s2b-clogo--img:hover { filter:none; opacity:1; }
 
 /* ---------- servicios (filas alternadas) ---------- */
@@ -443,10 +450,10 @@ const CSS = `
   .s2b-head { align-items:start; }
 }
 @media (max-width: 600px) {
-  .s2b-logos { padding:44px 0; }
+  .s2b-logos { padding:44px 0; --clogo-h:68px; }
   .s2b-marq-track { gap:44px; }
   .s2b-clogo { font-size:22px; }
-  .s2b-clogo--img { height:68px; padding:8px 12px; border-radius:10px; }
+  .s2b-clogo--img { padding:8px 12px; border-radius:10px; }
   .s2b-brand { --mark:58px; gap:11px; }
   .s2b-brand-txt { font-size:17px; }
   .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
@@ -536,11 +543,13 @@ const SOLUCIONES = [
   { id: "agentes", icon: Bot, t: "Agentes de IA", d: "Asistentes que atienden y resuelven dentro de tus herramientas." },
 ];
 
+/* esc: los logos que en su archivo vienen mas chicos piden un poco mas de alto */
 const CLIENTES = [
   { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png" },
   { n: "Numera", src: "/clientes/logonumera.jpg" },
-  { n: "IPIC SMO", src: "/clientes/ipicsmo.png" },
-  { n: "Pecifa Nacional", src: "/clientes/pecifa.png" },
+  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2 },
+  { n: "Instituto de Investigaciones Cl\u00ednicas", src: "/clientes/IICC.png", esc: 1.1 },
+  { n: "Pecifa Nacional", src: "/clientes/pecifa.png", esc: 1.3 },
   { n: "Ninit Group", src: "/clientes/ninit-group.png" },
 ];
 
@@ -596,8 +605,12 @@ const AGENT_PTS = [
 
 const TECNOLOGIAS = {
   "Desarrollo de Software": [
-    siReact, siNextdotjs, siTypescript, siNodedotjs, siPython, siSupabase,
-    siPostgresql, siTailwindcss, siFlutter, siExpo, siGraphql, siPrisma,
+    siReact, siNextdotjs, siJavascript, siTypescript, siNodedotjs, siPython,
+    siWordpress, siSupabase, siPostgresql, siTailwindcss, siFlutter, siGraphql,
+  ],
+  "Inteligencia Artificial": [
+    siOpenai, siClaude, siGooglegemini, siGroq, siMistralai, siDeepseek,
+    siPerplexity, siHuggingface, siLangchain, siOllama, siN8n, siElevenlabs,
   ],
   "Infraestructura IT": [
     siDocker, siKubernetes, siGooglecloud, siVercel, siCloudflare, siLinux,
@@ -672,7 +685,7 @@ function brandColor(hex) {
 function BrandLogo({ icon }) {
   return (
     <svg className="s2b-tile-logo" viewBox="0 0 24 24" role="img" aria-label={icon.title} fill={brandColor(icon.hex)}>
-      <path d={icon.path} />
+      <path d={icon.path} fillRule={icon.regla || "nonzero"} />
     </svg>
   );
 }
@@ -1717,7 +1730,14 @@ export default function StudioB2B() {
             <div className="s2b-marq-track">
               {[...CLIENTES, ...CLIENTES, ...CLIENTES, ...CLIENTES].map((c, i) =>
                 c.src
-                  ? <img className="s2b-clogo s2b-clogo--img" key={i} src={c.src} alt={c.n} loading="lazy" />
+                  ? <img
+                      className="s2b-clogo s2b-clogo--img"
+                      key={i}
+                      src={c.src}
+                      alt={c.n}
+                      loading="lazy"
+                      style={c.esc ? { height: `calc(var(--clogo-h) * ${c.esc})` } : undefined}
+                    />
                   : <div className="s2b-clogo" key={i}>{c.n}</div>
               )}
             </div>
