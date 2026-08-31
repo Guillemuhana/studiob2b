@@ -689,8 +689,8 @@ const RED = {
   arco: 88,          // a esta distancia de un boton o del header, el nodo hace chispa
 };
 
-/* Tiempos de una idea, en segundos */
-const IDEA = { nodos: 30, arma: 0.8, vive: 1.3, sale: 0.75, pausa: 0.6 };
+/* Tiempos de una idea, en segundos: pensar, apretarse, abrirse, vivir, irse */
+const IDEA = { nodos: 30, piensa: 1.5, junta: 0.34, arma: 0.62, vive: 1.35, sale: 0.75, pausa: 0.7, anillo: 30 };
 
 /* Las ideas que llega a formar la red: lo que le construimos al cliente */
 const IDEAS = [
@@ -883,9 +883,11 @@ function NeuralBg() {
 
     const quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let w = 0, h = 0, nodos = [], raf = 0, vivo = true, previo = 0, cuadro = 0;
+    let w = 0, h = 0, nodos = [], raf = 0, vivo = true, previo = 0, cuadro = 0, reloj = 0;
     const puntero = { x: 0, y: 0, ax: 0, ay: 0, activo: false, dedo: false, carga: 0, pausa: 0 };
     let idea = null;
+    let destello = 0;   // el fogonazo del instante en que la idea salta
+    let pulsos = [];    // senales corriendo por la red hacia el foco
 
     /* header, pill y botones del hero: los nodos les tiran chispas al pasar cerca */
     let objetivos = [];
@@ -909,10 +911,12 @@ function NeuralBg() {
         r: 0.9 + Math.random() * 1.7,
         calor: 0,
         tomado: false,
-        sx: 0, sy: 0, tx: 0, ty: 0,
+        sx: 0, sy: 0, ax: 0, ay: 0, tx: 0, ty: 0,
       }));
       idea = null;
       puntero.carga = 0;
+      pulsos = [];
+      destello = 0;
     };
 
     const medir = () => {
@@ -929,8 +933,9 @@ function NeuralBg() {
       medirObjetivos();
     };
 
-    /* la idea cuaja: tomamos los nodos mas cercanos y le damos a cada uno un
-       asiento en el contorno de la app, emparejados por angulo para que no se crucen */
+    /* la idea cuaja: tomamos los nodos mas cercanos, primero los apretamos en un
+       anillo -el instante justo antes de entender- y desde ese nudo se abren sobre
+       el contorno de la app, emparejados por angulo para que no se crucen */
     const nacerIdea = (x, y) => {
       const receta = IDEAS[Math.floor(Math.random() * IDEAS.length)];
       const an = Math.min(receta.w, w - 48), al = Math.min(receta.h, h - 90);
@@ -950,25 +955,40 @@ function NeuralBg() {
       const ang = (px, py) => Math.atan2(py - cy, px - cx);
       elegidos.sort((a, b) => ang(a.x, a.y) - ang(b.x, b.y));
       metas.sort((a, b) => ang(a[0], a[1]) - ang(b[0], b[1]));
+      const a0 = ang(elegidos[0].x, elegidos[0].y);
       elegidos.forEach((p, i) => {
         p.tomado = true;
         p.sx = p.x; p.sy = p.y;
+        const a = a0 + (i / elegidos.length) * Math.PI * 2;
+        const r = IDEA.anillo + Math.random() * 6;
+        p.ax = cx + Math.cos(a) * r;
+        p.ay = cy + Math.sin(a) * r;
         p.tx = metas[i][0]; p.ty = metas[i][1];
       });
 
-      idea = { x: cx, y: cy, w: an, h: al, receta, t: 0, fase: "arma", nodos: elegidos };
+      idea = { x: cx, y: cy, w: an, h: al, receta, t: 0, fase: "junta", nodos: elegidos };
       puntero.carga = 0;
     };
 
     const moverIdea = (dt) => {
       if (!idea) return;
       idea.t += dt;
-      if (idea.fase === "arma") {
-        const k = Math.min(1, idea.t / IDEA.arma);
-        const e = k * k * (3 - 2 * k);
+      if (idea.fase === "junta") {
+        /* el apreton: las neuronas caen juntas al centro y ahi se frenan */
+        const k = Math.min(1, idea.t / IDEA.junta);
+        const e = k * k;
         for (const p of idea.nodos) {
-          p.x = p.sx + (p.tx - p.sx) * e;
-          p.y = p.sy + (p.ty - p.sy) * e;
+          p.x = p.sx + (p.ax - p.sx) * e;
+          p.y = p.sy + (p.ay - p.sy) * e;
+        }
+        if (k >= 1) { idea.fase = "arma"; idea.t = 0; destello = 1; }
+      } else if (idea.fase === "arma") {
+        /* y de ese nudo se abre la app, con un pelin de rebote */
+        const k = Math.min(1, idea.t / IDEA.arma);
+        const e = 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2);
+        for (const p of idea.nodos) {
+          p.x = p.ax + (p.tx - p.ax) * e;
+          p.y = p.ay + (p.ty - p.ay) * e;
         }
         if (k >= 1) { idea.fase = "vive"; idea.t = 0; }
       } else if (idea.fase === "vive") {
@@ -998,7 +1018,8 @@ function NeuralBg() {
     const pintarIdea = () => {
       if (!idea) return;
       const a =
-        idea.fase === "arma" ? Math.max(0, (idea.t / IDEA.arma - 0.5) / 0.5)
+        idea.fase === "junta" ? 0
+        : idea.fase === "arma" ? Math.max(0, (idea.t / IDEA.arma - 0.3) / 0.7)
         : idea.fase === "vive" ? 1
         : Math.max(0, 1 - idea.t / IDEA.sale);
       if (a <= 0.01) return;
@@ -1037,8 +1058,53 @@ function NeuralBg() {
       ctx.textBaseline = "alphabetic";
     };
 
+    /* mientras la red piensa manda senales al foco: cuanto mas cerca esta la
+       idea, mas seguido disparan */
+    const soltarPulsos = (dt) => {
+      if (idea || !puntero.activo || puntero.carga < 0.1 || !nodos.length) return;
+      const cuantos = puntero.carga * puntero.carga * 40 * dt;
+      let n = Math.floor(cuantos) + (Math.random() < cuantos % 1 ? 1 : 0);
+      while (n-- > 0 && pulsos.length < 70) {
+        const p = nodos[Math.floor(Math.random() * nodos.length)];
+        if (!p || p.tomado) continue;
+        const d = Math.hypot(p.x - puntero.x, p.y - puntero.y);
+        if (d > RED.puntero || d < 34) continue;
+        pulsos.push({ x0: p.x, y0: p.y, x1: puntero.x, y1: puntero.y, t: 0, dur: 0.3 + Math.random() * 0.32 });
+      }
+    };
+
+    const pintarPulsos = (dt) => {
+      if (!pulsos.length) return;
+      const siguen = [];
+      for (const s of pulsos) {
+        s.t += dt;
+        const k = s.t / s.dur;
+        if (k >= 1) continue;
+        siguen.push(s);
+        const e = k * k;                    // acelera al acercarse al foco
+        const cola = Math.max(0, e - 0.18);
+        const x = s.x0 + (s.x1 - s.x0) * e, y = s.y0 + (s.y1 - s.y0) * e;
+        const bx = s.x0 + (s.x1 - s.x0) * cola, by = s.y0 + (s.y1 - s.y0) * cola;
+        const alfa = (1 - k) * 0.75;
+        ctx.strokeStyle = "rgba(214,200,255," + (alfa * 0.55).toFixed(3) + ")";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "rgba(246,242,255," + alfa.toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(x, y, 1.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      pulsos = siguen;
+    };
+
     const pintar = (dt) => {
       ctx.clearRect(0, 0, w, h);
+      reloj += dt;
+      destello = Math.max(0, destello - dt * 2.3);
       const D = RED.enlace, D2 = D * D;
       /* los botones se mueven con el scroll y el nav es sticky: refrescamos seguido pero no cada cuadro */
       if (cuadro++ % 20 === 0) medirObjetivos();
@@ -1052,11 +1118,14 @@ function NeuralBg() {
       if (!idea) {
         if (puntero.activo && puntero.pausa <= 0 && !quieto) {
           const quietud = puntero.dedo ? 1 : Math.max(0, 1 - corrida / 10);
-          puntero.carga = Math.min(1, puntero.carga + (0.08 + quietud * 0.85) * dt);
+          /* si el puntero se pasea la idea se enfria: pensar pide quedarse quieto */
+          if (quietud < 0.15) puntero.carga = Math.max(0, puntero.carga - dt * 0.5);
+          else puntero.carga = Math.min(1, puntero.carga + ((0.12 + quietud * 0.88) / IDEA.piensa) * dt);
           if (puntero.carga >= 1) nacerIdea(puntero.x, puntero.y);
         } else {
           puntero.carga = Math.max(0, puntero.carga - dt * 0.9);
         }
+        soltarPulsos(dt);
       }
 
       for (const p of nodos) {
@@ -1098,11 +1167,18 @@ function NeuralBg() {
           if (d < RED.puntero) {
             const cerca = 1 - d / RED.puntero;
             objetivo = cerca * (0.12 + puntero.carga * 0.6);
-            if (d > 36) {
-              const fuerza = (0.012 + puntero.carga * 0.05) * cerca;
-              p.vx += (dx / d) * fuerza;
-              p.vy += (dy / d) * fuerza;
+            /* no caen derecho al foco: lo orbitan, como dandole vueltas al asunto,
+               y con el pensamiento avanzado se frenan y se amontonan */
+            const fuerza = (0.01 + puntero.carga * 0.075) * cerca;
+            const giro = puntero.carga * 0.03 * cerca;
+            if (d > 30) {
+              p.vx += (dx / d) * fuerza - (dy / d) * giro;
+              p.vy += (dy / d) * fuerza + (dx / d) * giro;
+            } else {
+              p.vx *= 0.88; p.vy *= 0.88;
             }
+            const freno = 1 - 0.05 * puntero.carga * cerca;
+            p.vx *= freno; p.vy *= freno;
           }
         }
 
@@ -1143,7 +1219,19 @@ function NeuralBg() {
         ctx.fill();
       }
 
+      pintarPulsos(dt);
       pintarIdea();
+
+      /* el fogonazo: el anillo que se abre cuando la idea salta */
+      if (destello > 0 && idea) {
+        const k = 1 - destello;
+        ctx.strokeStyle = "rgba(255,226,180," + (0.55 * destello * destello).toFixed(3) + ")";
+        ctx.lineWidth = 0.6 + destello * 2.4;
+        ctx.beginPath();
+        ctx.arc(idea.x, idea.y, 16 + k * 130, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
 
       for (const p of nodos) {
         const c = tono(FRIO_NODO, CLARO_NODO, p.calor);
@@ -1171,12 +1259,19 @@ function NeuralBg() {
           ctx.stroke();
         }
         if (puntero.carga > 0.06) {
+          /* el arco que se cierra: cuanto le falta a la idea */
           ctx.lineWidth = 1.6;
           ctx.strokeStyle = "rgba(214,198,255," + (0.14 + puntero.carga * 0.4).toFixed(3) + ")";
           ctx.beginPath();
-          ctx.arc(puntero.x, puntero.y, 26, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * puntero.carga);
+          ctx.arc(puntero.x, puntero.y, 30, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * puntero.carga);
           ctx.stroke();
+          /* y adentro un latido que se acelera a medida que se acerca */
+          const late = Math.sin(reloj * (4.5 + puntero.carga * 11)) * 0.5 + 0.5;
           ctx.lineWidth = 1;
+          ctx.strokeStyle = "rgba(226,214,255," + (0.06 + puntero.carga * late * 0.3).toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(puntero.x, puntero.y, 11 + late * 9 * (0.35 + puntero.carga), 0, Math.PI * 2);
+          ctx.stroke();
         }
       }
     };
