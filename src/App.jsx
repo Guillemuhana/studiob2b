@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowUpRight, ArrowRight, ArrowLeft, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, Mail, MapPin, Check,
-  Instagram, Linkedin, Github, Play, ChevronDown, Phone, Quote,
+  Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
 } from "lucide-react";
 import {
   siReact, siNextdotjs, siTypescript, siNodedotjs, siPython, siSupabase,
@@ -102,10 +102,10 @@ const CSS = `
 /* ---------- nav ---------- */
 .s2b-nav { position: sticky; top:0; z-index:80; transition: background .3s, box-shadow .3s; }
 .s2b-nav.is-stuck { background: rgba(255,255,255,.9); backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 1px 0 rgba(24,12,60,.08); }
-.s2b-nav-in { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:12px 0; }
+.s2b-nav-in { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:10px 0; }
 .s2b-brand { display:flex; align-items:center; gap:14px; }
-.s2b-nav .s2b-brand { --mark:70px; }
-.s2b-foot .s2b-brand { --mark:62px; }
+.s2b-nav .s2b-brand { --mark:88px; }
+.s2b-foot .s2b-brand { --mark:72px; }
 .s2b-mark-halo { position:relative; width:var(--mark,58px); height:var(--mark,58px); flex:none; display:grid; place-items:center; }
 .s2b-mark-halo::before {
   content:''; position:absolute; inset:-28%; border-radius:50%; pointer-events:none;
@@ -127,9 +127,9 @@ const CSS = `
   transition: transform .45s cubic-bezier(.2,.7,.2,1), filter .45s; }
 .s2b-brand:hover .s2b-mark { transform: scale(1.09) translateY(-2px); filter: drop-shadow(0 11px 26px rgba(139,107,255,.85)); }
 .s2b-nav.is-stuck .s2b-mark-halo::before { animation:none; opacity:.32; }
-.s2b-brand-txt { font-family: var(--display); font-weight:700; font-size:19px; letter-spacing:-.01em; line-height:1.15; color:#fff; }
+.s2b-brand-txt { font-family: var(--display); font-weight:700; font-size:21px; letter-spacing:-.01em; line-height:1.15; color:#fff; }
 .s2b-nav.is-stuck .s2b-brand-txt { color: var(--title); }
-.s2b-brand-txt small { display:block; margin-top:2px; font-family: var(--mono); font-size:9.5px; letter-spacing:.2em; font-weight:400; color:#9E97C4; }
+.s2b-brand-txt small { display:block; margin-top:3px; font-family: var(--mono); font-size:10px; letter-spacing:.2em; font-weight:400; color:#9E97C4; }
 .s2b-nav.is-stuck .s2b-brand-txt small { color: var(--muted); }
 
 .s2b-menu { display:flex; align-items:center; gap:2px; }
@@ -243,9 +243,9 @@ const CSS = `
 .s2b-marq-track { display:flex; gap:52px; width:max-content; align-items:center; animation: s2b-slide 38s linear infinite; }
 .s2b-marq:hover .s2b-marq-track { animation-play-state: paused; }
 @keyframes s2b-slide { to { transform: translateX(-50%); } }
-.s2b-clogo { font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.02em; color:#A9A3BE; opacity:.75; white-space:nowrap; filter: grayscale(1); transition: color .25s, opacity .25s; }
+.s2b-clogo { font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.02em; color:#A9A3BE; opacity:1; white-space:nowrap; filter:none; transition: color .25s, opacity .25s; }
 .s2b-clogo:hover { color: var(--violet); opacity:1; }
-.s2b-clogo--img { height:46px; width:auto; object-fit:contain; opacity:.8; border-radius:8px; }
+.s2b-clogo--img { height:46px; width:auto; object-fit:contain; opacity:1; border-radius:8px; filter:none; background:rgba(255,255,255,.12); padding:6px 10px; }
 .s2b-clogo--img:hover { filter:none; opacity:1; }
 
 /* ---------- servicios (filas alternadas) ---------- */
@@ -267,11 +267,11 @@ const CSS = `
 
 /* ---------- método ---------- */
 .s2b-method { display:grid; grid-template-columns: .95fr 1.05fr; gap:44px; align-items:center; margin-top:48px; }
-.s2b-video { position:relative; border-radius:26px; overflow:hidden; aspect-ratio:16/10; display:grid; place-items:center;
-  background: radial-gradient(120% 120% at 24% 18%, #A78CFF, #6D4AFF 42%, #24124F 100%); border:1px solid rgba(167,140,255,.3); }
-.s2b-play { width:76px; height:76px; border-radius:50%; display:grid; place-items:center; color:#2A1568; background:rgba(255,255,255,.94); box-shadow:0 18px 44px -14px rgba(0,0,0,.5); transition: transform .25s; }
-.s2b-play:hover { transform: scale(1.08); }
-.s2b-video-cap { position:absolute; left:22px; bottom:20px; right:22px; color:#fff; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; opacity:.9; }
+/* el panel del metodo: mientras no haya imagen queda el degrade solo */
+.s2b-method-img { position:relative; border-radius:26px; overflow:hidden; aspect-ratio:16/10;
+  background: radial-gradient(120% 120% at 24% 18%, #A78CFF, #6D4AFF 42%, #24124F 100%); border:1px solid rgba(167,140,255,.3);
+  box-shadow: 0 30px 70px -34px rgba(24,12,60,.55); }
+.s2b-method-img img { width:100%; height:100%; object-fit:cover; display:block; }
 .s2b-stages { display:grid; gap:0; margin-top:6px; border-top:1px solid var(--line); }
 .s2b-stage-row { display:grid; grid-template-columns:64px 1fr; gap:18px; padding:20px 0; border-bottom:1px solid var(--line); align-items:baseline; transition: padding-left .3s; }
 .s2b-stage-row:hover { padding-left:8px; }
@@ -443,8 +443,8 @@ const CSS = `
   .s2b-head { align-items:start; }
 }
 @media (max-width: 600px) {
-  .s2b-brand { --mark:46px; gap:11px; }
-  .s2b-brand-txt { font-size:15.5px; }
+  .s2b-brand { --mark:58px; gap:11px; }
+  .s2b-brand-txt { font-size:17px; }
   .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
   .s2b-tiles > *:nth-child(even) { margin-top:14px; }
   .s2b-tile-logo { width:30px; height:30px; }
@@ -534,8 +534,8 @@ const SOLUCIONES = [
 
 const CLIENTES = [
   { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png" },
-  { n: "Numera" },
-  { n: "Patagonia Spa Home" },
+  { n: "Numera", src: "/clientes/logonumera.jpg" },
+  { n: "IPIC SMO", src: "/clientes/ipicsmo.png" },
   { n: "Pecifa Nacional", src: "/clientes/pecifa.png" },
   { n: "Ninit Group", src: "/clientes/ninit-group.png" },
 ];
@@ -673,19 +673,34 @@ function BrandLogo({ icon }) {
   );
 }
 
-/* Fondo del hero: una red de nodos que se enlazan al acercarse.
-   Cuando varios coinciden en una zona, esa zona se "calienta" y vira del
-   violeta al ambar: la idea que se termina de formar. Canvas propio, sin
-   dependencias, porque el color depende de cuantos vecinos tiene cada nodo. */
+/* Fondo del hero: una red de neuronas.
+   En reposo respira en violeta, apenas insinuada. Cuando el mouse -o el dedo,
+   en el celular- se queda quieto sobre una zona, las neuronas de alrededor se
+   van juntando: la red pensando. Cuando termina de pensar, esos mismos nodos
+   se acomodan sobre el contorno de una app y la app se dibuja un segundo antes
+   de deshacerse y devolver los nodos a la red. Canvas propio, sin dependencias. */
 const RED = {
   densidad: 13000,   // un nodo cada N px2 de hero
   min: 34,
   max: 108,
-  enlace: 152,       // distancia a la que dos nodos se unen
-  velocidad: 0.24,
-  puntero: 190,      // radio de influencia del mouse
+  enlace: 150,       // distancia a la que dos nodos se unen
+  velocidad: 0.22,
+  puntero: 210,      // radio en el que el puntero junta neuronas
   arco: 88,          // a esta distancia de un boton o del header, el nodo hace chispa
 };
+
+/* Tiempos de una idea, en segundos */
+const IDEA = { nodos: 30, arma: 0.8, vive: 1.3, sale: 0.75, pausa: 0.6 };
+
+/* Las ideas que llega a formar la red: lo que le construimos al cliente */
+const IDEAS = [
+  { rotulo: "APP A MEDIDA", w: 148, h: 104, dibujo: "grilla" },
+  { rotulo: "DASHBOARD",    w: 168, h: 100, dibujo: "panel" },
+  { rotulo: "APP MOVIL",    w: 84,  h: 148, dibujo: "movil" },
+  { rotulo: "AGENTE IA",    w: 152, h: 104, dibujo: "chat" },
+  { rotulo: "PORTAL B2B",   w: 164, h: 102, dibujo: "grilla" },
+  { rotulo: "INTEGRACION",  w: 156, h: 100, dibujo: "panel" },
+];
 
 /* Un rayo quebrado entre dos puntos: se dibuja dos veces, una gruesa y
    difusa para el resplandor y otra fina para el nucleo. */
@@ -707,24 +722,153 @@ function rayo(ctx, x1, y1, x2, y2, fuerza) {
     ctx.stroke();
   };
 
-  ctx.lineWidth = 3.2;
-  ctx.strokeStyle = "rgba(255,168,42," + (0.16 * fuerza).toFixed(3) + ")";
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(167,140,255," + (0.12 * fuerza).toFixed(3) + ")";
   trazo();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(255,238,190," + (0.85 * fuerza).toFixed(3) + ")";
+  ctx.strokeStyle = "rgba(238,232,255," + (0.6 * fuerza).toFixed(3) + ")";
   trazo();
 }
 
-const FRIO_NODO = [201, 182, 255];
-const FRIO_LINK = [139, 107, 255];
-const CALIDO = [255, 168, 42];
-const CALIDO_CLARO = [255, 226, 140];
+const FRIO_NODO = [190, 174, 250];
+const FRIO_LINK = [128, 104, 214];
+const CLARO_NODO = [236, 230, 255];
+const CLARO_LINK = [176, 156, 255];
+/* el ambar quedo reservado para el instante en que la idea cuaja */
+const CALIDO = [255, 202, 128];
 
 const mezcla = (a, b, t) => [
   Math.round(a[0] + (b[0] - a[0]) * t),
   Math.round(a[1] + (b[1] - a[1]) * t),
   Math.round(a[2] + (b[2] - a[2]) * t),
 ];
+
+/* del violeta al blanco lila con el calor, y recien en el pico un toque de ambar */
+const tono = (frio, claro, calor) => {
+  const base = mezcla(frio, claro, Math.min(1, calor / 0.65));
+  const chispa = Math.max(0, (calor - 0.65) / 0.35) * 0.5;
+  return chispa > 0 ? mezcla(base, CALIDO, chispa) : base;
+};
+
+/* n puntos repartidos sobre el contorno de un rectangulo redondeado:
+   son los asientos que ocupan las neuronas cuando la idea se arma */
+function contorno(cx, cy, an, al, r, n) {
+  const x0 = cx - an / 2, y0 = cy - al / 2;
+  const recta = (ax, ay, bx, by) => ({
+    largo: Math.hypot(bx - ax, by - ay),
+    en: (t) => [ax + (bx - ax) * t, ay + (by - ay) * t],
+  });
+  const arco = (ox, oy, a0, a1) => ({
+    largo: Math.abs(a1 - a0) * r,
+    en: (t) => { const a = a0 + (a1 - a0) * t; return [ox + Math.cos(a) * r, oy + Math.sin(a) * r]; },
+  });
+  const tramos = [
+    recta(x0 + r, y0, x0 + an - r, y0),
+    arco(x0 + an - r, y0 + r, -Math.PI / 2, 0),
+    recta(x0 + an, y0 + r, x0 + an, y0 + al - r),
+    arco(x0 + an - r, y0 + al - r, 0, Math.PI / 2),
+    recta(x0 + an - r, y0 + al, x0 + r, y0 + al),
+    arco(x0 + r, y0 + al - r, Math.PI / 2, Math.PI),
+    recta(x0, y0 + al - r, x0, y0 + r),
+    arco(x0 + r, y0 + r, Math.PI, Math.PI * 1.5),
+  ];
+  const total = tramos.reduce((s, t) => s + t.largo, 0);
+  const puntos = [];
+  for (let i = 0; i < n; i++) {
+    let d = (i / n) * total;
+    for (const t of tramos) {
+      if (d <= t.largo) { puntos.push(t.en(d / t.largo)); break; }
+      d -= t.largo;
+    }
+  }
+  return puntos;
+}
+
+function rutaRedonda(ctx, x, y, an, al, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + an, y, x + an, y + al, r);
+  ctx.arcTo(x + an, y + al, x, y + al, r);
+  ctx.arcTo(x, y + al, x, y, r);
+  ctx.arcTo(x, y, x + an, y, r);
+  ctx.closePath();
+}
+
+/* el interior de la app: cada idea se dibuja distinta para que se lea que no
+   es un rectangulo cualquiera sino un producto */
+function interiorIdea(ctx, tipo, x, y, an, al, a) {
+  const linea = (op) => "rgba(214,201,255," + (op * a).toFixed(3) + ")";
+  const lleno = (op) => "rgba(167,140,255," + (op * a).toFixed(3) + ")";
+  const oro = (op) => "rgba(255,202,128," + (op * a).toFixed(3) + ")";
+  const pad = 11;
+  const cx = x + pad, ancho = an - pad * 2;
+
+  /* barra de titulo, comun a todas */
+  ctx.fillStyle = lleno(0.5);
+  ctx.fillRect(cx, y + 11, Math.min(38, ancho * 0.4), 3);
+  ctx.fillStyle = linea(0.3);
+  ctx.fillRect(x, y + 22, an, 1);
+
+  if (tipo === "panel") {
+    const base = y + al - 13;
+    const alturas = [0.32, 0.62, 0.44, 0.86, 0.58];
+    const bw = 9, sep = 6;
+    alturas.forEach((k, i) => {
+      const bh = (al - 44) * k;
+      ctx.fillStyle = lleno(0.55);
+      ctx.fillRect(cx + i * (bw + sep), base - bh, bw, bh);
+    });
+    ctx.strokeStyle = oro(0.55);
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    alturas.forEach((k, i) => {
+      const px = cx + i * (bw + sep) + bw / 2;
+      const py = base - (al - 44) * k - 6;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+    ctx.lineWidth = 1;
+  } else if (tipo === "movil") {
+    for (let i = 0; i < 4; i++) {
+      const fy = y + 32 + i * 16;
+      ctx.fillStyle = lleno(0.4);
+      ctx.fillRect(cx, fy, 9, 9);
+      ctx.fillStyle = linea(0.45);
+      ctx.fillRect(cx + 14, fy + 1, ancho - 14, 2);
+      ctx.fillRect(cx + 14, fy + 6, ancho - 24, 2);
+    }
+    ctx.fillStyle = linea(0.25);
+    ctx.fillRect(x, y + al - 16, an, 1);
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i === 1 ? oro(0.7) : lleno(0.5);
+      ctx.beginPath();
+      ctx.arc(x + an * (0.28 + i * 0.22), y + al - 8, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (tipo === "chat") {
+    const burbuja = (bx, by, bw, color) => {
+      rutaRedonda(ctx, bx, by, bw, 13, 6);
+      ctx.fillStyle = color;
+      ctx.fill();
+    };
+    burbuja(cx, y + 31, ancho * 0.56, lleno(0.4));
+    burbuja(x + an - pad - ancho * 0.62, y + 50, ancho * 0.62, oro(0.3));
+    burbuja(cx, y + 69, ancho * 0.44, lleno(0.4));
+    ctx.fillStyle = linea(0.4);
+    ctx.fillRect(cx, y + al - 14, ancho, 2);
+  } else {
+    const cols = 3, filas = 2;
+    const gw = (ancho - (cols - 1) * 7) / cols;
+    const gh = (al - 40 - (filas - 1) * 7) / filas;
+    for (let f = 0; f < filas; f++) {
+      for (let c = 0; c < cols; c++) {
+        rutaRedonda(ctx, cx + c * (gw + 7), y + 30 + f * (gh + 7), gw, gh, 4);
+        ctx.fillStyle = f === 0 && c === 1 ? oro(0.32) : lleno(0.32);
+        ctx.fill();
+      }
+    }
+  }
+}
 
 function NeuralBg() {
   const host = useRef(null);
@@ -739,12 +883,12 @@ function NeuralBg() {
 
     const quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let w = 0, h = 0, nodos = [], raf = 0, vivo = true;
-    const puntero = { x: 0, y: 0, activo: false };
+    let w = 0, h = 0, nodos = [], raf = 0, vivo = true, previo = 0, cuadro = 0;
+    const puntero = { x: 0, y: 0, ax: 0, ay: 0, activo: false, dedo: false, carga: 0, pausa: 0 };
+    let idea = null;
 
     /* header, pill y botones del hero: los nodos les tiran chispas al pasar cerca */
     let objetivos = [];
-    let cuadro = 0;
     const medirObjetivos = () => {
       const r = box.getBoundingClientRect();
       objetivos = Array.from(
@@ -764,7 +908,11 @@ function NeuralBg() {
         vy: (Math.random() - 0.5) * RED.velocidad,
         r: 0.9 + Math.random() * 1.7,
         calor: 0,
+        tomado: false,
+        sx: 0, sy: 0, tx: 0, ty: 0,
       }));
+      idea = null;
+      puntero.carga = 0;
     };
 
     const medir = () => {
@@ -781,21 +929,146 @@ function NeuralBg() {
       medirObjetivos();
     };
 
-    const pintar = () => {
+    /* la idea cuaja: tomamos los nodos mas cercanos y le damos a cada uno un
+       asiento en el contorno de la app, emparejados por angulo para que no se crucen */
+    const nacerIdea = (x, y) => {
+      const receta = IDEAS[Math.floor(Math.random() * IDEAS.length)];
+      const an = Math.min(receta.w, w - 48), al = Math.min(receta.h, h - 90);
+      if (an < 70 || al < 70) return;
+      const cx = Math.min(w - an / 2 - 20, Math.max(an / 2 + 20, x));
+      const cy = Math.min(h - al / 2 - 46, Math.max(al / 2 + 20, y));
+
+      const elegidos = nodos
+        .filter((p) => !p.tomado)
+        .map((p) => ({ p, d: Math.hypot(p.x - cx, p.y - cy) }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, Math.min(IDEA.nodos, nodos.length))
+        .map((o) => o.p);
+      if (elegidos.length < 8) return;
+
+      const metas = contorno(cx, cy, an, al, 14, elegidos.length);
+      const ang = (px, py) => Math.atan2(py - cy, px - cx);
+      elegidos.sort((a, b) => ang(a.x, a.y) - ang(b.x, b.y));
+      metas.sort((a, b) => ang(a[0], a[1]) - ang(b[0], b[1]));
+      elegidos.forEach((p, i) => {
+        p.tomado = true;
+        p.sx = p.x; p.sy = p.y;
+        p.tx = metas[i][0]; p.ty = metas[i][1];
+      });
+
+      idea = { x: cx, y: cy, w: an, h: al, receta, t: 0, fase: "arma", nodos: elegidos };
+      puntero.carga = 0;
+    };
+
+    const moverIdea = (dt) => {
+      if (!idea) return;
+      idea.t += dt;
+      if (idea.fase === "arma") {
+        const k = Math.min(1, idea.t / IDEA.arma);
+        const e = k * k * (3 - 2 * k);
+        for (const p of idea.nodos) {
+          p.x = p.sx + (p.tx - p.sx) * e;
+          p.y = p.sy + (p.ty - p.sy) * e;
+        }
+        if (k >= 1) { idea.fase = "vive"; idea.t = 0; }
+      } else if (idea.fase === "vive") {
+        for (const p of idea.nodos) { p.x = p.tx; p.y = p.ty; }
+        if (idea.t >= IDEA.vive) { idea.fase = "sale"; idea.t = 0; }
+      } else {
+        /* la idea se suelta: los nodos se abren y vuelven a la red */
+        const k = Math.min(1, idea.t / IDEA.sale);
+        for (const p of idea.nodos) {
+          const a = Math.atan2(p.ty - idea.y, p.tx - idea.x);
+          p.x = p.tx + Math.cos(a) * k * 26;
+          p.y = p.ty + Math.sin(a) * k * 26;
+        }
+        if (k >= 1) {
+          for (const p of idea.nodos) {
+            p.tomado = false;
+            const a = Math.atan2(p.y - idea.y, p.x - idea.x);
+            p.vx = Math.cos(a) * 0.34;
+            p.vy = Math.sin(a) * 0.34;
+          }
+          idea = null;
+          puntero.pausa = IDEA.pausa;
+        }
+      }
+    };
+
+    const pintarIdea = () => {
+      if (!idea) return;
+      const a =
+        idea.fase === "arma" ? Math.max(0, (idea.t / IDEA.arma - 0.5) / 0.5)
+        : idea.fase === "vive" ? 1
+        : Math.max(0, 1 - idea.t / IDEA.sale);
+      if (a <= 0.01) return;
+
+      const x = idea.x - idea.w / 2, y = idea.y - idea.h / 2;
+
+      /* el unico resplandor calido de toda la escena, y dura un segundo */
+      const g = ctx.createRadialGradient(idea.x, idea.y, 0, idea.x, idea.y, idea.w * 1.1);
+      g.addColorStop(0, "rgba(255,196,110," + (0.16 * a).toFixed(3) + ")");
+      g.addColorStop(1, "rgba(255,196,110,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(idea.x, idea.y, idea.w * 1.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      rutaRedonda(ctx, x, y, idea.w, idea.h, 14);
+      ctx.fillStyle = "rgba(16,10,40," + (0.5 * a).toFixed(3) + ")";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(226,216,255," + (0.62 * a).toFixed(3) + ")";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
+      ctx.save();
+      rutaRedonda(ctx, x, y, idea.w, idea.h, 14);
+      ctx.clip();
+      interiorIdea(ctx, idea.receta.dibujo, x, y, idea.w, idea.h, a);
+      ctx.restore();
+
+      ctx.font = "600 10px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "rgba(240,234,255," + (0.85 * a).toFixed(3) + ")";
+      ctx.fillText(idea.receta.rotulo, idea.x, y + idea.h + 13);
+      ctx.textAlign = "start";
+      ctx.textBaseline = "alphabetic";
+    };
+
+    const pintar = (dt) => {
       ctx.clearRect(0, 0, w, h);
       const D = RED.enlace, D2 = D * D;
       /* los botones se mueven con el scroll y el nav es sticky: refrescamos seguido pero no cada cuadro */
       if (cuadro++ % 20 === 0) medirObjetivos();
       const chispas = [];
 
+      /* cuanto se movio el puntero: pensar pide quedarse quieto */
+      const corrida = Math.hypot(puntero.x - puntero.ax, puntero.y - puntero.ay);
+      puntero.ax = puntero.x; puntero.ay = puntero.y;
+      if (puntero.pausa > 0) puntero.pausa -= dt;
+
+      if (!idea) {
+        if (puntero.activo && puntero.pausa <= 0 && !quieto) {
+          const quietud = puntero.dedo ? 1 : Math.max(0, 1 - corrida / 10);
+          puntero.carga = Math.min(1, puntero.carga + (0.08 + quietud * 0.85) * dt);
+          if (puntero.carga >= 1) nacerIdea(puntero.x, puntero.y);
+        } else {
+          puntero.carga = Math.max(0, puntero.carga - dt * 0.9);
+        }
+      }
+
       for (const p of nodos) {
-        if (!quieto) { p.x += p.vx; p.y += p.vy; }
+        if (p.tomado || quieto) continue;
+        p.x += p.vx; p.y += p.vy;
         if (p.x < 0 || p.x > w) { p.vx *= -1; p.x = Math.min(w, Math.max(0, p.x)); }
         if (p.y < 0 || p.y > h) { p.vy *= -1; p.y = Math.min(h, Math.max(0, p.y)); }
       }
 
-      /* enlaces, y de paso contamos con cuantos se conecta cada nodo */
-      const vecinos = new Array(nodos.length).fill(0);
+      moverIdea(dt);
+
+      /* enlaces */
       ctx.lineWidth = 1;
       for (let i = 0; i < nodos.length; i++) {
         const a = nodos[i];
@@ -804,11 +1077,10 @@ function NeuralBg() {
           const dx = a.x - b.x, dy = a.y - b.y;
           const d2 = dx * dx + dy * dy;
           if (d2 > D2) continue;
-          vecinos[i]++; vecinos[j]++;
           const cerca = 1 - Math.sqrt(d2) / D;
           const calor = Math.max(a.calor, b.calor);
-          const c = mezcla(FRIO_LINK, CALIDO, calor);
-          const alfa = (0.06 + cerca * 0.34) * (1 + calor * 1.9);
+          const c = tono(FRIO_LINK, CLARO_LINK, calor);
+          const alfa = (0.05 + cerca * 0.26) * (1 + calor * 0.9);
           ctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + alfa.toFixed(3) + ")";
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
@@ -817,91 +1089,139 @@ function NeuralBg() {
         }
       }
 
-      /* el calor sube donde hay racimo, y baja solo: nunca salta de golpe */
-      for (let i = 0; i < nodos.length; i++) {
-        const p = nodos[i];
-        let objetivo = Math.min(1, Math.max(0, (vecinos[i] - 2) / 3));
-
-        if (puntero.activo) {
-          const d = Math.hypot(p.x - puntero.x, p.y - puntero.y);
-          if (d < RED.puntero) objetivo = Math.min(1, objetivo + (1 - d / RED.puntero) * 0.85);
-        }
-
-        for (const t of objetivos) {
-          const cx = Math.max(t.x, Math.min(p.x, t.x + t.w));
-          const cy = Math.max(t.y, Math.min(p.y, t.y + t.h));
-          const d = Math.hypot(p.x - cx, p.y - cy);
-          if (d > RED.arco) continue;
-          const fuerza = 1 - d / RED.arco;
-          objetivo = Math.min(1, objetivo + fuerza * 0.9);
-          /* no todos los cuadros, para que chisporrotee en vez de quedar fijo */
-          if (Math.random() < 0.07 + fuerza * 0.2) {
-            chispas.push([p.x, p.y, cx, cy, fuerza]);
+      /* el puntero junta neuronas: cuanto mas avanzado el pensamiento, mas tiran */
+      for (const p of nodos) {
+        let objetivo = 0;
+        if (puntero.activo && !p.tomado) {
+          const dx = puntero.x - p.x, dy = puntero.y - p.y;
+          const d = Math.hypot(dx, dy) || 1;
+          if (d < RED.puntero) {
+            const cerca = 1 - d / RED.puntero;
+            objetivo = cerca * (0.12 + puntero.carga * 0.6);
+            if (d > 36) {
+              const fuerza = (0.012 + puntero.carga * 0.05) * cerca;
+              p.vx += (dx / d) * fuerza;
+              p.vy += (dy / d) * fuerza;
+            }
           }
         }
 
-        p.calor += (objetivo - p.calor) * 0.06;
+        if (p.tomado) {
+          p.calor += (0.85 - p.calor) * 0.09;
+        } else {
+          const v = Math.hypot(p.vx, p.vy);
+          if (v > 0.9) { p.vx *= 0.9 / v; p.vy *= 0.9 / v; }
+          else if (!puntero.activo && v > RED.velocidad) { p.vx *= 0.986; p.vy *= 0.986; }
+          p.calor += (objetivo - p.calor) * 0.07;
+        }
+
+        /* chispas contra el header y los botones: raras, y solo si el nodo esta encendido */
+        if (p.calor > 0.45) {
+          for (const t of objetivos) {
+            const cx = Math.max(t.x, Math.min(p.x, t.x + t.w));
+            const cy = Math.max(t.y, Math.min(p.y, t.y + t.h));
+            const d = Math.hypot(p.x - cx, p.y - cy);
+            if (d > RED.arco) continue;
+            const fuerza = 1 - d / RED.arco;
+            if (Math.random() < 0.02 * fuerza * p.calor) {
+              chispas.push([p.x, p.y, cx, cy, fuerza * p.calor]);
+            }
+          }
+        }
       }
 
-      /* el resplandor de la idea, detras de los nodos calientes */
+      /* halo frio detras de los nodos encendidos */
       for (const p of nodos) {
-        if (p.calor < 0.22) continue;
-        const R = 26 + p.calor * 70;
+        if (p.calor < 0.25) continue;
+        const R = 16 + p.calor * 44;
         const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
-        g.addColorStop(0, "rgba(255,186,72," + (0.28 * p.calor).toFixed(3) + ")");
-        g.addColorStop(1, "rgba(255,186,72,0)");
+        g.addColorStop(0, "rgba(186,164,255," + (0.13 * p.calor).toFixed(3) + ")");
+        g.addColorStop(1, "rgba(186,164,255,0)");
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
         ctx.fill();
       }
 
+      pintarIdea();
+
       for (const p of nodos) {
-        const c = mezcla(FRIO_NODO, CALIDO_CLARO, p.calor);
-        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.45 + p.calor * 0.55).toFixed(3) + ")";
+        const c = tono(FRIO_NODO, CLARO_NODO, p.calor);
+        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.42 + p.calor * 0.5).toFixed(3) + ")";
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r + p.calor * 1.6, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.r + p.calor * 1.3, 0, Math.PI * 2);
         ctx.fill();
       }
 
       for (const c of chispas) rayo(ctx, c[0], c[1], c[2], c[3], c[4]);
       ctx.lineWidth = 1;
 
-      /* el mouse funciona como disparador: tira hilos hacia lo que tiene cerca */
-      if (puntero.activo) {
+      /* el puntero tira hilos a lo que tiene cerca, y un anillo que se cierra
+         mientras la idea se termina de pensar */
+      if (puntero.activo && !idea) {
         for (const p of nodos) {
+          if (p.tomado) continue;
           const d = Math.hypot(p.x - puntero.x, p.y - puntero.y);
           if (d > RED.puntero) continue;
-          const alfa = (1 - d / RED.puntero) * 0.4;
-          ctx.strokeStyle = "rgba(255,206,124," + alfa.toFixed(3) + ")";
+          const alfa = (1 - d / RED.puntero) * (0.1 + puntero.carga * 0.26);
+          ctx.strokeStyle = "rgba(198,180,255," + alfa.toFixed(3) + ")";
           ctx.beginPath();
           ctx.moveTo(puntero.x, puntero.y);
           ctx.lineTo(p.x, p.y);
           ctx.stroke();
         }
+        if (puntero.carga > 0.06) {
+          ctx.lineWidth = 1.6;
+          ctx.strokeStyle = "rgba(214,198,255," + (0.14 + puntero.carga * 0.4).toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(puntero.x, puntero.y, 26, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * puntero.carga);
+          ctx.stroke();
+          ctx.lineWidth = 1;
+        }
       }
     };
 
-    const bucle = () => {
+    const bucle = (ahora) => {
       if (!vivo) return;
-      if (!document.hidden) pintar();
+      const dt = Math.min(0.05, previo ? (ahora - previo) / 1000 : 0.016);
+      previo = ahora;
+      if (!document.hidden) pintar(dt);
       raf = requestAnimationFrame(bucle);
     };
 
-    const alMover = (e) => {
+    const ubicar = (e) => {
       const r = box.getBoundingClientRect();
       const x = e.clientX - r.left, y = e.clientY - r.top;
       puntero.x = x;
       puntero.y = y;
       puntero.activo = x > -80 && y > -80 && x < r.width + 80 && y < r.height + 80;
     };
+    const alMover = (e) => {
+      if (e.pointerType !== "mouse" && !puntero.dedo) return;
+      ubicar(e);
+    };
+    /* en el celular la idea se piensa mientras el dedo esta apoyado */
+    const alApoyar = (e) => {
+      if (e.pointerType === "mouse") return;
+      puntero.dedo = true;
+      puntero.carga = 0;
+      ubicar(e);
+    };
+    const alSoltar = (e) => {
+      if (e.pointerType === "mouse") return;
+      puntero.dedo = false;
+      puntero.activo = false;
+    };
     const alSalir = () => { puntero.activo = false; };
 
     medir();
     if (quieto) {
-      pintar();
+      pintar(0.016);
     } else {
       window.addEventListener("pointermove", alMover, { passive: true });
+      window.addEventListener("pointerdown", alApoyar, { passive: true });
+      window.addEventListener("pointerup", alSoltar, { passive: true });
+      window.addEventListener("pointercancel", alSoltar, { passive: true });
       window.addEventListener("pointerleave", alSalir);
       raf = requestAnimationFrame(bucle);
     }
@@ -914,6 +1234,9 @@ function NeuralBg() {
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("pointermove", alMover);
+      window.removeEventListener("pointerdown", alApoyar);
+      window.removeEventListener("pointerup", alSoltar);
+      window.removeEventListener("pointercancel", alSoltar);
       window.removeEventListener("pointerleave", alSalir);
     };
   }, []);
@@ -1211,7 +1534,7 @@ export default function StudioB2B() {
               <div className="s2b-hero-cta">
                 <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>Contanos tu proyecto <ArrowRight size={16} /></button>
                 <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("metodo")}>
-                  <Play size={15} /> Cómo trabajamos
+                  <Workflow size={15} /> Cómo trabajamos
                 </button>
               </div>
               <div className="s2b-hero-note"><span className="s2b-dot" /> 2 lugares para arrancar este trimestre</div>
@@ -1307,9 +1630,13 @@ export default function StudioB2B() {
           </div>
 
           <div className="s2b-method">
-            <div className="s2b-video s2b-rv">
-              <button className="s2b-play" aria-label="Reproducir video del método"><Play size={28} fill="currentColor" /></button>
-              <div className="s2b-video-cap">Método Studio · 2 min con el equipo</div>
+            <div className="s2b-method-img s2b-rv">
+              <img
+                src="/metodo.jpg"
+                alt="El equipo de Studio B2B trabajando"
+                loading="lazy"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
             </div>
             <div className="s2b-rv">
               <div className="s2b-stages">
