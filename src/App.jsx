@@ -237,15 +237,15 @@ const CSS = `
 .s2b-shortcut span { font-size:13.5px; color:#A79EC8; line-height:1.55; }
 
 /* ---------- logos clientes ---------- */
-.s2b-logos { padding:44px 0; }
+.s2b-logos { padding:60px 0; }
 .s2b-logos-t { text-align:center; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:28px; }
 .s2b-marq { overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); }
-.s2b-marq-track { display:flex; gap:52px; width:max-content; align-items:center; animation: s2b-slide 38s linear infinite; }
+.s2b-marq-track { display:flex; gap:74px; width:max-content; align-items:center; animation: s2b-slide 46s linear infinite; }
 .s2b-marq:hover .s2b-marq-track { animation-play-state: paused; }
 @keyframes s2b-slide { to { transform: translateX(-50%); } }
-.s2b-clogo { font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.02em; color:#A9A3BE; opacity:1; white-space:nowrap; filter:none; transition: color .25s, opacity .25s; }
+.s2b-clogo { font-family:var(--display); font-weight:700; font-size:30px; letter-spacing:-.02em; color:#A9A3BE; opacity:1; white-space:nowrap; filter:none; transition: color .25s, opacity .25s; }
 .s2b-clogo:hover { color: var(--violet); opacity:1; }
-.s2b-clogo--img { height:46px; width:auto; object-fit:contain; opacity:1; border-radius:8px; filter:none; background:rgba(255,255,255,.12); padding:6px 10px; }
+.s2b-clogo--img { height:104px; width:auto; object-fit:contain; opacity:1; border-radius:12px; filter:none; background:rgba(255,255,255,.12); padding:10px 16px; }
 .s2b-clogo--img:hover { filter:none; opacity:1; }
 
 /* ---------- servicios (filas alternadas) ---------- */
@@ -443,6 +443,10 @@ const CSS = `
   .s2b-head { align-items:start; }
 }
 @media (max-width: 600px) {
+  .s2b-logos { padding:44px 0; }
+  .s2b-marq-track { gap:44px; }
+  .s2b-clogo { font-size:22px; }
+  .s2b-clogo--img { height:68px; padding:8px 12px; border-radius:10px; }
   .s2b-brand { --mark:58px; gap:11px; }
   .s2b-brand-txt { font-size:17px; }
   .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
