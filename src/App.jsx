@@ -5,8 +5,10 @@ import {
   Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
 } from "lucide-react";
 import {
-  siReact, siNextdotjs, siJavascript, siTypescript, siNodedotjs, siPython,
-  siSupabase, siPostgresql, siTailwindcss, siFlutter, siGraphql, siWordpress,
+  siReact, siNextdotjs, siAstro, siVuedotjs, siJavascript, siTypescript,
+  siNodedotjs, siNestjs, siPython, siPhp, siLaravel, siWordpress,
+  siWoocommerce, siTailwindcss, siVite, siSupabase, siPostgresql,
+  siMongodb, siPrisma, siGraphql, siFlutter, siExpo, siStripe,
   siDocker, siKubernetes, siGooglecloud, siVercel, siCloudflare, siLinux,
   siNginx, siTerraform, siAnsible, siGithubactions, siRedis, siGrafana,
   siOwasp, siAuth0, siKeycloak, siLetsencrypt, siJsonwebtokens, siVault,
@@ -459,6 +461,7 @@ const CSS = `
   .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
   .s2b-tiles > *:nth-child(even) { margin-top:14px; }
   .s2b-tile-logo { width:30px; height:30px; }
+  .s2b-tile--void { display:none; }
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
 }
@@ -605,8 +608,10 @@ const AGENT_PTS = [
 
 const TECNOLOGIAS = {
   "Desarrollo de Software": [
-    siReact, siNextdotjs, siJavascript, siTypescript, siNodedotjs, siPython,
-    siWordpress, siSupabase, siPostgresql, siTailwindcss, siFlutter, siGraphql,
+    siReact, siNextdotjs, siAstro, siVuedotjs, siJavascript, siTypescript,
+    siNodedotjs, siNestjs, siPython, siPhp, siLaravel, siWordpress,
+    siWoocommerce, siTailwindcss, siVite, siSupabase, siPostgresql,
+    siMongodb, siPrisma, siGraphql, siFlutter, siExpo, siStripe,
   ],
   "Inteligencia Artificial": [
     siOpenai, siClaude, siGooglegemini, siGroq, siMistralai, siDeepseek,
@@ -622,18 +627,36 @@ const TECNOLOGIAS = {
   ],
 };
 
-/* Mosaico de 6x4: true = celda con logo, false = celda vacía decorativa.
-   MASK_INDEX mapea cada celda llena a su posición en el array de logos. */
-const TILE_MASK = [
-  true, false, false, true, false, true,
-  false, true, true, false, true, false,
-  true, false, true, false, false, true,
-  false, true, false, true, true, false,
+/* El mosaico se arma solo segun cuantos logos tenga la categoria: repite este
+   damero de 6 columnas hasta que entren todos y devuelve, por celda, que logo
+   va ahi (-1 = celda vacia decorativa). */
+const DAMERO = [
+  [true, false, false, true, false, true],
+  [false, true, true, false, true, false],
+  [true, false, true, false, false, true],
+  [false, true, false, true, true, false],
 ];
-const MASK_INDEX = (() => {
-  let n = 0;
-  return TILE_MASK.map((f) => (f ? n++ : -1));
-})();
+/* con muchos logos el damero suelto estiraria la seccion de mas: ahi va este,
+   con menos aire */
+const DAMERO_DENSO = [
+  [true, true, false, true, true, false],
+  [true, false, true, true, false, true],
+  [false, true, true, false, true, true],
+];
+function armarMosaico(cant) {
+  const patron = cant > 14 ? DAMERO_DENSO : DAMERO;
+  const celdas = [];
+  let puestos = 0, fila = 0;
+  while (puestos < cant) {
+    for (const llena of patron[fila % patron.length]) {
+      const usar = llena && puestos < cant;
+      celdas.push(usar ? puestos++ : -1);
+    }
+    fila++;
+  }
+  while (celdas.length && celdas[celdas.length - 1] === -1) celdas.pop();
+  return celdas;
+}
 
 const STATS = [
   { to: 10, sfx: "+", l: "Años en el mercado" },
@@ -709,14 +732,15 @@ const RED = {
 /* Tiempos de una idea, en segundos: pensar, apretarse, abrirse, vivir, irse */
 const IDEA = { nodos: 34, piensa: 1.8, junta: 0.46, arma: 0.62, vive: 2.1, sale: 0.8, pausa: 0.7, anillo: 22 };
 
-/* Las ideas que llega a formar la red: lo que le construimos al cliente */
+/* Lo que le construimos al cliente. Salen en este orden, una atras de otra:
+   primero la app movil, despues otra cosa, y asi. Cada una tiene su acento. */
 const IDEAS = [
-  { rotulo: "APP A MEDIDA", w: 148, h: 104, dibujo: "grilla" },
-  { rotulo: "DASHBOARD",    w: 168, h: 100, dibujo: "panel" },
-  { rotulo: "APP MOVIL",    w: 84,  h: 148, dibujo: "movil" },
-  { rotulo: "AGENTE IA",    w: 152, h: 104, dibujo: "chat" },
-  { rotulo: "PORTAL B2B",   w: 164, h: 102, dibujo: "grilla" },
-  { rotulo: "INTEGRACION",  w: 156, h: 100, dibujo: "panel" },
+  { rotulo: "APP M\u00d3VIL",  w: 98,  h: 188, dibujo: "movil",  acento: [150, 214, 255] },
+  { rotulo: "DASHBOARD",   w: 192, h: 120, dibujo: "panel",  acento: [255, 202, 128] },
+  { rotulo: "AGENTE IA",   w: 176, h: 120, dibujo: "chat",   acento: [176, 156, 255] },
+  { rotulo: "E-COMMERCE",  w: 186, h: 120, dibujo: "tienda", acento: [125, 235, 174] },
+  { rotulo: "PORTAL B2B",  w: 190, h: 118, dibujo: "grilla", acento: [143, 180, 255] },
+  { rotulo: "CRM A MEDIDA", w: 190, h: 118, dibujo: "kanban", acento: [214, 168, 255] },
 ];
 
 /* Un rayo quebrado entre dos puntos: se dibuja dos veces, una gruesa y
@@ -811,78 +835,255 @@ function rutaRedonda(ctx, x, y, an, al, r) {
   ctx.closePath();
 }
 
-/* el interior de la app: cada idea se dibuja distinta para que se lea que no
-   es un rectangulo cualquiera sino un producto */
-function interiorIdea(ctx, tipo, x, y, an, al, a) {
+/* El interior de la app. Cada idea se dibuja distinta -y con la interfaz que
+   le toca- para que se lea que no es un rectangulo cualquiera sino un producto.
+   `ent(i)` es la entrada escalonada: los elementos van apareciendo de a uno. */
+function interiorIdea(ctx, tipo, x, y, an, al, a, apar, acento) {
   const linea = (op) => "rgba(214,201,255," + (op * a).toFixed(3) + ")";
   const lleno = (op) => "rgba(167,140,255," + (op * a).toFixed(3) + ")";
-  const oro = (op) => "rgba(255,202,128," + (op * a).toFixed(3) + ")";
-  const pad = 11;
-  const cx = x + pad, ancho = an - pad * 2;
+  const ac = (op) => "rgba(" + acento[0] + "," + acento[1] + "," + acento[2] + "," + (op * a).toFixed(3) + ")";
+  const ent = (i) => Math.max(0, Math.min(1, (apar - i * 0.06) / 0.26));
+  const barra = (bx, by, bw, bh, r, color) => {
+    rutaRedonda(ctx, bx, by, Math.max(1, bw), Math.max(1, bh), Math.min(r, bh / 2));
+    ctx.fillStyle = color;
+    ctx.fill();
+  };
+  /* cada elemento entra deslizandose un toque desde abajo */
+  const entra = (i, dibujo) => {
+    const e = ent(i);
+    if (e <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = e;
+    ctx.translate(0, (1 - e) * 5);
+    dibujo(e);
+    ctx.restore();
+  };
 
-  /* barra de titulo, comun a todas */
-  ctx.fillStyle = lleno(0.5);
-  ctx.fillRect(cx, y + 11, Math.min(38, ancho * 0.4), 3);
-  ctx.fillStyle = linea(0.3);
-  ctx.fillRect(x, y + 22, an, 1);
+  if (tipo === "movil") {
+    /* telefono: isla, saludo, tarjeta con degrade, accesos, lista y tab bar */
+    const pad = 9, cx = x + pad, ancho = an - pad * 2;
 
-  if (tipo === "panel") {
-    const base = y + al - 13;
-    const alturas = [0.32, 0.62, 0.44, 0.86, 0.58];
-    const bw = 9, sep = 6;
-    alturas.forEach((k, i) => {
-      const bh = (al - 44) * k;
-      ctx.fillStyle = lleno(0.55);
-      ctx.fillRect(cx + i * (bw + sep), base - bh, bw, bh);
+    barra(x + an / 2 - 13, y + 7, 26, 5, 3, "rgba(8,5,20," + (0.85 * a).toFixed(3) + ")");
+    ctx.fillStyle = linea(0.5);
+    ctx.fillRect(cx, y + 8, 8, 2);
+    ctx.fillRect(x + an - pad - 12, y + 8, 12, 2);
+
+    entra(0, () => {
+      barra(cx, y + 22, 34, 4, 2, linea(0.55));
+      barra(cx, y + 30, 22, 3, 2, lleno(0.45));
+      barra(x + an - pad - 12, y + 21, 12, 12, 6, lleno(0.5));
     });
-    ctx.strokeStyle = oro(0.55);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    alturas.forEach((k, i) => {
-      const px = cx + i * (bw + sep) + bw / 2;
-      const py = base - (al - 44) * k - 6;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+
+    entra(1, () => {
+      const th = 44;
+      const g = ctx.createLinearGradient(cx, y + 40, cx + ancho, y + 40 + th);
+      g.addColorStop(0, ac(0.5));
+      g.addColorStop(1, lleno(0.55));
+      rutaRedonda(ctx, cx, y + 40, ancho, th, 10);
+      ctx.fillStyle = g;
+      ctx.fill();
+      barra(cx + 9, y + 51, 30, 3, 2, "rgba(255,255,255," + (0.6 * a).toFixed(3) + ")");
+      barra(cx + 9, y + 59, 46, 6, 3, "rgba(255,255,255," + (0.9 * a).toFixed(3) + ")");
+      barra(cx + 9, y + 71, 20, 3, 2, "rgba(255,255,255," + (0.5 * a).toFixed(3) + ")");
     });
-    ctx.stroke();
-    ctx.lineWidth = 1;
-  } else if (tipo === "movil") {
-    for (let i = 0; i < 4; i++) {
-      const fy = y + 32 + i * 16;
-      ctx.fillStyle = lleno(0.4);
-      ctx.fillRect(cx, fy, 9, 9);
-      ctx.fillStyle = linea(0.45);
-      ctx.fillRect(cx + 14, fy + 1, ancho - 14, 2);
-      ctx.fillRect(cx + 14, fy + 6, ancho - 24, 2);
-    }
-    ctx.fillStyle = linea(0.25);
-    ctx.fillRect(x, y + al - 16, an, 1);
+
+    entra(2, () => {
+      for (let i = 0; i < 3; i++) {
+        const bw = (ancho - 12) / 3;
+        barra(cx + i * (bw + 6), y + 92, bw, 22, 7, i === 0 ? ac(0.28) : lleno(0.22));
+        barra(cx + i * (bw + 6) + bw / 2 - 4, y + 99, 8, 8, 4, i === 0 ? ac(0.75) : lleno(0.5));
+      }
+    });
+
     for (let i = 0; i < 3; i++) {
-      ctx.fillStyle = i === 1 ? oro(0.7) : lleno(0.5);
-      ctx.beginPath();
-      ctx.arc(x + an * (0.28 + i * 0.22), y + al - 8, 2.6, 0, Math.PI * 2);
-      ctx.fill();
+      entra(3 + i, () => {
+        const fy = y + 122 + i * 17;
+        barra(cx, fy, 12, 12, 6, lleno(0.4));
+        barra(cx + 17, fy + 1, ancho - 30, 3, 2, linea(0.5));
+        barra(cx + 17, fy + 7, ancho - 44, 3, 2, lleno(0.32));
+      });
     }
-  } else if (tipo === "chat") {
-    const burbuja = (bx, by, bw, color) => {
-      rutaRedonda(ctx, bx, by, bw, 13, 6);
-      ctx.fillStyle = color;
-      ctx.fill();
-    };
-    burbuja(cx, y + 31, ancho * 0.56, lleno(0.4));
-    burbuja(x + an - pad - ancho * 0.62, y + 50, ancho * 0.62, oro(0.3));
-    burbuja(cx, y + 69, ancho * 0.44, lleno(0.4));
-    ctx.fillStyle = linea(0.4);
-    ctx.fillRect(cx, y + al - 14, ancho, 2);
-  } else {
-    const cols = 3, filas = 2;
-    const gw = (ancho - (cols - 1) * 7) / cols;
-    const gh = (al - 40 - (filas - 1) * 7) / filas;
-    for (let f = 0; f < filas; f++) {
-      for (let c = 0; c < cols; c++) {
-        rutaRedonda(ctx, cx + c * (gw + 7), y + 30 + f * (gh + 7), gw, gh, 4);
-        ctx.fillStyle = f === 0 && c === 1 ? oro(0.32) : lleno(0.32);
+
+    entra(6, () => {
+      /* tab bar de vidrio, con el activo en pastilla */
+      barra(cx, y + al - 26, ancho, 20, 10, "rgba(255,255,255," + (0.09 * a).toFixed(3) + ")");
+      for (let i = 0; i < 4; i++) {
+        const bx = cx + 8 + i * ((ancho - 16) / 3.4);
+        if (i === 0) barra(bx - 5, y + al - 23, 18, 14, 7, ac(0.3));
+        ctx.fillStyle = i === 0 ? ac(0.95) : lleno(0.55);
+        ctx.beginPath();
+        ctx.arc(bx + 4, y + al - 16, 2.6, 0, Math.PI * 2);
         ctx.fill();
       }
+    });
+
+    entra(7, () => {
+      /* boton flotante con su resplandor */
+      const bx = x + an - pad - 16, by = y + al - 46;
+      const g = ctx.createRadialGradient(bx + 8, by + 8, 0, bx + 8, by + 8, 22);
+      g.addColorStop(0, ac(0.4));
+      g.addColorStop(1, ac(0));
+      ctx.fillStyle = g;
+      ctx.fillRect(bx - 14, by - 14, 44, 44);
+      barra(bx, by, 16, 16, 8, ac(0.9));
+      ctx.strokeStyle = "rgba(12,8,28," + (0.85 * a).toFixed(3) + ")";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(bx + 8, by + 4.5); ctx.lineTo(bx + 8, by + 11.5);
+      ctx.moveTo(bx + 4.5, by + 8); ctx.lineTo(bx + 11.5, by + 8);
+      ctx.stroke();
+      ctx.lineWidth = 1;
+    });
+    return;
+  }
+
+  /* de aca para abajo, pantallas de escritorio: barra de ventana + panel lateral */
+  const pad = 10;
+  const cx = x + pad, ancho = an - pad * 2;
+  const cab = 20;
+
+  ctx.fillStyle = "rgba(255,255,255," + (0.05 * a).toFixed(3) + ")";
+  ctx.fillRect(x, y, an, cab);
+  for (let i = 0; i < 3; i++) {
+    ctx.fillStyle = i === 0 ? ac(0.75) : lleno(0.4);
+    ctx.beginPath();
+    ctx.arc(x + 12 + i * 8, y + 10, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  barra(x + 40, y + 7, Math.min(70, ancho * 0.45), 6, 3, "rgba(255,255,255," + (0.07 * a).toFixed(3) + ")");
+  ctx.fillStyle = linea(0.22);
+  ctx.fillRect(x, y + cab, an, 1);
+
+  const lat = 26;
+  entra(0, () => {
+    ctx.fillStyle = "rgba(255,255,255," + (0.04 * a).toFixed(3) + ")";
+    ctx.fillRect(x, y + cab + 1, lat, al - cab - 1);
+    for (let i = 0; i < 4; i++) {
+      if (i === 0) barra(x + 5, y + cab + 8 + i * 15, lat - 10, 11, 4, ac(0.26));
+      barra(x + 9, y + cab + 12 + i * 15, 8, 3, 2, i === 0 ? ac(0.9) : lleno(0.45));
+    }
+  });
+
+  const px = x + lat + 10, panel = an - lat - 20, py = y + cab + 10;
+
+  if (tipo === "panel") {
+    entra(1, () => {
+      for (let i = 0; i < 3; i++) {
+        const bw = (panel - 12) / 3;
+        barra(px + i * (bw + 6), py, bw, 24, 6, "rgba(255,255,255," + (0.06 * a).toFixed(3) + ")");
+        barra(px + i * (bw + 6) + 6, py + 6, bw * 0.4, 3, 2, lleno(0.4));
+        barra(px + i * (bw + 6) + 6, py + 13, bw * 0.6, 5, 2, i === 1 ? ac(0.85) : linea(0.6));
+      }
+    });
+    entra(2, () => {
+      const base = y + al - 12, alto = al - cab - 56;
+      const cols = [0.35, 0.6, 0.42, 0.85, 0.55, 0.72];
+      const bw = 8, sep = (panel - cols.length * bw) / (cols.length - 1);
+      cols.forEach((k, i) => {
+        const bh = alto * k;
+        const g = ctx.createLinearGradient(0, base - bh, 0, base);
+        g.addColorStop(0, i === 3 ? ac(0.95) : lleno(0.75));
+        g.addColorStop(1, i === 3 ? ac(0.15) : lleno(0.12));
+        ctx.fillStyle = g;
+        rutaRedonda(ctx, px + i * (bw + sep), base - bh, bw, bh, 3);
+        ctx.fill();
+      });
+      /* la linea de tendencia por encima de las barras */
+      ctx.strokeStyle = ac(0.8);
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      cols.forEach((k, i) => {
+        const qx = px + i * (bw + sep) + bw / 2, qy = base - alto * k - 5;
+        if (i === 0) ctx.moveTo(qx, qy); else ctx.lineTo(qx, qy);
+      });
+      ctx.stroke();
+      ctx.lineWidth = 1;
+    });
+  } else if (tipo === "chat") {
+    const burbuja = (i, izq, bw, color) => {
+      entra(1 + i, () => {
+        const by = py + i * 22;
+        const bx = izq ? px : px + panel - bw;
+        barra(bx, by, bw, 17, 8, color);
+        barra(bx + 7, by + 6, bw - 20, 3, 2, "rgba(255,255,255," + (0.45 * a).toFixed(3) + ")");
+        if (izq) {
+          ctx.fillStyle = lleno(0.55);
+          ctx.beginPath();
+          ctx.arc(bx - 6, by + 8, 3.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    };
+    burbuja(0, true, panel * 0.6, lleno(0.35));
+    burbuja(1, false, panel * 0.68, ac(0.34));
+    burbuja(2, true, panel * 0.5, lleno(0.35));
+    entra(4, () => {
+      /* el campo de escribir, con el cursor prendido */
+      barra(px, y + al - 20, panel, 13, 6, "rgba(255,255,255," + (0.07 * a).toFixed(3) + ")");
+      barra(px + 7, y + al - 15, panel * 0.3, 3, 2, lleno(0.4));
+      if (Math.floor(apar * 2.2) % 2 === 0) barra(px + 9 + panel * 0.3, y + al - 17, 1.6, 7, 1, ac(0.9));
+      barra(px + panel - 16, y + al - 18, 11, 9, 4, ac(0.85));
+    });
+  } else if (tipo === "tienda") {
+    for (let i = 0; i < 3; i++) {
+      entra(1 + i, () => {
+        const bw = (panel - 12) / 3;
+        const bx = px + i * (bw + 6);
+        const alto = al - cab - 42;
+        barra(bx, py, bw, alto, 6, "rgba(255,255,255," + (0.06 * a).toFixed(3) + ")");
+        const g = ctx.createLinearGradient(bx, py, bx + bw, py + alto * 0.6);
+        g.addColorStop(0, i === 1 ? ac(0.5) : lleno(0.4));
+        g.addColorStop(1, lleno(0.14));
+        rutaRedonda(ctx, bx + 4, py + 4, bw - 8, alto * 0.5, 4);
+        ctx.fillStyle = g;
+        ctx.fill();
+        barra(bx + 4, py + alto * 0.5 + 9, bw * 0.6, 3, 2, linea(0.5));
+        barra(bx + 4, py + alto * 0.5 + 16, bw * 0.35, 4, 2, ac(0.8));
+      });
+    }
+    entra(4, () => {
+      /* el carrito, con su globito de cantidad */
+      const bx = x + an - 24, by = y + 6;
+      barra(bx, by, 9, 8, 2, lleno(0.7));
+      ctx.fillStyle = ac(0.95);
+      ctx.beginPath();
+      ctx.arc(bx + 10, by + 1, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (tipo === "kanban") {
+    for (let c = 0; c < 3; c++) {
+      const bw = (panel - 12) / 3;
+      const bx = px + c * (bw + 6);
+      entra(1 + c, () => {
+        barra(bx, py, bw, al - cab - 22, 6, "rgba(255,255,255," + (0.045 * a).toFixed(3) + ")");
+        barra(bx + 5, py + 5, bw * 0.5, 3, 2, c === 1 ? ac(0.8) : lleno(0.5));
+        for (let f = 0; f < 2 + (c === 1 ? 1 : 0); f++) {
+          const ty = py + 14 + f * 17;
+          barra(bx + 4, ty, bw - 8, 14, 4, lleno(0.22));
+          barra(bx + 8, ty + 4, bw * 0.45, 2.5, 2, linea(0.55));
+          barra(bx + 8, ty + 9, bw * 0.28, 2.5, 2, c === 1 && f === 0 ? ac(0.9) : lleno(0.5));
+        }
+      });
+    }
+  } else {
+    /* portal: tarjetas grandes arriba y una tabla abajo */
+    entra(1, () => {
+      for (let i = 0; i < 2; i++) {
+        const bw = (panel - 6) / 2;
+        barra(px + i * (bw + 6), py, bw, 30, 7, "rgba(255,255,255," + (0.06 * a).toFixed(3) + ")");
+        barra(px + i * (bw + 6) + 7, py + 7, bw * 0.45, 3, 2, lleno(0.45));
+        barra(px + i * (bw + 6) + 7, py + 15, bw * 0.62, 6, 3, i === 0 ? ac(0.85) : linea(0.6));
+      }
+    });
+    for (let f = 0; f < 3; f++) {
+      entra(2 + f, () => {
+        const fy = py + 38 + f * 13;
+        barra(px, fy, 8, 8, 2, f === 0 ? ac(0.7) : lleno(0.4));
+        barra(px + 13, fy + 2, panel * 0.44, 3, 2, linea(0.5));
+        barra(px + 13 + panel * 0.5, fy + 2, panel * 0.2, 3, 2, lleno(0.35));
+        ctx.fillStyle = linea(0.14);
+        ctx.fillRect(px, fy + 11, panel, 1);
+      });
     }
   }
 }
@@ -907,6 +1108,7 @@ function NeuralBg() {
     let pulsos = [];       // senales corriendo por la red hacia el foco
     let latidos = [];      // las ondas que larga el foco mientras se piensa
     let proxLatido = 0;
+    let cual = 0;          // que idea toca: salen en orden, una atras de otra
 
     /* header, pill y botones del hero: los nodos les tiran chispas al pasar cerca */
     let objetivos = [];
@@ -957,7 +1159,7 @@ function NeuralBg() {
        anillo -el instante justo antes de entender- y desde ese nudo se abren sobre
        el contorno de la app, emparejados por angulo para que no se crucen */
     const nacerIdea = (x, y) => {
-      const receta = IDEAS[Math.floor(Math.random() * IDEAS.length)];
+      const receta = IDEAS[cual % IDEAS.length];
       const an = Math.min(receta.w, w - 48), al = Math.min(receta.h, h - 90);
       if (an < 70 || al < 70) return;
       const cx = Math.min(w - an / 2 - 20, Math.max(an / 2 + 20, x));
@@ -987,6 +1189,7 @@ function NeuralBg() {
       });
 
       idea = { x: cx, y: cy, w: an, h: al, receta, t: 0, fase: "junta", nodos: elegidos };
+      cual++;
       puntero.carga = 0;
     };
 
@@ -1046,34 +1249,63 @@ function NeuralBg() {
 
       const x = idea.x - idea.w / 2, y = idea.y - idea.h / 2;
 
-      /* el unico resplandor calido de toda la escena, y dura un segundo */
-      const g = ctx.createRadialGradient(idea.x, idea.y, 0, idea.x, idea.y, idea.w * 1.1);
-      g.addColorStop(0, "rgba(255,196,110," + (0.16 * a).toFixed(3) + ")");
-      g.addColorStop(1, "rgba(255,196,110,0)");
+      const ac = idea.receta.acento;
+      const rgba = (c, op) => "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + op.toFixed(3) + ")";
+      const radio = idea.receta.dibujo === "movil" ? 16 : 12;
+      /* cuanto lleva viva: manda la entrada de los elementos y el brillo */
+      const apar = idea.fase === "vive" ? idea.t : idea.fase === "sale" ? IDEA.vive : 0;
+
+      /* el resplandor, tenido con el acento de esta idea */
+      const g = ctx.createRadialGradient(idea.x, idea.y, 0, idea.x, idea.y, idea.h * 1.05);
+      g.addColorStop(0, rgba(ac, 0.15 * a));
+      g.addColorStop(0.55, "rgba(255,196,110," + (0.05 * a).toFixed(3) + ")");
+      g.addColorStop(1, rgba(ac, 0));
       ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.arc(idea.x, idea.y, idea.w * 1.1, 0, Math.PI * 2);
+      ctx.arc(idea.x, idea.y, idea.h * 1.05, 0, Math.PI * 2);
       ctx.fill();
 
-      rutaRedonda(ctx, x, y, idea.w, idea.h, 14);
-      ctx.fillStyle = "rgba(16,10,40," + (0.5 * a).toFixed(3) + ")";
+      /* el cuerpo: vidrio oscuro con una luz arriba a la izquierda */
+      rutaRedonda(ctx, x, y, idea.w, idea.h, radio);
+      const cuerpo = ctx.createLinearGradient(x, y, x + idea.w * 0.7, y + idea.h);
+      cuerpo.addColorStop(0, "rgba(34,22,72," + (0.92 * a).toFixed(3) + ")");
+      cuerpo.addColorStop(1, "rgba(12,7,30," + (0.94 * a).toFixed(3) + ")");
+      ctx.fillStyle = cuerpo;
       ctx.fill();
-      ctx.strokeStyle = "rgba(226,216,255," + (0.62 * a).toFixed(3) + ")";
+
+      ctx.save();
+      rutaRedonda(ctx, x, y, idea.w, idea.h, radio);
+      ctx.clip();
+      interiorIdea(ctx, idea.receta.dibujo, x, y, idea.w, idea.h, a, apar, ac);
+
+      /* el brillo que barre la pantalla una vez, apenas termina de aparecer */
+      const bar = (apar - 0.35) / 0.85;
+      if (bar > 0 && bar < 1) {
+        const bx = x - idea.w * 0.5 + bar * idea.w * 2;
+        const br = ctx.createLinearGradient(bx - 26, y, bx + 26, y + idea.h);
+        br.addColorStop(0, "rgba(255,255,255,0)");
+        br.addColorStop(0.5, "rgba(255,255,255," + (0.13 * a * Math.sin(bar * Math.PI)).toFixed(3) + ")");
+        br.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = br;
+        ctx.fillRect(x, y, idea.w, idea.h);
+      }
+      ctx.restore();
+
+      /* el borde, con el acento marcando el filo de arriba */
+      rutaRedonda(ctx, x, y, idea.w, idea.h, radio);
+      const filo = ctx.createLinearGradient(x, y, x, y + idea.h);
+      filo.addColorStop(0, rgba(ac, 0.75 * a));
+      filo.addColorStop(1, "rgba(226,216,255," + (0.3 * a).toFixed(3) + ")");
+      ctx.strokeStyle = filo;
       ctx.lineWidth = 1.2;
       ctx.stroke();
       ctx.lineWidth = 1;
-
-      ctx.save();
-      rutaRedonda(ctx, x, y, idea.w, idea.h, 14);
-      ctx.clip();
-      interiorIdea(ctx, idea.receta.dibujo, x, y, idea.w, idea.h, a);
-      ctx.restore();
 
       /* el remate: primero que producto es, y abajo la promesa */
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.font = "600 10px ui-monospace, SFMono-Regular, Menlo, monospace";
-      ctx.fillStyle = "rgba(203,186,255," + (0.85 * a).toFixed(3) + ")";
+      ctx.fillStyle = "rgba(" + ac[0] + "," + ac[1] + "," + ac[2] + "," + (0.9 * a).toFixed(3) + ")";
       ctx.fillText(idea.receta.rotulo, idea.x, y + idea.h + 12);
 
       const frase = "Convert\u00ed tu idea en realidad";
@@ -1878,8 +2110,8 @@ export default function StudioB2B() {
             </div>
 
             <div className="s2b-tiles" key={tab}>
-              {TILE_MASK.map((filled, i) => {
-                const ic = filled ? TECNOLOGIAS[tab][MASK_INDEX[i]] : null;
+              {armarMosaico(TECNOLOGIAS[tab].length).map((puesto, i) => {
+                const ic = puesto >= 0 ? TECNOLOGIAS[tab][puesto] : null;
                 if (!ic) return <div className="s2b-tile s2b-tile--void" key={i} aria-hidden="true" />;
                 return (
                   <div className="s2b-tile" key={i} style={{ animationDelay: i * 32 + "ms" }}>
