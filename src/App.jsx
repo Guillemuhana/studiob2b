@@ -4,6 +4,7 @@ import {
   Workflow, Smartphone, Plus, Minus, Menu, X, Mail, MapPin, Check,
   Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
 } from "lucide-react";
+import Tilt from "react-parallax-tilt";
 import {
   siReact, siNextdotjs, siAstro, siVuedotjs, siJavascript, siTypescript,
   siNodedotjs, siNestjs, siPython, siPhp, siLaravel, siWordpress,
@@ -254,7 +255,11 @@ const CSS = `
 @keyframes s2b-slide { to { transform: translateX(-50%); } }
 .s2b-clogo { font-family:var(--display); font-weight:700; font-size:30px; letter-spacing:-.02em; color:#A9A3BE; opacity:1; white-space:nowrap; filter:none; transition: color .25s, opacity .25s; }
 .s2b-clogo:hover { color: var(--violet); opacity:1; }
-.s2b-clogo--img { height:var(--clogo-h); width:auto; object-fit:contain; opacity:1; border-radius:12px; filter:none; background:rgba(255,255,255,.12); padding:10px 16px; }
+.s2b-clogo--img {
+  height:var(--clogo-h); width:auto; object-fit:contain; opacity:1; filter:none;
+  border-radius:16px; background:#fff; padding:12px 18px;
+  border:1px solid rgba(24,12,60,.05); box-shadow:0 14px 30px -22px rgba(24,12,60,.55);
+}
 .s2b-clogo--img:hover { filter:none; opacity:1; }
 
 /* ---------- servicios (filas alternadas) ---------- */
@@ -338,30 +343,55 @@ const CSS = `
 .s2b-tab.is-on { background: linear-gradient(120deg,var(--violet),#4B2FD6); color:#fff; }
 
 .s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
+/* discos, no cuadrados: el mosaico se lee como una constelacion */
+/* el disco no crece sin freno en pantallas anchas: queda parejo y centrado */
+.s2b-tiltbox { min-width:0; width:100%; max-width:132px; justify-self:center; border-radius:50%; }
 .s2b-tile {
-  position:relative; min-width:0; aspect-ratio:1/1; border-radius:20px; display:grid; place-items:center;
-  background:rgba(255,255,255,.045); border:1px solid rgba(167,140,255,.12);
-  transition: transform .3s cubic-bezier(.2,.7,.2,1), background .3s, border-color .3s, box-shadow .3s;
+  position:relative; min-width:0; aspect-ratio:1/1; border-radius:50%; display:grid; place-items:center;
+  background:
+    radial-gradient(120% 120% at 30% 22%, rgba(255,255,255,.075), rgba(255,255,255,.02) 58%, rgba(255,255,255,.008));
+  border:1px solid rgba(167,140,255,.16);
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), background .3s, border-color .3s, box-shadow .3s;
 }
-.s2b-tile--void { background:rgba(255,255,255,.018); border-color:rgba(167,140,255,.07); }
+/* el anillo fino que aparece al acercarse */
+.s2b-tile:not(.s2b-tile--void)::after {
+  content:''; position:absolute; inset:-4px; border-radius:50%; pointer-events:none;
+  border:1px solid rgba(167,140,255,.3); opacity:0; transform:scale(.9);
+  transition: opacity .35s, transform .35s cubic-bezier(.2,.7,.2,1);
+}
+.s2b-tiltbox:hover .s2b-tile::after { opacity:1; transform:scale(1); }
+/* las celdas decorativas quedan como puntitos de la red */
+.s2b-tile--void { background:none; border:none; }
+.s2b-tile--void::before {
+  content:''; position:absolute; width:9px; height:9px; border-radius:50%;
+  background:rgba(167,140,255,.16); box-shadow:0 0 0 5px rgba(167,140,255,.045);
+}
 .s2b-tile:not(.s2b-tile--void) { animation: s2b-tile-in .5s cubic-bezier(.2,.7,.2,1) backwards; }
 @keyframes s2b-tile-in { from { opacity:0; transform:translateY(14px) scale(.94); } }
-.s2b-tile:not(.s2b-tile--void):hover {
-  transform:translateY(-6px); background:rgba(255,255,255,.075);
-  border-color:rgba(167,140,255,.42); box-shadow:0 24px 46px -24px rgba(109,74,255,.85);
+.s2b-tiltbox:hover .s2b-tile {
+  transform:scale(1.07);
+  background:
+    radial-gradient(120% 120% at 30% 22%, rgba(255,255,255,.14), rgba(167,140,255,.09) 58%, rgba(255,255,255,.02));
+  border-color:rgba(167,140,255,.5); box-shadow:0 26px 50px -26px rgba(109,74,255,.9);
 }
-.s2b-tile-logo { width:38px; height:38px; transition: transform .3s; }
-.s2b-tile:hover .s2b-tile-logo { transform:scale(1.09); }
+.s2b-tile-logo { width:46px; height:46px; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.s2b-tiltbox:hover .s2b-tile-logo { transform:translateY(-7px) scale(1.06); }
 .s2b-tile-name {
-  position:absolute; left:6px; right:6px; bottom:11px; text-align:center;
-  font-family:var(--mono); font-size:10px; letter-spacing:.03em; color:#B3ABD6;
-  opacity:0; transform:translateY(5px); transition:opacity .3s, transform .3s;
+  position:absolute; left:8px; right:8px; bottom:19%; text-align:center;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.03em; color:#CFC6F0;
+  opacity:0; transform:translateY(6px); transition:opacity .3s, transform .3s;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.s2b-tile:hover .s2b-tile-name { opacity:1; transform:none; }
+.s2b-tiltbox:hover .s2b-tile-name { opacity:1; transform:none; }
 /* desfase alternado: funciona con cualquier cantidad de columnas */
 .s2b-tiles > *:nth-child(even) { margin-top:26px; }
 
+/* en pantalla tactil no hay hover: los nombres van siempre puestos */
+@media (hover: none) {
+  .s2b-tile-name { opacity:1; transform:none; }
+  .s2b-tile-logo { transform:translateY(-6px); }
+  .s2b-tile:not(.s2b-tile--void)::after { opacity:.5; transform:scale(1); }
+}
 @media (max-width: 1500px) { .s2b-tiles { grid-template-columns:repeat(8,1fr); } }
 @media (max-width: 1180px) { .s2b-tiles { grid-template-columns:repeat(6,1fr); } }
 
@@ -432,6 +462,20 @@ const CSS = `
 .s2b-foot-bot { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; margin-top:44px; padding-top:22px; border-top:1px solid rgba(167,140,255,.14); font-family:var(--mono); font-size:11.5px; color:#7E7799; }
 
 /* ---------- responsive ---------- */
+/* las pestanas no entran a lo ancho: pasan a ser una tira que se corre */
+@media (max-width: 860px) {
+  .s2b-tech-tabs {
+    width:100%; max-width:100%; flex-wrap:nowrap; overflow-x:auto; border-radius:26px;
+    scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
+  }
+  .s2b-tech-tabs::-webkit-scrollbar { display:none; }
+  /* el degrade del borde avisa que la tira sigue */
+  .s2b-tech-tabs {
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);
+            mask-image:linear-gradient(90deg,#000 88%,transparent);
+  }
+  .s2b-tab { white-space:nowrap; padding:10px 14px; font-size:13px; }
+}
 @media (max-width: 1000px) {
   .s2b-sec { padding:80px 0; }
   .s2b-split, .s2b-method, .s2b-form-grid, .s2b-head { grid-template-columns:1fr; gap:36px; }
@@ -458,7 +502,7 @@ const CSS = `
   .s2b-clogo--img { padding:8px 12px; border-radius:10px; }
   .s2b-brand { --mark:58px; gap:11px; }
   .s2b-brand-txt { font-size:17px; }
-  .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:10px; }
+  .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:16px; }
   .s2b-tiles > *:nth-child(even) { margin-top:14px; }
   .s2b-tile-logo { width:30px; height:30px; }
   .s2b-tile--void { display:none; }
@@ -2114,10 +2158,27 @@ export default function StudioB2B() {
                 const ic = puesto >= 0 ? TECNOLOGIAS[tab][puesto] : null;
                 if (!ic) return <div className="s2b-tile s2b-tile--void" key={i} aria-hidden="true" />;
                 return (
-                  <div className="s2b-tile" key={i} style={{ animationDelay: i * 32 + "ms" }}>
-                    <BrandLogo icon={ic} />
-                    <span className="s2b-tile-name">{ic.title}</span>
-                  </div>
+                  /* el disco se inclina en 3D hacia el cursor y le cruza un destello;
+                     en el celular responde al giro del telefono */
+                  <Tilt
+                    key={i}
+                    className="s2b-tiltbox"
+                    tiltMaxAngleX={16}
+                    tiltMaxAngleY={16}
+                    perspective={620}
+                    transitionSpeed={900}
+                    glareEnable
+                    glareMaxOpacity={0.26}
+                    glareColor="#D9CCFF"
+                    glarePosition="all"
+                    glareBorderRadius="50%"
+                    gyroscope
+                  >
+                    <div className="s2b-tile" style={{ animationDelay: i * 32 + "ms" }}>
+                      <BrandLogo icon={ic} />
+                      <span className="s2b-tile-name">{ic.title}</span>
+                    </div>
+                  </Tilt>
                 );
               })}
             </div>
