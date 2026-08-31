@@ -685,12 +685,12 @@ const RED = {
   max: 108,
   enlace: 150,       // distancia a la que dos nodos se unen
   velocidad: 0.22,
-  puntero: 210,      // radio en el que el puntero junta neuronas
+  puntero: 250,      // radio en el que el puntero junta neuronas
   arco: 88,          // a esta distancia de un boton o del header, el nodo hace chispa
 };
 
 /* Tiempos de una idea, en segundos: pensar, apretarse, abrirse, vivir, irse */
-const IDEA = { nodos: 30, piensa: 1.5, junta: 0.34, arma: 0.62, vive: 1.35, sale: 0.75, pausa: 0.7, anillo: 30 };
+const IDEA = { nodos: 34, piensa: 1.8, junta: 0.46, arma: 0.62, vive: 2.1, sale: 0.8, pausa: 0.7, anillo: 22 };
 
 /* Las ideas que llega a formar la red: lo que le construimos al cliente */
 const IDEAS = [
@@ -886,8 +886,10 @@ function NeuralBg() {
     let w = 0, h = 0, nodos = [], raf = 0, vivo = true, previo = 0, cuadro = 0, reloj = 0;
     const puntero = { x: 0, y: 0, ax: 0, ay: 0, activo: false, dedo: false, carga: 0, pausa: 0 };
     let idea = null;
-    let destello = 0;   // el fogonazo del instante en que la idea salta
-    let pulsos = [];    // senales corriendo por la red hacia el foco
+    let destello = 0;      // el fogonazo del instante en que la idea salta
+    let pulsos = [];       // senales corriendo por la red hacia el foco
+    let latidos = [];      // las ondas que larga el foco mientras se piensa
+    let proxLatido = 0;
 
     /* header, pill y botones del hero: los nodos les tiran chispas al pasar cerca */
     let objetivos = [];
@@ -916,6 +918,7 @@ function NeuralBg() {
       idea = null;
       puntero.carga = 0;
       pulsos = [];
+      latidos = [];
       destello = 0;
     };
 
@@ -941,7 +944,7 @@ function NeuralBg() {
       const an = Math.min(receta.w, w - 48), al = Math.min(receta.h, h - 90);
       if (an < 70 || al < 70) return;
       const cx = Math.min(w - an / 2 - 20, Math.max(an / 2 + 20, x));
-      const cy = Math.min(h - al / 2 - 46, Math.max(al / 2 + 20, y));
+      const cy = Math.min(h - al / 2 - 70, Math.max(al / 2 + 20, y));
 
       const elegidos = nodos
         .filter((p) => !p.tomado)
@@ -1049,11 +1052,20 @@ function NeuralBg() {
       interiorIdea(ctx, idea.receta.dibujo, x, y, idea.w, idea.h, a);
       ctx.restore();
 
-      ctx.font = "600 10px ui-monospace, SFMono-Regular, Menlo, monospace";
+      /* el remate: primero que producto es, y abajo la promesa */
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillStyle = "rgba(240,234,255," + (0.85 * a).toFixed(3) + ")";
-      ctx.fillText(idea.receta.rotulo, idea.x, y + idea.h + 13);
+      ctx.font = "600 10px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillStyle = "rgba(203,186,255," + (0.85 * a).toFixed(3) + ")";
+      ctx.fillText(idea.receta.rotulo, idea.x, y + idea.h + 12);
+
+      const frase = "Convert\u00ed tu idea en realidad";
+      ctx.font = "700 " + (w < 560 ? 14 : 18) + "px 'Space Grotesk', 'Segoe UI', system-ui, sans-serif";
+      /* la frase es mas ancha que la tarjeta: la corremos para que entre entera */
+      const anchoFrase = ctx.measureText(frase).width;
+      const fx = Math.min(w - anchoFrase / 2 - 10, Math.max(anchoFrase / 2 + 10, idea.x));
+      ctx.fillStyle = "rgba(255,255,255," + (0.96 * a).toFixed(3) + ")";
+      ctx.fillText(frase, fx, y + idea.h + 28);
       ctx.textAlign = "start";
       ctx.textBaseline = "alphabetic";
     };
@@ -1062,7 +1074,7 @@ function NeuralBg() {
        idea, mas seguido disparan */
     const soltarPulsos = (dt) => {
       if (idea || !puntero.activo || puntero.carga < 0.1 || !nodos.length) return;
-      const cuantos = puntero.carga * puntero.carga * 40 * dt;
+      const cuantos = puntero.carga * puntero.carga * 62 * dt;
       let n = Math.floor(cuantos) + (Math.random() < cuantos % 1 ? 1 : 0);
       while (n-- > 0 && pulsos.length < 70) {
         const p = nodos[Math.floor(Math.random() * nodos.length)];
@@ -1071,6 +1083,24 @@ function NeuralBg() {
         if (d > RED.puntero || d < 34) continue;
         pulsos.push({ x0: p.x, y0: p.y, x1: puntero.x, y1: puntero.y, t: 0, dur: 0.3 + Math.random() * 0.32 });
       }
+    };
+
+    const pintarLatidos = (dt) => {
+      if (!latidos.length) return;
+      const siguen = [];
+      ctx.lineWidth = 1.2;
+      for (const o of latidos) {
+        o.t += dt;
+        const k = o.t / 0.9;
+        if (k >= 1) continue;
+        siguen.push(o);
+        ctx.strokeStyle = "rgba(196,176,255," + ((1 - k) * (1 - k) * 0.3 * o.f).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, 10 + k * 130, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.lineWidth = 1;
+      latidos = siguen;
     };
 
     const pintarPulsos = (dt) => {
@@ -1085,9 +1115,9 @@ function NeuralBg() {
         const cola = Math.max(0, e - 0.18);
         const x = s.x0 + (s.x1 - s.x0) * e, y = s.y0 + (s.y1 - s.y0) * e;
         const bx = s.x0 + (s.x1 - s.x0) * cola, by = s.y0 + (s.y1 - s.y0) * cola;
-        const alfa = (1 - k) * 0.75;
-        ctx.strokeStyle = "rgba(214,200,255," + (alfa * 0.55).toFixed(3) + ")";
-        ctx.lineWidth = 1.4;
+        const alfa = (1 - k) * 0.95;
+        ctx.strokeStyle = "rgba(214,200,255," + (alfa * 0.6).toFixed(3) + ")";
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.moveTo(bx, by);
         ctx.lineTo(x, y);
@@ -1095,7 +1125,7 @@ function NeuralBg() {
         ctx.lineWidth = 1;
         ctx.fillStyle = "rgba(246,242,255," + alfa.toFixed(3) + ")";
         ctx.beginPath();
-        ctx.arc(x, y, 1.7, 0, Math.PI * 2);
+        ctx.arc(x, y, 2.2, 0, Math.PI * 2);
         ctx.fill();
       }
       pulsos = siguen;
@@ -1126,6 +1156,27 @@ function NeuralBg() {
           puntero.carga = Math.max(0, puntero.carga - dt * 0.9);
         }
         soltarPulsos(dt);
+
+        /* el pensamiento late: cada tanto sale una onda del foco y la red se
+           cierra un poco mas de golpe. Los latidos se aceleran al final */
+        if (puntero.activo && puntero.carga > 0.08) {
+          proxLatido -= dt;
+          if (proxLatido <= 0) {
+            latidos.push({ x: puntero.x, y: puntero.y, t: 0, f: 0.5 + puntero.carga * 0.5 });
+            proxLatido = 0.66 - puntero.carga * 0.38;
+            for (const p of nodos) {
+              if (p.tomado) continue;
+              const dx = puntero.x - p.x, dy = puntero.y - p.y;
+              const d = Math.hypot(dx, dy) || 1;
+              if (d > RED.puntero || d < 28) continue;
+              const k = (1 - d / RED.puntero) * (0.3 + puntero.carga * 0.7) * 0.55;
+              p.vx += (dx / d) * k;
+              p.vy += (dy / d) * k;
+            }
+          }
+        } else {
+          proxLatido = 0;
+        }
       }
 
       for (const p of nodos) {
@@ -1169,15 +1220,16 @@ function NeuralBg() {
             objetivo = cerca * (0.12 + puntero.carga * 0.6);
             /* no caen derecho al foco: lo orbitan, como dandole vueltas al asunto,
                y con el pensamiento avanzado se frenan y se amontonan */
-            const fuerza = (0.01 + puntero.carga * 0.075) * cerca;
-            const giro = puntero.carga * 0.03 * cerca;
+            const apuro = puntero.carga * puntero.carga;   // recien al final aprieta
+            const fuerza = (0.012 + apuro * 0.17) * cerca;
+            const giro = puntero.carga * 0.036 * cerca;
             if (d > 30) {
               p.vx += (dx / d) * fuerza - (dy / d) * giro;
               p.vy += (dy / d) * fuerza + (dx / d) * giro;
             } else {
               p.vx *= 0.88; p.vy *= 0.88;
             }
-            const freno = 1 - 0.05 * puntero.carga * cerca;
+            const freno = 1 - 0.075 * puntero.carga * cerca;
             p.vx *= freno; p.vy *= freno;
           }
         }
@@ -1186,7 +1238,8 @@ function NeuralBg() {
           p.calor += (0.85 - p.calor) * 0.09;
         } else {
           const v = Math.hypot(p.vx, p.vy);
-          if (v > 0.9) { p.vx *= 0.9 / v; p.vy *= 0.9 / v; }
+          const tope = 0.9 + puntero.carga * 1.2;
+          if (v > tope) { p.vx *= tope / v; p.vy *= tope / v; }
           else if (!puntero.activo && v > RED.velocidad) { p.vx *= 0.986; p.vy *= 0.986; }
           p.calor += (objetivo - p.calor) * 0.07;
         }
@@ -1219,16 +1272,17 @@ function NeuralBg() {
         ctx.fill();
       }
 
+      pintarLatidos(dt);
       pintarPulsos(dt);
       pintarIdea();
 
       /* el fogonazo: el anillo que se abre cuando la idea salta */
       if (destello > 0 && idea) {
         const k = 1 - destello;
-        ctx.strokeStyle = "rgba(255,226,180," + (0.55 * destello * destello).toFixed(3) + ")";
-        ctx.lineWidth = 0.6 + destello * 2.4;
+        ctx.strokeStyle = "rgba(255,226,180," + (0.7 * destello * destello).toFixed(3) + ")";
+        ctx.lineWidth = 0.6 + destello * 3.4;
         ctx.beginPath();
-        ctx.arc(idea.x, idea.y, 16 + k * 130, 0, Math.PI * 2);
+        ctx.arc(idea.x, idea.y, 14 + k * 190, 0, Math.PI * 2);
         ctx.stroke();
         ctx.lineWidth = 1;
       }
