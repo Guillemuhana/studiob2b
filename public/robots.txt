@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sb2b.vercel.app/sitemap.xml
