@@ -226,6 +226,11 @@ const CSS = `
 /* el laboratorio -rotulo + red- no tiene caja propia en la compu: sus hijos se
    siguen ubicando contra el hero, como antes. En el celular se vuelve bloque. */
 .s2b-lab { display: contents; }
+.s2b-lab, .s2b-neural, .s2b-hint {
+  -webkit-user-select:none; user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+}
 
 /* retícula fina */
 .s2b-neural { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
