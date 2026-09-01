@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   ArrowUpRight, ArrowRight, ArrowLeft, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, MapPin, Check, Database, Users,
@@ -177,6 +177,25 @@ const CSS = `
 .s2b-pop span { font-size:13px; color: var(--muted); line-height:1.5; }
 
 .s2b-burger { display:none; padding:8px; color:#fff; }
+/* El cambio de idioma vive pegado al borde izquierdo, a media altura: se ve
+   siempre, en cualquier seccion, sin robarle lugar a la barra de arriba. */
+.s2b-lang {
+  position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:90;
+  display:flex; flex-direction:column; gap:3px; padding:5px;
+  border-radius:0 16px 16px 0; border:1px solid rgba(167,140,255,.3); border-left:none;
+  background:rgba(14,9,32,.72); backdrop-filter:blur(12px);
+  box-shadow:0 20px 44px -22px rgba(24,12,60,.85);
+}
+.s2b-lang button {
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:#C9C2E6;
+  padding:9px 10px; border-radius:11px; transition:background .25s, color .25s;
+}
+.s2b-lang button:hover { color:#fff; background:rgba(167,140,255,.16); }
+.s2b-lang button.is-on { background:linear-gradient(150deg,#6D4AFF,#3B2296); color:#fff; }
+@media (max-width: 600px) {
+  .s2b-lang { padding:4px; border-radius:0 13px 13px 0; }
+  .s2b-lang button { font-size:10px; padding:7px 8px; }
+}
 .s2b-nav.is-stuck .s2b-burger { color: var(--title); }
 .s2b-drawer { position:fixed; inset:0; z-index:95; background:#0B0718; color:#fff; padding:18px 24px 40px; overflow-y:auto; }
 .s2b-drawer-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; }
@@ -786,54 +805,70 @@ const CSS = `
 }
 `;
 
+/* ================= idioma =================
+   El sitio habla castellano e ingles -hay un vendedor en Miami-. Cada texto se
+   escribe al lado de su traduccion con t("es", "en"): asi no hay diccionario
+   de claves que se desincronice y se ve de una que falta traducir. */
+const IDIOMAS = ["es", "en"];
+const traductor = (idioma) => (es, en) => (idioma === "en" && en !== undefined ? en : es);
+const idiomaGuardado = () => {
+  try {
+    const g = localStorage.getItem("s2b-idioma");
+    if (IDIOMAS.includes(g)) return g;
+  } catch {}
+  /* si el navegador no habla castellano, arranca en ingles */
+  const n = typeof navigator !== "undefined" ? (navigator.language || "es") : "es";
+  return n.toLowerCase().startsWith("es") ? "es" : "en";
+};
+
 /* ================= datos ================= */
 
-const SOLUCIONES = [
-  { id: "software", icon: Code2, t: "Software a medida", d: "Plataformas internas y portales que tu equipo usa todos los días." },
-  { id: "apps", icon: Smartphone, t: "Apps móviles", d: "iOS y Android desde una base, con publicación y updates incluidos." },
-  { id: "agentes", icon: Bot, t: "Agentes de IA", d: "Asistentes que atienden y resuelven dentro de tus herramientas." },
+const soluciones = (t) => [
+  { id: "software", icon: Code2, t: t("Software a medida", "Custom software"), d: t("Plataformas internas y portales que tu equipo usa todos los días.", "Internal platforms and client portals your team uses every day.") },
+  { id: "apps", icon: Smartphone, t: t("Apps móviles", "Mobile apps"), d: t("iOS y Android desde una base, con publicación y updates incluidos.", "iOS and Android from one codebase, with store releases and updates included.") },
+  { id: "agentes", icon: Bot, t: t("Agentes de IA", "AI agents"), d: t("Asistentes que atienden y resuelven dentro de tus herramientas.", "Assistants that answer and resolve inside your own tools.") },
 ];
 
 /* esc: los logos que en su archivo vienen mas chicos piden un poco mas de alto */
-const CLIENTES = [
+const clientes = (t) => [
   { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png" },
   { n: "Numera", src: "/clientes/logonumera.jpg" },
-  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2, pais: "Estados Unidos" },
+  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2, pais: t("Estados Unidos", "United States") },
   { n: "Instituto de Investigaciones Cl\u00ednicas", src: "/clientes/IICC.png", esc: 1.1 },
   { n: "Pecifa Nacional", src: "/clientes/pecifa.png", esc: 1.3 },
-  { n: "Ninit Group", src: "/clientes/ninit-group.png" },
+  { n: "Ninit Group", src: "/clientes/ninit-group.png", pais: t("Miami, Estados Unidos", "Miami, United States") },
 ];
 
-const SERVICIOS = [
+const servicios = (t) => [
   {
-    icon: Bot, t: "Agentes de IA en producción",
-    d: "Asistentes que atienden por WhatsApp, califican consultas y escriben en tu CRM. Con la información real del negocio adentro, no respuestas de manual. Y con una persona que toma el control cuando el caso lo pide.",
-    chips: ["RAG", "Function calling", "Evaluaciones", "Handoff humano"],
-    cta: "Ver cómo funciona", to: "agentes",
+    icon: Bot, t: t("Agentes de IA en producción", "AI agents in production"),
+    d: t("Asistentes que atienden por WhatsApp, califican consultas y escriben en tu CRM. Con la información real del negocio adentro, no respuestas de manual. Y con una persona que toma el control cuando el caso lo pide.", "Assistants that answer on WhatsApp, qualify leads and write to your CRM. With your real business data inside, not canned answers. And with a person taking over when the case calls for it."),
+    chips: ["RAG", "Function calling", t("Evaluaciones", "Evaluations"), t("Handoff humano", "Human handoff")],
+    cta: t("Ver cómo funciona", "See how it works"), to: "agentes",
     img: "/trabajos/agente-n8n.png", an: 1400, al: 483,
-    alt: "Flujo de un agente en producción: entra por WhatsApp o SMS, decide, consulta la base y escribe en el CRM",
+    alt: t("Flujo de un agente en producción: entra por WhatsApp o SMS, decide, consulta la base y escribe en el CRM", "An agent flow in production: it comes in through WhatsApp or SMS, decides, queries the database and writes to the CRM"),
     /* la captura es bien apaisada y dejaba media fila vacia: abajo van los
        logos de lo que de verdad corre adentro del agente */
-    logosT: "Corre sobre",
+    logosT: t("Corre sobre", "Runs on"),
     logos: [siN8n, siOpenai, siClaude, siGooglegemini, siGroq, siSupabase],
     blobs: ["#A78CFF", "#6D4AFF"], bg: "linear-gradient(150deg,#F0ECFF,#E4DCFF)",
   },
   {
-    icon: Code2, t: "Software a medida",
-    d: "Sistemas de gestión, portales de clientes y plataformas de operación. Arquitectura simple y documentada, para que tu equipo pueda sostenerla sin depender de nosotros para cada cambio.",
+    icon: Code2, t: t("Software a medida", "Custom software"),
+    d: t("Sistemas de gestión, portales de clientes y plataformas de operación. Arquitectura simple y documentada, para que tu equipo pueda sostenerla sin depender de nosotros para cada cambio.", "Management systems, client portals and operations platforms. Simple, documented architecture, so your team can maintain it without depending on us for every change."),
     chips: ["React", "Node", "PostgreSQL", "APIs", "AWS"],
-    cta: "Conocer el enfoque", to: "metodo",
+    cta: t("Conocer el enfoque", "See our approach"), to: "metodo",
     img: "/trabajos/numera.jpg", an: 1400, al: 793,
-    alt: "Numera, la plataforma de presupuestos y facturas que desarrollamos a medida",
+    alt: t("Numera, la plataforma de presupuestos y facturas que desarrollamos a medida", "Numera, the quoting and invoicing platform we built from scratch"),
     blobs: ["#8FB4FF", "#6D4AFF"], bg: "linear-gradient(150deg,#EAF0FF,#E1E7FF)",
   },
   {
-    icon: PenTool, t: "Diseño de producto y apps",
-    d: "Investigación, flujos, prototipo navegable y sistema de diseño. Las decisiones caras se toman acá, cuando cambiar una pantalla cuesta una tarde y no dos sprints.",
+    icon: PenTool, t: t("Diseño de producto y apps", "Product and app design"),
+    d: t("Investigación, flujos, prototipo navegable y sistema de diseño. Las decisiones caras se toman acá, cuando cambiar una pantalla cuesta una tarde y no dos sprints.", "Research, flows, a clickable prototype and a design system. The expensive decisions get made here, when changing a screen costs an afternoon instead of two sprints."),
     chips: ["UX research", "UI", "Design system", "React Native"],
-    cta: "Ver trabajos", to: "clientes",
+    cta: t("Ver trabajos", "See our work"), to: "clientes",
     img: "/trabajos/ipicsmo.jpg", an: 1400, al: 646,
-    alt: "IPIC SMO, sitio y sistema de diseño que armamos para una organización de investigación clínica",
+    alt: t("IPIC SMO, sitio y sistema de diseño que armamos para una organización de investigación clínica", "IPIC SMO, the website and design system we built for a clinical research organization"),
     blobs: ["#FFC6E8", "#A78CFF"], bg: "linear-gradient(150deg,#FBEDFF,#F0E6FF)",
   },
 ];
@@ -842,90 +877,90 @@ const SERVICIOS = [
    necesita saber antes de decidir: cuando firma, cuando ve algo funcionando y
    cuando pone plata. `pago` marca los pasos donde hay dinero de por medio, que
    se pintan distinto para que no haya sorpresas. */
-const PROCESO = [
+const proceso = (t) => [
   {
-    n: "01", t: "Charlamos tu idea", ic: MessageSquare,
-    d: "Una reunión para entender qué querés resolver, cómo trabaja hoy tu equipo y qué esperás de la app o del sistema. De ahí salimos con el problema escrito en criollo, no con un formulario lleno de casilleros.",
-    chip: "Reunión sin costo",
+    n: "01", t: t("Charlamos tu idea", "We talk through your idea"), ic: MessageSquare,
+    d: t("Una reunión para entender qué querés resolver, cómo trabaja hoy tu equipo y qué esperás de la app o del sistema. De ahí salimos con el problema escrito en criollo, no con un formulario lleno de casilleros.", "A meeting to understand what you need to solve, how your team works today and what you expect from the app or system. We come out of it with the problem written in plain language, not a form full of checkboxes."),
+    chip: t("Reunión sin costo", "Free consultation"),
   },
   {
-    n: "02", t: "Firmamos confidencialidad", ic: FileSignature,
-    d: "Antes de tocar la idea firmamos, con firma digital, un acuerdo de confidencialidad. Lo que nos contás no sale de acá y la idea queda a tu nombre desde el minuto cero. Recién después seguimos.",
-    chip: "NDA con firma digital",
+    n: "02", t: t("Firmamos confidencialidad", "We sign an NDA"), ic: FileSignature,
+    d: t("Antes de tocar la idea firmamos, con firma digital, un acuerdo de confidencialidad. Lo que nos contás no sale de acá y la idea queda a tu nombre desde el minuto cero. Recién después seguimos.", "Before we touch the idea we sign a confidentiality agreement, digitally. What you tell us stays here and the idea is yours from minute one. Only then do we move on."),
+    chip: t("NDA con firma digital", "NDA, digitally signed"),
   },
   {
-    n: "03", t: "Estudiamos el proyecto", ic: Search,
-    d: "Analizamos la idea en serio: qué funciones lleva, con qué tecnología conviene hacerla, qué necesita de seguridad y manejo de datos, qué recursos y cuánto tiempo. De ese estudio sale el alcance y el número.",
-    chip: "Alcance · tecnología · seguridad · costos",
+    n: "03", t: t("Estudiamos el proyecto", "We study the project"), ic: Search,
+    d: t("Analizamos la idea en serio: qué funciones lleva, con qué tecnología conviene hacerla, qué necesita de seguridad y manejo de datos, qué recursos y cuánto tiempo. De ese estudio sale el alcance y el número.", "We analyze the idea properly: what features it needs, which stack fits best, what it requires in security and data handling, what resources and how long. That study is where the scope and the price come from."),
+    chip: t("Alcance · tecnología · seguridad · costos", "Scope · stack · security · costs"),
   },
   {
-    n: "04", t: "Te armamos una demo, gratis", ic: MonitorPlay,
-    d: "Antes de que pongas un peso ves tu idea funcionando. Te dejamos la demo en línea las 24 horas para que la pruebes con tu equipo, la estudies con calma y nos pidas los cambios que quieras.",
-    chip: "Online 24 hs · sin cargo",
+    n: "04", t: t("Te armamos una demo, gratis", "We build you a demo, free"), ic: MonitorPlay,
+    d: t("Antes de que pongas un peso ves tu idea funcionando. Te dejamos la demo en línea las 24 horas para que la pruebes con tu equipo, la estudies con calma y nos pidas los cambios que quieras.", "Before you spend a dollar you see your idea working. We leave the demo online 24/7 so you can try it with your team, study it calmly and ask for any changes you want."),
+    chip: t("Online 24 hs · sin cargo", "Online 24/7 · no charge"),
   },
   {
-    n: "05", t: "Presupuesto digital", ic: FileText,
-    d: "Te llega un presupuesto en línea hecho con Numera, nuestra propia app: qué incluye, qué no, plazos y precio, escrito para que se entienda sin ser técnico. Lo aceptás o lo rechazás desde el mismo enlace.",
-    chip: "Se acepta o se rechaza online",
+    n: "05", t: t("Presupuesto digital", "Digital quote"), ic: FileText,
+    d: t("Te llega un presupuesto en línea hecho con Numera, nuestra propia app: qué incluye, qué no, plazos y precio, escrito para que se entienda sin ser técnico. Lo aceptás o lo rechazás desde el mismo enlace.", "You get an online quote built with Numera, our own app: what's included, what isn't, timeline and price, written to be understood without being technical. You accept or decline it from the same link."),
+    chip: t("Se acepta o se rechaza online", "Accept or decline online"),
   },
   {
-    n: "06", t: "Seña para arrancar", ic: Wallet, pago: true,
-    d: "Con el presupuesto aceptado se abona una seña del 20%. Es lo que deja tranquilas a las dos partes: nosotros reservamos al equipo y vos tenés fecha de arranque firme.",
-    chip: "20% al aceptar",
+    n: "06", t: t("Seña para arrancar", "Deposit to start"), ic: Wallet, pago: true,
+    d: t("Con el presupuesto aceptado se abona una seña del 20%. Es lo que deja tranquilas a las dos partes: nosotros reservamos al equipo y vos tenés fecha de arranque firme.", "Once the quote is accepted you pay a 20% deposit. That is what puts both sides at ease: we reserve the team and you get a firm start date."),
+    chip: t("20% al aceptar", "20% on acceptance"),
   },
   {
-    n: "07", t: "Tu idea se convierte en realidad", ic: Rocket, pago: true,
-    d: "Desarrollamos con demos cada dos semanas, así ves el avance sobre el producto real y no sobre un informe. Cuando la app queda en línea se abona el 40%, y el 40% restante al finalizar la entrega.",
-    chip: "40% en línea · 40% al finalizar",
+    n: "07", t: t("Tu idea se convierte en realidad", "Your idea becomes real"), ic: Rocket, pago: true,
+    d: t("Desarrollamos con demos cada dos semanas, así ves el avance sobre el producto real y no sobre un informe. Cuando la app queda en línea se abona el 40%, y el 40% restante al finalizar la entrega.", "We build with a demo every two weeks, so you see progress on the real product instead of a status report. When the app goes live you pay 40%, and the remaining 40% on delivery."),
+    chip: t("40% en línea · 40% al finalizar", "40% at launch · 40% on delivery"),
   },
 ];
 
-const ETAPAS = [
-  { n: "01", t: "Diagnóstico", d: "Dos semanas mirando el negocio. Salís con alcance cerrado, plan y número." },
-  { n: "02", t: "Prototipo", d: "Un prototipo navegable que tu equipo prueba antes de que escribamos código." },
-  { n: "03", t: "Entregas", d: "Ciclos de dos semanas con demo en vivo sobre el producto real." },
-  { n: "04", t: "Operación", d: "Monitoreo, soporte y roadmap trimestral. El código es tuyo desde el día uno." },
+const etapas = (t) => [
+  { n: "01", t: t("Diagnóstico", "Discovery"), d: t("Dos semanas mirando el negocio. Salís con alcance cerrado, plan y número.", "Two weeks looking at the business. You come out with a closed scope, a plan and a price.") },
+  { n: "02", t: t("Prototipo", "Prototype"), d: t("Un prototipo navegable que tu equipo prueba antes de que escribamos código.", "A clickable prototype your team tries before we write a line of code.") },
+  { n: "03", t: t("Entregas", "Delivery"), d: t("Ciclos de dos semanas con demo en vivo sobre el producto real.", "Two-week cycles with a live demo on the real product.") },
+  { n: "04", t: t("Operación", "Operations"), d: t("Monitoreo, soporte y roadmap trimestral. El código es tuyo desde el día uno.", "Monitoring, support and a quarterly roadmap. The code is yours from day one.") },
 ];
 
-const AGENT_LINES = [
+const agentLines = (t) => [
   { t: "> agente.iniciar('comercial')", c: "cmd" },
-  { t: "conectado: WhatsApp · CRM · Calendario", c: "" },
-  { t: "base de conocimiento: 412 documentos", c: "" },
-  { t: "listo en 1.8s", c: "ok" },
-  { t: "> consulta entrante · +54 351 ***", c: "cmd" },
-  { t: "intención: cotizar · urgencia alta", c: "" },
-  { t: "respuesta enviada · reunión 11:30", c: "ok" },
-  { t: "> resumen diario → equipo comercial", c: "cmd" },
-  { t: "84 consultas · 71 resueltas · 13 derivadas", c: "ok" },
+  { t: t("conectado: WhatsApp · CRM · Calendario", "connected: WhatsApp · CRM · Calendar"), c: "" },
+  { t: t("base de conocimiento: 412 documentos", "knowledge base: 412 documents"), c: "" },
+  { t: t("listo en 1.8s", "ready in 1.8s"), c: "ok" },
+  { t: t("> consulta entrante · +54 351 ***", "> incoming request · +1 305 ***"), c: "cmd" },
+  { t: t("intención: cotizar · urgencia alta", "intent: quote · high urgency"), c: "" },
+  { t: t("respuesta enviada · reunión 11:30", "reply sent · meeting at 11:30"), c: "ok" },
+  { t: t("> resumen diario → equipo comercial", "> daily summary -> sales team"), c: "cmd" },
+  { t: t("84 consultas · 71 resueltas · 13 derivadas", "84 requests · 71 resolved · 13 escalated"), c: "ok" },
 ];
 
-const AGENT_PTS = [
-  "Habla con tus precios, tu stock y tus políticas. No improvisa.",
-  "Deriva a una persona con todo el contexto cuando detecta un caso sensible.",
-  "Cada respuesta queda registrada y evaluada contra casos reales.",
-  "Corre sobre tu infraestructura, con tus datos donde vos decidas.",
+const agentPts = (t) => [
+  t("Habla con tus precios, tu stock y tus políticas. No improvisa.", "It answers with your prices, your stock and your policies. It does not improvise."),
+  t("Deriva a una persona con todo el contexto cuando detecta un caso sensible.", "It hands off to a person with the full context when it detects a sensitive case."),
+  t("Cada respuesta queda registrada y evaluada contra casos reales.", "Every answer is logged and evaluated against real cases."),
+  t("Corre sobre tu infraestructura, con tus datos donde vos decidas.", "It runs on your infrastructure, with your data wherever you decide."),
 ];
 
-const TECNOLOGIAS = {
-  "Desarrollo de Software": [
+const tecnologias = (t) => [
+  { id: "soft", label: t("Desarrollo de Software", "Software development"), logos: [
     siReact, siNextdotjs, siAstro, siVuedotjs, siJavascript, siTypescript,
     siNodedotjs, siNestjs, siPython, siPhp, siLaravel, siWordpress,
     siWoocommerce, siTailwindcss, siVite, siSupabase, siPostgresql,
     siMongodb, siPrisma, siGraphql, siFlutter, siExpo, siStripe,
-  ],
-  "Inteligencia Artificial": [
+  ] },
+  { id: "ia", label: t("Inteligencia Artificial", "Artificial intelligence"), logos: [
     siOpenai, siClaude, siGooglegemini, siGroq, siMistralai, siDeepseek,
     siPerplexity, siHuggingface, siLangchain, siOllama, siN8n, siElevenlabs,
-  ],
-  "Infraestructura IT": [
+  ] },
+  { id: "infra", label: t("Infraestructura IT", "IT infrastructure"), logos: [
     siDocker, siKubernetes, siGooglecloud, siVercel, siCloudflare, siLinux,
     siNginx, siTerraform, siAnsible, siGithubactions, siRedis, siGrafana,
-  ],
-  "Ciberseguridad": [
+  ] },
+  { id: "seg", label: t("Ciberseguridad", "Cybersecurity"), logos: [
     siOwasp, siAuth0, siKeycloak, siLetsencrypt, siJsonwebtokens, siVault,
     siWireshark, siKalilinux, siBurpsuite, siWireguard, siSnyk, siBitwarden,
-  ],
-};
+  ] },
+];
 
 /* El mosaico se arma solo segun cuantos logos tenga la categoria: repite este
    damero de 6 columnas hasta que entren todos y devuelve, por celda, que logo
@@ -961,65 +996,71 @@ function armarMosaico(cant) {
 /* Clientes de verdad, con su logo. Cada uno cuenta lo que le construimos:
    `logos` es lo que va en la tarjeta -uno, o dos cuando son dos marcas de la
    misma casa- y `e` es el nombre que queda escrito al pie. */
-const TESTIMONIOS = [
+const testimonios = (t) => [
   {
-    q: "Gracias al equipo de Studio B2B hoy tenemos la app móvil, el sitio y el portal de afiliados funcionando juntos. Lo que antes era un llamado o un papel, el afiliado lo resuelve desde el celular, y nosotros vemos todo en un solo lugar. Se hicieron cargo de la parte técnica de punta a punta.",
+    q: t("Gracias al equipo de Studio B2B hoy tenemos la app móvil, el sitio y el portal de afiliados funcionando juntos. Lo que antes era un llamado o un papel, el afiliado lo resuelve desde el celular, y nosotros vemos todo en un solo lugar. Se hicieron cargo de la parte técnica de punta a punta.", "Thanks to the Studio B2B team we now have the mobile app, the website and the member portal working together. What used to be a phone call or a piece of paper, our members now handle from their phone, and we see everything in one place. They took care of the technical side end to end."),
     n: "Hernán Marcantonio", r: "", e: "Pecifa Nacional",
-    cat: "App móvil, web y afiliados", ic: Smartphone,
+    cat: t("App móvil, web y afiliados", "Mobile app, web and member portal"), ic: Smartphone,
     logos: [{ src: "/clientes/pecifa.png", alt: "Pecifa Nacional" }],
   },
   {
-    q: "Nos armaron el sitio y la base de datos donde hoy vive la información de nuestros estudios. Entendieron rápido cómo trabaja un centro de investigación: los tiempos, el orden y el cuidado que pide el dato clínico. Quedó todo documentado y a nuestro nombre.",
-    n: "Dr. Mauro Pautaso", r: "Director Médico", e: "",
-    cat: "Sitio web y base de datos", ic: Database,
+    q: t("Nos armaron el sitio y la base de datos donde hoy vive la información de nuestros estudios. Entendieron rápido cómo trabaja un centro de investigación: los tiempos, el orden y el cuidado que pide el dato clínico. Quedó todo documentado y a nuestro nombre.", "They built the site and the database where our study information lives today. They quickly understood how a research center works: the timelines, the order and the care clinical data demands. Everything was documented and put in our name."),
+    n: "Dr. Mauro Pautaso", r: t("Director Médico", "Medical Director"), e: "",
+    cat: t("Sitio web y base de datos", "Website and database"), ic: Database,
     logos: [
-      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO", pais: "Estados Unidos", bandera: true },
-      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba", pais: "Córdoba, Argentina" },
+      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO", pais: t("Estados Unidos", "United States"), bandera: true },
+      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba", pais: t("Córdoba, Argentina", "Córdoba, Argentina") },
     ],
   },
   {
-    q: "Los recomendamos sin vueltas. El CRM a medida y el sistema de recepción y vendedores los usamos todos los días, y cuando pedimos un cambio está resuelto sin hacernos esperar. Estamos muy contentos con el trabajo que hacemos con ellos día a día.",
-    n: "Equipo de Nuevo Munich", r: "Recepción y ventas", e: "Nuevo Munich",
-    cat: "CRM a medida y sistema de ventas", ic: Users,
+    q: t("El agente de IA que nos armaron atiende conectado con Meta WhatsApp, n8n y el CRM a medida que también nos hicieron. Gracias a ellos automatizamos la compañía: las consultas se responden solas y lo que necesita a una persona llega con todo el contexto. Muy contentos con el trabajo.", "The AI agent they built for us answers connected to Meta WhatsApp, n8n and the custom CRM they also made for us. Thanks to them we automated the company: requests get answered on their own and whatever needs a person arrives with the full context. Very happy with the work."),
+    n: "Nicolás Hercun", r: t("CEO de Ninit Group", "CEO at Ninit Group"), e: "",
+    cat: t("Agente de IA y CRM a medida", "AI agent and custom CRM"), ic: Bot,
+    logos: [{ src: "/clientes/ninit-group.png", alt: "Ninit Group", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: true }],
+  },
+  {
+    q: t("Los recomendamos sin vueltas. El CRM a medida y el sistema de recepción y vendedores los usamos todos los días, y cuando pedimos un cambio está resuelto sin hacernos esperar. Estamos muy contentos con el trabajo que hacemos con ellos día a día.", "We recommend them without hesitation. We use the custom CRM and the front-desk and sales system every single day, and when we ask for a change it gets done without keeping us waiting. We are very happy with the work we do with them day to day."),
+    n: t("Equipo de Nuevo Munich", "The Nuevo Munich team"), r: t("Recepción y ventas", "Front desk and sales"), e: "Nuevo Munich",
+    cat: t("CRM a medida y sistema de ventas", "Custom CRM and sales system"), ic: Users,
     logos: [{ src: "/clientes/nuevo-munich.png", alt: "Nuevo Munich" }],
   },
 ];
 
-const FAQS = [
-  { q: "¿Cuánto tarda un proyecto?", a: "Un agente de IA acotado sale en 4 a 6 semanas. Una plataforma completa, entre 3 y 6 meses, con entregas usables cada dos semanas desde la tercera." },
-  { q: "¿Cómo cobran?", a: "Arrancamos con una reunión virtual para entender qué necesitás. Tu idea o tu sistema a medida pasa al área de desarrollo: lo analizamos y te armamos una demo sin ningún cargo, gratis. Recién ahí decidís si avanzás o no. Si avanzás, te entregamos el presupuesto y se arranca con una seña del 20% del trabajo, que es lo que nos deja en confianza a las dos partes; después un 40% y el resto al finalizar." },
-  { q: "¿El código queda nuestro?", a: "Sí. Repositorio, infraestructura y documentación a tu nombre desde el primer día. Además, con Numera —nuestra propia app— no solo te llega el presupuesto detallado línea por línea: junto con él va el acuerdo de confidencialidad firmado, así lo que nos contás y lo que construimos es tuyo y no sale de acá. Si mañana querés seguir con otro equipo, podés hacerlo sin trabas." },
-  { q: "¿Trabajan fuera de Argentina?", a: "Sí. Hoy tenemos clientes en Latinoamérica, España y Estados Unidos, en modalidad remota con reuniones fijas semanales." },
-  { q: "¿Se puede empezar chico?", a: "Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción." },
+const faqs = (t) => [
+  { q: t("¿Cuánto tarda un proyecto?", "How long does a project take?"), a: t("Un agente de IA acotado sale en 4 a 6 semanas. Una plataforma completa, entre 3 y 6 meses, con entregas usables cada dos semanas desde la tercera.", "A focused AI agent ships in 4 to 6 weeks. A full platform, between 3 and 6 months, with usable releases every two weeks from week three onward.") },
+  { q: t("¿Cómo cobran?", "How do you charge?"), a: t("Arrancamos con una reunión virtual para entender qué necesitás. Tu idea o tu sistema a medida pasa al área de desarrollo: lo analizamos y te armamos una demo sin ningún cargo, gratis. Recién ahí decidís si avanzás o no. Si avanzás, te entregamos el presupuesto y se arranca con una seña del 20% del trabajo, que es lo que nos deja en confianza a las dos partes; después un 40% y el resto al finalizar.", "We start with a video call to understand what you need. Your idea or custom system goes to the development team: we analyze it and build you a demo at no charge, free. Only then do you decide whether to go ahead. If you do, we send the quote and start with a 20% deposit, which is what puts both sides at ease; then 40% and the rest on delivery.") },
+  { q: t("¿El código queda nuestro?", "Do we own the code?"), a: t("Sí. Repositorio, infraestructura y documentación a tu nombre desde el primer día. Además, con Numera —nuestra propia app— no solo te llega el presupuesto detallado línea por línea: junto con él va el acuerdo de confidencialidad firmado, así lo que nos contás y lo que construimos es tuyo y no sale de acá. Si mañana querés seguir con otro equipo, podés hacerlo sin trabas.", "Yes. Repository, infrastructure and documentation in your name from day one. On top of that, with Numera —our own app— you don't just get a quote itemized line by line: the signed confidentiality agreement comes with it, so what you tell us and what we build is yours and stays here. If tomorrow you want to continue with another team, you can, with nothing in your way.") },
+  { q: t("¿Trabajan fuera de Argentina?", "Do you work outside Argentina?"), a: t("Sí. Hoy tenemos clientes en Latinoamérica, España y Estados Unidos, en modalidad remota con reuniones fijas semanales.", "Yes. Today we have clients across Latin America, Spain and the United States, working remotely with fixed weekly meetings.") },
+  { q: t("¿Se puede empezar chico?", "Can we start small?"), a: t("Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción.", "That's what we recommend. A first 4 to 6 week scope that solves one concrete problem and leaves something running in production.") },
 ];
 
 /* Las mismas preguntas, en el formato que Google entiende. Se genera desde
    FAQS para que no se despegue nunca de lo que dice la pagina. */
-const FAQ_LD = {
+const faqLd = (lista) => ({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: FAQS.map((f) => ({
+  mainEntity: lista.map((f) => ({
     "@type": "Question",
     name: f.q,
     acceptedAnswer: { "@type": "Answer", text: f.a },
   })),
-};
+});
 
 const FORM_TO = "guillemuhana@gmail.com";
 const WA_NUM = "5493515931673";
 const WA_SHOW = "+54 9 351 593-1673";
 const waLink = (msg) => "https://wa.me/" + WA_NUM + "?text=" + encodeURIComponent(msg);
-const WA_CHIPS = [
-  "Hola, quiero un agente de IA para mi empresa.",
-  "Hola, necesito desarrollar un software a medida.",
-  "Hola, quiero hacerles una consulta.",
+const waChips = (t) => [
+  t("Hola, quiero un agente de IA para mi empresa.", "Hi, I'd like an AI agent for my company."),
+  t("Hola, necesito desarrollar un software a medida.", "Hi, I need custom software built."),
+  t("Hola, quiero hacerles una consulta.", "Hi, I have a question for you."),
 ];
 
-const NAV_LINKS = [
-  { id: "servicios", label: "Servicios" },
-  { id: "proceso", label: "Proceso" },
-  { id: "metodo", label: "Nuestro método" },
-  { id: "clientes", label: "Clientes" },
+const navLinks = (t) => [
+  { id: "servicios", label: t("Servicios", "Services") },
+  { id: "proceso", label: t("Proceso", "Process") },
+  { id: "metodo", label: t("Nuestro método", "Our method") },
+  { id: "clientes", label: t("Clientes", "Clients") },
 ];
 
 /* ================= utilidades ================= */
@@ -1080,13 +1121,13 @@ const IDEA = { nodos: 34, piensa: 2.3, junta: 0.62, arma: 0.62, vive: 2.1, sale:
 
 /* Lo que le construimos al cliente. Salen en este orden, una atras de otra:
    primero la app movil, despues otra cosa, y asi. Cada una tiene su acento. */
-const IDEAS = [
-  { rotulo: "APP M\u00d3VIL",  w: 114, h: 216, dibujo: "movil",  acento: [150, 214, 255] },
+const ideas = (t) => [
+  { rotulo: t("APP M\u00d3VIL", "MOBILE APP"),  w: 114, h: 216, dibujo: "movil",  acento: [150, 214, 255] },
   { rotulo: "DASHBOARD",   w: 192, h: 120, dibujo: "panel",  acento: [255, 202, 128] },
-  { rotulo: "AGENTE IA",   w: 176, h: 120, dibujo: "chat",   acento: [176, 156, 255] },
-  { rotulo: "E-COMMERCE",  w: 186, h: 120, dibujo: "tienda", acento: [125, 235, 174] },
+  { rotulo: t("AGENTE IA", "AI AGENT"),   w: 176, h: 120, dibujo: "chat",   acento: [176, 156, 255] },
+  { rotulo: t("E-COMMERCE", "E-COMMERCE"),  w: 186, h: 120, dibujo: "tienda", acento: [125, 235, 174] },
   { rotulo: "PORTAL B2B",  w: 190, h: 118, dibujo: "grilla", acento: [143, 180, 255] },
-  { rotulo: "CRM A MEDIDA", w: 190, h: 118, dibujo: "kanban", acento: [214, 168, 255] },
+  { rotulo: t("CRM A MEDIDA", "CUSTOM CRM"), w: 190, h: 118, dibujo: "kanban", acento: [214, 168, 255] },
 ];
 
 /* Un rayo quebrado entre dos puntos: se dibuja dos veces, una gruesa y
@@ -1642,7 +1683,7 @@ function morfologia(esc) {
   return { soma, gruesa, fina, cuentas, r: cuerpo };
 }
 
-function NeuralBg() {
+function NeuralBg({ t }) {
   const host = useRef(null);
   const lienzo = useRef(null);
 
@@ -1654,6 +1695,7 @@ function NeuralBg() {
     if (!ctx) return;
 
     const quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const IDEAS = ideas(t);
 
     let w = 0, h = 0, raf = 0, vivo = true, previo = 0, reloj = 0, cuadro = 0;
     let neuronas = [];   // soma, dendritas y estado electrico
@@ -1957,7 +1999,7 @@ function NeuralBg() {
       ctx.fillStyle = "rgba(" + ac[0] + "," + ac[1] + "," + ac[2] + "," + (0.9 * a).toFixed(3) + ")";
       ctx.fillText(idea.receta.rotulo, idea.x, y + idea.h + 12);
 
-      const frase = "Convertí tu idea en realidad";
+      const frase = t("Convertí tu idea en realidad", "Turn your idea into reality");
       ctx.font = "700 " + (w < 560 ? 14 : 18) + "px 'Space Grotesk', 'Segoe UI', system-ui, sans-serif";
       /* la frase es mas ancha que la tarjeta: la corremos para que entre entera */
       const anchoFrase = ctx.measureText(frase).width;
@@ -2325,7 +2367,7 @@ function NeuralBg() {
       window.removeEventListener("pointercancel", alSoltar);
       window.removeEventListener("pointerleave", alSalir);
     };
-  }, []);
+  }, [t]);
 
   return (
     <div className="s2b-neural" ref={host} aria-hidden="true">
@@ -2334,14 +2376,14 @@ function NeuralBg() {
   );
 }
 
-function Terminal() {
+function Terminal({ lineas }) {
   const [n, setN] = useState(0);
 
   /* escribe las lineas de a una y vuelve a empezar */
   useEffect(() => {
     const quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (quieto) { setN(AGENT_LINES.length); return; }
-    if (n >= AGENT_LINES.length) {
+    if (quieto) { setN(lineas.length); return; }
+    if (n >= lineas.length) {
       const t = setTimeout(() => setN(0), 3400);
       return () => clearTimeout(t);
     }
@@ -2356,7 +2398,7 @@ function Terminal() {
         <b>agente-comercial · producción</b>
       </div>
       <div className="s2b-term-body">
-        {AGENT_LINES.slice(0, n).map((l, i) => (
+        {lineas.slice(0, n).map((l, i) => (
           <div key={i} className={l.c}>{l.t}</div>
         ))}
         <div className="cmd">{"> "}<span className="s2b-caret" /></div>
@@ -2373,7 +2415,7 @@ function WhatsappGlyph() {
   );
 }
 
-function WhatsAppBubble() {
+function WhatsAppBubble({ t, chips }) {
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(false);
   const box = useRef(null);
@@ -2404,23 +2446,23 @@ function WhatsAppBubble() {
   return (
     <div className={"s2b-wa" + (shown ? " is-shown" : "")} ref={box}>
       {open && (
-        <div className="s2b-wa-panel" role="dialog" aria-label="Escribinos por WhatsApp">
+        <div className="s2b-wa-panel" role="dialog" aria-label={t("Escribinos por WhatsApp", "Message us on WhatsApp")}>
           <div className="s2b-wa-top">
             <img src="/logo.png" alt="" aria-hidden="true" />
             <div>
               <b>Studio B2B</b>
-              <span><i /> Respondemos en el día</span>
+              <span><i /> {t("Respondemos en el día", "We reply the same day")}</span>
             </div>
-            <button className="s2b-wa-x" onClick={() => setOpen(false)} aria-label="Cerrar"><X size={16} /></button>
+            <button className="s2b-wa-x" onClick={() => setOpen(false)} aria-label={t("Cerrar", "Close")}><X size={16} /></button>
           </div>
           <div className="s2b-wa-body">
-            <p className="s2b-wa-msg">¡Hola! 👋 Contanos qué necesitás y seguimos la charla por WhatsApp.</p>
+            <p className="s2b-wa-msg">{t("¡Hola! 👋 Contanos qué necesitás y seguimos la charla por WhatsApp.", "Hi there! 👋 Tell us what you need and we'll keep the conversation on WhatsApp.")}</p>
             <div className="s2b-wa-chips">
-              {WA_CHIPS.map((c) => <button key={c} onClick={() => go(c)}>{c}</button>)}
+              {chips.map((c) => <button key={c} onClick={() => go(c)}>{c}</button>)}
             </div>
           </div>
           <button className="s2b-wa-cta" onClick={() => go("Hola Studio B2B, quiero hacerles una consulta.")}>
-            <WhatsappGlyph /> Abrir WhatsApp
+            <WhatsappGlyph /> {t("Abrir WhatsApp", "Open WhatsApp")}
           </button>
         </div>
       )}
@@ -2428,10 +2470,10 @@ function WhatsAppBubble() {
         className={"s2b-wa-fab" + (open ? " is-open" : "")}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label={open ? "Cerrar el chat de WhatsApp" : "Escribinos por WhatsApp"}
+        aria-label={open ? t("Cerrar el chat de WhatsApp", "Close the WhatsApp chat") : t("Escribinos por WhatsApp", "Message us on WhatsApp")}
       >
         {open ? <X size={24} /> : <WhatsappGlyph />}
-        <span className="s2b-wa-tip">Escribinos por WhatsApp</span>
+        <span className="s2b-wa-tip">{t("Escribinos por WhatsApp", "Message us on WhatsApp")}</span>
       </button>
     </div>
   );
@@ -2451,7 +2493,7 @@ export default function StudioB2B() {
   const [stuck, setStuck] = useState(false);
   const [pop, setPop] = useState(false);
   const [drawer, setDrawer] = useState(false);
-  const [tab, setTab] = useState("Desarrollo de Software");
+  const [tab, setTab] = useState("soft");
   const [qi, setQi] = useState(0);
   const [faq, setFaq] = useState(0);
   const [sent, setSent] = useState(false);
@@ -2460,6 +2502,27 @@ export default function StudioB2B() {
   const [form, setForm] = useState({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" });
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
+  const [idioma, setIdioma] = useState(idiomaGuardado);
+  const t = useMemo(() => traductor(idioma), [idioma]);
+  const SOLUCIONES = useMemo(() => soluciones(t), [t]);
+  const CLIENTES = useMemo(() => clientes(t), [t]);
+  const SERVICIOS = useMemo(() => servicios(t), [t]);
+  const PROCESO = useMemo(() => proceso(t), [t]);
+  const ETAPAS = useMemo(() => etapas(t), [t]);
+  const AGENT_PTS = useMemo(() => agentPts(t), [t]);
+  const TECNOLOGIAS = useMemo(() => tecnologias(t), [t]);
+  const TESTIMONIOS = useMemo(() => testimonios(t), [t]);
+  const FAQS = useMemo(() => faqs(t), [t]);
+  const NAV_LINKS = useMemo(() => navLinks(t), [t]);
+  const WA_CHIPS = useMemo(() => waChips(t), [t]);
+  const AGENT_LINES = useMemo(() => agentLines(t), [t]);
+  const logosTab = useMemo(() => (TECNOLOGIAS.find((c) => c.id === tab) || TECNOLOGIAS[0]).logos, [TECNOLOGIAS, tab]);
+
+  useEffect(() => {
+    try { localStorage.setItem("s2b-idioma", idioma); } catch {}
+    document.documentElement.lang = idioma === "en" ? "en" : "es";
+  }, [idioma]);
+
   const [vista, setVista] = useState(vistaDeUrl);
 
   useEffect(() => {
@@ -2529,7 +2592,7 @@ export default function StudioB2B() {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const send = async () => {
     if (!form.nombre.trim() || !form.email.trim()) {
-      setFormErr("Necesitamos al menos tu nombre y tu email.");
+      setFormErr(t("Necesitamos al menos tu nombre y tu email.", "We need at least your name and your email."));
       return;
     }
     setSending(true);
@@ -2553,7 +2616,7 @@ export default function StudioB2B() {
       if (!r.ok) throw new Error("status " + r.status);
       setSent(true);
     } catch {
-      setFormErr("No pudimos enviar el mensaje. Escribinos por WhatsApp y lo resolvemos.");
+      setFormErr(t("No pudimos enviar el mensaje. Escribinos por WhatsApp y lo resolvemos.", "We couldn't send the message. Write to us on WhatsApp and we'll sort it out."));
     } finally {
       setSending(false);
     }
@@ -2574,7 +2637,7 @@ export default function StudioB2B() {
 
             <nav className="s2b-menu" onMouseLeave={() => setPop(false)}>
               <div onMouseEnter={() => setPop(true)}>
-                <button className="top" aria-expanded={pop}>Soluciones <ChevronDown size={15} /></button>
+                <button className="top" aria-expanded={pop}>{t("Soluciones", "Solutions")} <ChevronDown size={15} /></button>
                 {pop && (
                   <div className="s2b-pop">
                     {SOLUCIONES.map((s) => {
@@ -2593,11 +2656,11 @@ export default function StudioB2B() {
                 <div key={n.id}><button className="top" onClick={() => goTo(n.id)}>{n.label}</button></div>
               ))}
               <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginLeft: 8 }} onClick={() => goTo("contacto")}>
-                Contactanos <ArrowUpRight size={16} />
+                {t("Contactanos", "Contact us")} <ArrowUpRight size={16} />
               </button>
             </nav>
 
-            <button className="s2b-burger" aria-label="Abrir menú" onClick={() => setDrawer(true)}><Menu size={24} /></button>
+            <button className="s2b-burger" aria-label={t("Abrir menú", "Open menu")} onClick={() => setDrawer(true)}><Menu size={24} /></button>
           </div>
         </header>
 
@@ -2605,7 +2668,7 @@ export default function StudioB2B() {
           <div className="s2b-drawer">
             <div className="s2b-drawer-top">
               <div className="s2b-brand"><span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span><div className="s2b-brand-txt">STUDIO B2B</div></div>
-              <button aria-label="Cerrar" onClick={() => setDrawer(false)}><X size={26} /></button>
+              <button aria-label={t("Cerrar", "Close")} onClick={() => setDrawer(false)}><X size={26} /></button>
             </div>
             {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
             {NAV_LINKS.map((n) => <button key={n.id} className="dl" onClick={() => goTo(n.id)}>{n.label}</button>)}
@@ -2627,32 +2690,31 @@ export default function StudioB2B() {
             <div className="s2b-hint-wrap">
               <div className="s2b-wrap">
                 <div className="s2b-hint">
-                  <i /> <b>Tus neuronas</b>
-                  <span className="solo-mouse">dejá el mouse quieto y se arma una idea</span>
-                  <span className="solo-dedo">mantené el dedo apoyado y se arma una idea</span>
+                  <i /> <b>{t("Tus neuronas", "Your neurons")}</b>
+                  <span className="solo-mouse">{t("dejá el mouse quieto y se arma una idea", "keep the mouse still and an idea takes shape")}</span>
+                  <span className="solo-dedo">{t("mantené el dedo apoyado y se arma una idea", "hold your finger down and an idea takes shape")}</span>
                 </div>
               </div>
             </div>
-            <NeuralBg />
+            <NeuralBg t={t} />
           </div>
 
           <div className="s2b-wrap s2b-hero-copy">
             <div className="s2b-hero-in">
-              <div className="s2b-pill">Producto digital e IA · Córdoba, Argentina</div>
+              <div className="s2b-pill">{t("Producto digital e inteligencia artificial", "Digital product & artificial intelligence")}</div>
               <div className="s2b-sweep">
-                <h1>Impulsamos tecnología que rinde en producción y <span>escala con tu negocio</span></h1>
+                <h1>{t("Impulsamos tecnología que rinde en producción y", "We build technology that performs in production and")} <span>{t("escala con tu negocio", "scales with your business")}</span></h1>
               </div>
               <p>
-                Diez años haciendo productos a medida y, desde hace tres, agentes de IA
-                que trabajan adentro del negocio. Nada que se caiga cuando llega a producción.
+                {t("Diez años haciendo productos a medida y, desde hace tres, agentes de IA que trabajan adentro del negocio. Nada que se caiga cuando llega a producción.", "Ten years building custom products and, for the last three, AI agents that work inside the business. Nothing that falls over once it reaches production.")}
               </p>
               <div className="s2b-hero-cta">
-                <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>Contanos tu proyecto <ArrowRight size={16} /></button>
+                <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell us about your project")} <ArrowRight size={16} /></button>
                 <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("metodo")}>
-                  <Workflow size={15} /> Cómo trabajamos
+                  <Workflow size={15} /> {t("Cómo trabajamos", "How we work")}
                 </button>
               </div>
-              <div className="s2b-hero-note"><span className="s2b-dot" /> 2 lugares para arrancar este trimestre</div>
+              <div className="s2b-hero-note"><span className="s2b-dot" /> {t("2 lugares para arrancar este trimestre", "2 slots left to start this quarter")}</div>
             </div>
           </div>
 
@@ -2679,12 +2741,11 @@ export default function StudioB2B() {
           <div className="s2b-wrap">
             <div className="s2b-head s2b-rv">
               <div>
-                <div className="s2b-eyebrow">Cómo se trabaja con nosotros</div>
-                <h2 className="s2b-h2">El <b>Proceso Studio B2B</b>, paso a paso</h2>
+                <div className="s2b-eyebrow">{t("Cómo se trabaja con nosotros", "How working with us goes")}</div>
+                <h2 className="s2b-h2">{t("El", "The")} <b>{t("Proceso Studio B2B", "Studio B2B Process")}</b>{t(", paso a paso", ", step by step")}</h2>
               </div>
               <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                De la primera charla a tu sistema en producción. Antes de que pongas un peso
-                ya firmamos confidencialidad y ya viste tu idea funcionando.
+                {t("De la primera charla a tu sistema en producción. Antes de que pongas un peso ya firmamos confidencialidad y ya viste tu idea funcionando.", "From the first conversation to your system in production. Before you spend a dollar we have already signed an NDA and you have already seen your idea working.")}
               </p>
             </div>
 
@@ -2711,17 +2772,16 @@ export default function StudioB2B() {
 
             <div className="s2b-flow-cierre s2b-rv">
               <span>
-                Del paso 7 en adelante entra el <b>Método Studio</b>: diagnóstico, prototipo,
-                entregas cada dos semanas y operación. El código y la infraestructura son tuyos desde el día uno.
+                {t("Del paso 7 en adelante entra el", "From step 7 onward the")} <b>{t("Método Studio", "Studio Method")}</b>{t(": diagnóstico, prototipo, entregas cada dos semanas y operación. El código y la infraestructura son tuyos desde el día uno.", " takes over: discovery, prototype, releases every two weeks and operations. The code and the infrastructure are yours from day one.")}
               </span>
               <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("metodo")}>
-                Ver el método <ArrowRight size={16} />
+                {t("Ver el método", "See the method")} <ArrowRight size={16} />
               </button>
             </div>
 
             <div className="s2b-flow-volver s2b-rv">
-              <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> Volver al inicio</button>
-              <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>Empezar por el paso 1 <ArrowRight size={16} /></button>
+              <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}</button>
+              <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>{t("Empezar por el paso 1", "Start with step 1")} <ArrowRight size={16} /></button>
             </div>
           </div>
         </section>
@@ -2731,7 +2791,7 @@ export default function StudioB2B() {
       {/* ============ LOGOS CLIENTES ============ */}
       <div className="s2b-band s2b-band--tint">
         <div className="s2b-logos">
-          <div className="s2b-logos-t">Empresas que confían en Studio B2B</div>
+          <div className="s2b-logos-t">{t("Empresas que confían en Studio B2B", "Companies that trust Studio B2B")}</div>
           <div className="s2b-marq">
             <div className="s2b-marq-track">
               {[...CLIENTES, ...CLIENTES, ...CLIENTES, ...CLIENTES].map((c, i) =>
@@ -2760,12 +2820,11 @@ export default function StudioB2B() {
         <div className="s2b-wrap">
           <div className="s2b-head s2b-rv">
             <div>
-              <div className="s2b-eyebrow">Soluciones</div>
-              <h2 className="s2b-h2">Tu idea se convierte en <b>realidad</b>: app, web y sistemas a medida</h2>
+              <div className="s2b-eyebrow">{t("Soluciones", "Solutions")}</div>
+              <h2 className="s2b-h2">{t("Tu idea se convierte en", "Your idea becomes")} <b>{t("realidad", "real")}</b>{t(": app, web y sistemas a medida", ": apps, web and custom systems")}</h2>
             </div>
             <p className="s2b-lead">
-              Tres frentes y un mismo equipo. No tercerizamos: diseño, desarrollo e IA se sientan
-              en la misma mesa, así que las decisiones no se pierden entre proveedores.
+              {t("Tres frentes y un mismo equipo. No tercerizamos: diseño, desarrollo e IA se sientan en la misma mesa, así que las decisiones no se pierden entre proveedores.", "Three fronts and one single team. We don't outsource: design, development and AI sit at the same table, so decisions don't get lost between vendors.")}
             </p>
           </div>
 
@@ -2825,12 +2884,11 @@ export default function StudioB2B() {
         <div className="s2b-wrap">
           <div className="s2b-head s2b-rv">
             <div>
-              <div className="s2b-eyebrow">Nuestro método</div>
-              <h2 className="s2b-h2">El <b>Método Studio</b>, la forma en que trabajamos</h2>
+              <div className="s2b-eyebrow">{t("Nuestro método", "Our method")}</div>
+              <h2 className="s2b-h2">{t("El", "The")} <b>{t("Método Studio", "Studio Method")}</b>{t(", la forma en que trabajamos", ", the way we work")}</h2>
             </div>
             <p className="s2b-lead">
-              Cuatro etapas con entregables definidos. Sabés en qué punto está tu proyecto
-              todas las semanas, sin tener que preguntarlo.
+              {t("Cuatro etapas con entregables definidos. Sabés en qué punto está tu proyecto todas las semanas, sin tener que preguntarlo.", "Four stages with defined deliverables. You know where your project stands every week without having to ask.")}
             </p>
           </div>
 
@@ -2838,7 +2896,7 @@ export default function StudioB2B() {
             <div className="s2b-method-img s2b-rv">
               <img
                 src="/metodo.jpg"
-                alt="El equipo de Studio B2B frente al tablero de tareas del día, repasando qué está por hacer, en proceso, en revisión y hecho"
+                alt={t("El equipo de Studio B2B frente al tablero de tareas del día, repasando qué está por hacer, en proceso, en revisión y hecho", "The Studio B2B team at the daily task board, going over what is to do, in progress, in review and done")}
                 loading="lazy"
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
               />
@@ -2853,7 +2911,7 @@ export default function StudioB2B() {
                 ))}
               </div>
               <button className="s2b-btn s2b-btn--primary" style={{ marginTop: 28 }} onClick={() => goTo("contacto")}>
-                Empezar por el diagnóstico <ArrowRight size={16} />
+                {t("Empezar por el diagnóstico", "Start with discovery")} <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -2865,20 +2923,19 @@ export default function StudioB2B() {
         <section className="s2b-sec">
           <div className="s2b-wrap s2b-split">
             <div className="s2b-rv">
-              <div className="s2b-eyebrow"><Sparkles size={13} /> Agentes en producción</div>
-              <h2 className="s2b-h2">Un agente sirve <b>cuando trabaja solo</b></h2>
+              <div className="s2b-eyebrow"><Sparkles size={13} /> {t("Agentes en producción", "Agents in production")}</div>
+              <h2 className="s2b-h2">{t("Un agente sirve", "An agent is worth it")} <b>{t("cuando trabaja solo", "when it works on its own")}</b></h2>
               <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                Esto es un turno real de uno de nuestros agentes comerciales: entiende la
-                consulta, revisa el stock, responde y agenda. La persona aparece solo cuando hace falta.
+                {t("Esto es un turno real de uno de nuestros agentes comerciales: entiende la consulta, revisa el stock, responde y agenda. La persona aparece solo cuando hace falta.", "This is a real shift from one of our sales agents: it understands the request, checks stock, replies and books the meeting. A person steps in only when needed.")}
               </p>
               <ul className="s2b-ul">
                 {AGENT_PTS.map((p) => <li key={p}><Check size={17} />{p}</li>)}
               </ul>
               <button className="s2b-btn s2b-btn--chrome" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
-                Quiero un agente así <ArrowUpRight size={16} />
+                {t("Quiero un agente así", "I want an agent like this")} <ArrowUpRight size={16} />
               </button>
             </div>
-            <div className="s2b-rv"><Terminal /></div>
+            <div className="s2b-rv"><Terminal lineas={AGENT_LINES} /></div>
           </div>
         </section>
       </div>
@@ -2889,29 +2946,28 @@ export default function StudioB2B() {
           <div className="s2b-tech-inner">
             <div className="s2b-tech-head">
               <div className="s2b-eyebrow">Stack</div>
-              <h2 className="s2b-h2">Tecnologías que <b>potencian nuestras soluciones</b></h2>
+              <h2 className="s2b-h2">{t("Tecnologías que", "The technology behind")} <b>{t("potencian nuestras soluciones", "our solutions")}</b></h2>
               <p className="s2b-tech-lead">
-                Trabajamos con un stack robusto y actualizado, que nos permite integrar sistemas
-                complejos, acelerar desarrollos y garantizar seguridad en cada proyecto.
+                {t("Trabajamos con un stack robusto y actualizado, que nos permite integrar sistemas complejos, acelerar desarrollos y garantizar seguridad en cada proyecto.", "We work with a solid, up to date stack that lets us integrate complex systems, move faster and keep every project secure.")}
               </p>
             </div>
-            <div className="s2b-tech-tabs" role="tablist" aria-label="Categorías de tecnologías">
-              {Object.keys(TECNOLOGIAS).map((k) => (
+            <div className="s2b-tech-tabs" role="tablist" aria-label={t("Categorías de tecnologías", "Technology categories")}>
+              {TECNOLOGIAS.map((c) => (
                 <button
-                  key={k}
+                  key={c.id}
                   role="tab"
-                  aria-selected={tab === k}
-                  className={"s2b-tab" + (tab === k ? " is-on" : "")}
-                  onClick={() => setTab(k)}
+                  aria-selected={tab === c.id}
+                  className={"s2b-tab" + (tab === c.id ? " is-on" : "")}
+                  onClick={() => setTab(c.id)}
                 >
-                  {k}
+                  {c.label}
                 </button>
               ))}
             </div>
 
             <div className="s2b-tiles" key={tab}>
-              {armarMosaico(TECNOLOGIAS[tab].length).map((puesto, i) => {
-                const ic = puesto >= 0 ? TECNOLOGIAS[tab][puesto] : null;
+              {armarMosaico(logosTab.length).map((puesto, i) => {
+                const ic = puesto >= 0 ? logosTab[puesto] : null;
                 if (!ic) return <div className="s2b-tile s2b-tile--void" key={i} aria-hidden="true" />;
                 return (
                   /* el disco se inclina en 3D hacia el cursor y le cruza un destello;
@@ -2946,19 +3002,19 @@ export default function StudioB2B() {
       <section className="s2b-sec s2b-sec--sm" id="clientes">
         <div className="s2b-wrap">
           <div className="s2b-rv">
-            <div className="s2b-eyebrow">Resultados</div>
-            <h2 className="s2b-h2">Lo que dicen <b>los que ya trabajaron con nosotros</b></h2>
+            <div className="s2b-eyebrow">{t("Resultados", "Results")}</div>
+            <h2 className="s2b-h2">{t("Lo que dicen", "What we hear from")} <b>{t("los que ya trabajaron con nosotros", "the people who already worked with us")}</b></h2>
           </div>
 
           <div className="s2b-quotes s2b-rv">
             <div className="s2b-qtrack" style={{ transform: "translateX(-" + qi * 100 + "%)" }}>
-              {TESTIMONIOS.map((t) => {
-                const I = t.ic;
+              {TESTIMONIOS.map((q) => {
+                const I = q.ic;
                 return (
-                  <div className="s2b-qslide" key={t.n}>
+                  <div className="s2b-qslide" key={q.n}>
                     <div className="s2b-qcard">
-                      <div className={"s2b-qphoto" + (t.logos.length > 1 ? " s2b-qphoto--dos" : "")}>
-                        {t.logos.map((l) => (
+                      <div className={"s2b-qphoto" + (q.logos.length > 1 ? " s2b-qphoto--dos" : "")}>
+                        {q.logos.map((l) => (
                           <span key={l.src}>
                             <img src={l.src} alt={l.alt} loading="lazy" />
                             {l.pais && <em>{l.bandera && <BanderaUSA />} {l.pais}</em>}
@@ -2966,11 +3022,11 @@ export default function StudioB2B() {
                         ))}
                       </div>
                       <div>
-                        <div className="s2b-qtag"><I size={14} /> {t.cat}</div>
-                        <p className="s2b-qtext">{t.q}</p>
+                        <div className="s2b-qtag"><I size={14} /> {q.cat}</div>
+                        <p className="s2b-qtext">{q.q}</p>
                         <div className="s2b-qfoot">
-                          <div><b>{t.n}</b>{t.r && <span>{t.r}</span>}</div>
-                          {t.e && <div className="s2b-qlogo">{t.e}</div>}
+                          <div><b>{q.n}</b>{q.r && <span>{q.r}</span>}</div>
+                          {q.e && <div className="s2b-qlogo">{q.e}</div>}
                         </div>
                       </div>
                     </div>
@@ -2981,8 +3037,8 @@ export default function StudioB2B() {
           </div>
 
           <div className="s2b-qnav">
-            <button aria-label="Anterior" onClick={() => setQi((i) => (i - 1 + TESTIMONIOS.length) % TESTIMONIOS.length)}><ArrowLeft size={17} /></button>
-            <button aria-label="Siguiente" onClick={() => setQi((i) => (i + 1) % TESTIMONIOS.length)}><ArrowRight size={17} /></button>
+            <button aria-label={t("Anterior", "Previous")} onClick={() => setQi((i) => (i - 1 + TESTIMONIOS.length) % TESTIMONIOS.length)}><ArrowLeft size={17} /></button>
+            <button aria-label={t("Siguiente", "Next")} onClick={() => setQi((i) => (i + 1) % TESTIMONIOS.length)}><ArrowRight size={17} /></button>
             <div className="s2b-qdots">{TESTIMONIOS.map((_, i) => <i key={i} className={i === qi ? "on" : ""} />)}</div>
           </div>
         </div>
@@ -2992,8 +3048,8 @@ export default function StudioB2B() {
       <section className="s2b-sec s2b-sec--sm">
         <div className="s2b-wrap" style={{ maxWidth: 900 }}>
           <div className="s2b-rv">
-            <div className="s2b-eyebrow">Preguntas</div>
-            <h2 className="s2b-h2">Lo que <b>suelen preguntarnos</b></h2>
+            <div className="s2b-eyebrow">{t("Preguntas", "Questions")}</div>
+            <h2 className="s2b-h2">{t("Lo que", "What")} <b>{t("suelen preguntarnos", "people usually ask us")}</b></h2>
           </div>
           <div className="s2b-faq">
             {FAQS.map((f, i) => (
@@ -3015,46 +3071,45 @@ export default function StudioB2B() {
         <section className="s2b-sec">
           <div className="s2b-wrap s2b-form-grid">
             <div className="s2b-rv">
-              <div className="s2b-eyebrow">Siguiente paso</div>
-              <h2 className="s2b-h2">Tu próximo proyecto <b>empieza acá</b></h2>
+              <div className="s2b-eyebrow">{t("Siguiente paso", "Next step")}</div>
+              <h2 className="s2b-h2">{t("Tu próximo proyecto", "Your next project")} <b>{t("empieza acá", "starts here")}</b></h2>
               <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                Contanos el desafío. Te respondemos en menos de 24 horas hábiles con una primera
-                lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.
+                {t("Contanos el desafío. Te respondemos en menos de 24 horas hábiles con una primera lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.", "Tell us the challenge. We reply within 24 business hours with a first read of the problem and a discovery proposal. The first call is free.")}
               </p>
               <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
-              <div className="s2b-cline"><MapPin size={17} /> Córdoba, Argentina · Miami, EE.UU. · trabajo remoto</div>
+              <div className="s2b-cline"><MapPin size={17} /> {t("Córdoba, Argentina · Miami, EE.UU. · trabajo remoto", "Córdoba, Argentina · Miami, USA · remote")}</div>
               <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
                 <Quote size={20} style={{ color: "var(--lilac)" }} />
-                <span style={{ fontSize: 14, color: "#9E97C4" }}>Respondemos todos los mensajes, también los que todavía no tienen presupuesto.</span>
+                <span style={{ fontSize: 14, color: "#9E97C4" }}>{t("Respondemos todos los mensajes, también los que todavía no tienen presupuesto.", "We answer every message, including the ones that don't have a budget yet.")}</span>
               </div>
             </div>
 
             <div className="s2b-panel s2b-rv">
               {sent ? (
                 <div>
-                  <div className="s2b-sent"><Check size={20} /> Mensaje enviado. Te respondemos a {form.email}.</div>
+                  <div className="s2b-sent"><Check size={20} /> {t("Mensaje enviado. Te respondemos a", "Message sent. We'll reply to")} {form.email}.</div>
                   <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" }); }}>
-                    Enviar otro
+                    {t("Enviar otro", "Send another")}
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div className="s2b-f"><label htmlFor="f1">Nombre</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder="Cómo te llamás" /></div>
-                  <div className="s2b-f"><label htmlFor="f2">Empresa</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder="Dónde trabajás" /></div>
+                  <div className="s2b-f"><label htmlFor="f1">{t("Nombre", "Name")}</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder={t("Cómo te llamás", "Your name")} /></div>
+                  <div className="s2b-f"><label htmlFor="f2">{t("Empresa", "Company")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
                   <div className="s2b-f"><label htmlFor="f3">Email</label><input id="f3" type="email" value={form.email} onChange={set("email")} placeholder="tu@empresa.com" /></div>
-                  <div className="s2b-f"><label htmlFor="f4">Teléfono</label><input id="f4" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
+                  <div className="s2b-f"><label htmlFor="f4">{t("Teléfono", "Phone")}</label><input id="f4" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
                   <div className="s2b-f">
-                    <label htmlFor="f5">Qué necesitás</label>
+                    <label htmlFor="f5">{t("Qué necesitás", "What you need")}</label>
                     <select id="f5" value={form.tipo} onChange={set("tipo")}>
-                      <option>Agente de IA</option><option>Software a medida</option><option>App móvil</option>
-                      <option>Diseño de producto</option><option>Automatización</option><option>Todavía no lo tengo claro</option>
+                      <option>{t("Agente de IA", "AI agent")}</option><option>{t("Software a medida", "Custom software")}</option><option>{t("App móvil", "Mobile app")}</option>
+                      <option>{t("Diseño de producto", "Product design")}</option><option>{t("Automatización", "Automation")}</option><option>{t("Todavía no lo tengo claro", "Not sure yet")}</option>
                     </select>
                   </div>
-                  <div className="s2b-f"><label htmlFor="f6">Contexto</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder="Qué problema querés resolver y en qué plazo" /></div>
+                  <div className="s2b-f"><label htmlFor="f6">{t("Contexto", "Context")}</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder={t("Qué problema querés resolver y en qué plazo", "What problem you need solved and by when")} /></div>
                   {formErr && (
                     <div className="s2b-formerr" role="alert">
                       {formErr}{" "}
-                      <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
+                      <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">{t("Abrir WhatsApp", "Open WhatsApp")}</a>
                     </div>
                   )}
                   <button
@@ -3063,7 +3118,7 @@ export default function StudioB2B() {
                     onClick={send}
                     disabled={sending}
                   >
-                    {sending ? "Enviando…" : "Enviar mensaje"} <ArrowUpRight size={16} />
+                    {sending ? t("Enviando…", "Sending…") : t("Enviar mensaje", "Send message")} <ArrowUpRight size={16} />
                   </button>
                 </div>
               )}
@@ -3077,7 +3132,7 @@ export default function StudioB2B() {
               <div>
                 <div className="s2b-brand"><span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span><div className="s2b-brand-txt">STUDIO B2B<small>PRODUCTO DIGITAL &amp; IA</small></div></div>
                 <p style={{ fontSize: 14, color: "#9E97C4", marginTop: 16, maxWidth: "34ch" }}>
-                  Diseñamos y construimos software a medida y agentes de IA para empresas que necesitan que las cosas funcionen.
+                  {t("Diseñamos y construimos software a medida y agentes de IA para empresas que necesitan que las cosas funcionen.", "We design and build custom software and AI agents for companies that need things to actually work.")}
                 </p>
                 <div className="s2b-social">
                   <a href="#" aria-label="LinkedIn"><Linkedin size={17} /></a>
@@ -3086,39 +3141,45 @@ export default function StudioB2B() {
                 </div>
               </div>
               <div>
-                <h5>Soluciones</h5>
+                <h5>{t("Soluciones", "Solutions")}</h5>
                 <ul>
                   {SOLUCIONES.map((s) => <li key={s.id}><a href={"#servicios"} onClick={(e) => { e.preventDefault(); goTo("servicios"); }}>{s.t}</a></li>)}
-                  <li><a href="#metodo" onClick={(e) => { e.preventDefault(); goTo("metodo"); }}>Método Studio</a></li>
+                  <li><a href="#metodo" onClick={(e) => { e.preventDefault(); goTo("metodo"); }}>{t("Método Studio", "Studio Method")}</a></li>
                 </ul>
               </div>
               <div>
-                <h5>Estudio</h5>
+                <h5>{t("Estudio", "Studio")}</h5>
                 <ul>
-                  <li><a href="#clientes" onClick={(e) => { e.preventDefault(); goTo("clientes"); }}>Clientes</a></li>
-                  <li><a href="#contacto" onClick={(e) => { e.preventDefault(); goTo("contacto"); }}>Trabajá con nosotros</a></li>
+                  <li><a href="#clientes" onClick={(e) => { e.preventDefault(); goTo("clientes"); }}>{t("Clientes", "Clients")}</a></li>
+                  <li><a href="#contacto" onClick={(e) => { e.preventDefault(); goTo("contacto"); }}>{t("Trabajá con nosotros", "Work with us")}</a></li>
                 </ul>
               </div>
               <div>
-                <h5>Contacto</h5>
+                <h5>{t("Contacto", "Contact")}</h5>
                 <ul>
                   <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
-                  <li>Córdoba capital · Buenos Aires · toda Argentina</li>
-                  <li>Miami, Estados Unidos</li>
+                  <li>{t("Córdoba capital · Buenos Aires · toda Argentina", "Córdoba · Buenos Aires · all of Argentina")}</li>
+                  <li>{t("Miami, Estados Unidos", "Miami, United States")}</li>
                 </ul>
               </div>
             </div>
             <div className="s2b-foot-bot">
-              <span>© {new Date().getFullYear()} Studio B2B · Todos los derechos reservados</span>
+              <span>© {new Date().getFullYear()} Studio B2B · {t("Todos los derechos reservados", "All rights reserved")}</span>
             </div>
           </div>
         </footer>
       </div>
 
-      <WhatsAppBubble />
+      <div className="s2b-lang" role="group" aria-label={t("Idioma", "Language")}>
+        {IDIOMAS.map((i) => (
+          <button key={i} className={idioma === i ? "is-on" : ""} aria-pressed={idioma === i} onClick={() => setIdioma(i)}>{i.toUpperCase()}</button>
+        ))}
+      </div>
+
+      <WhatsAppBubble t={t} chips={WA_CHIPS} />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_LD) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd(FAQS)) }}
       />
     </div>
   );
