@@ -192,9 +192,9 @@ const CSS = `
 }
 .s2b-lang button:hover { color:#fff; background:rgba(167,140,255,.16); }
 .s2b-lang button.is-on { background:linear-gradient(150deg,#6D4AFF,#3B2296); color:#fff; }
-@media (max-width: 600px) {
-  .s2b-lang { padding:4px; border-radius:0 13px 13px 0; }
-  .s2b-lang button { font-size:10px; padding:7px 8px; }
+@media (max-width: 820px) {
+  .s2b-lang { top:auto; bottom:24px; transform:none; padding:4px; border-radius:0 14px 14px 0; }
+  .s2b-lang button { font-size:10px; padding:7px 9px; }
 }
 .s2b-nav.is-stuck .s2b-burger { color: var(--title); }
 .s2b-drawer { position:fixed; inset:0; z-index:95; background:#0B0718; color:#fff; padding:18px 24px 40px; overflow-y:auto; }
@@ -288,7 +288,7 @@ const CSS = `
   animation: s2b-hue 8s ease-in-out infinite alternate; }
 @keyframes s2b-hue { to { --s2b-g1:#FFFFFF; --s2b-g2:#C9B6FF; --s2b-g3:#8B6BFF; } }
 
-.s2b-hero p { color:#BDB4E4; font-size: clamp(16px,1.7vw,19px); max-width:52ch; margin-top:26px;
+.s2b-hero p { color:#BDB4E4; font-size: clamp(16px,1.7vw,19px); max-width:57ch; margin-top:26px;
   opacity:0; animation: s2b-up .9s .55s cubic-bezier(.16,.84,.24,1) forwards; }
 .s2b-hero-cta { display:flex; flex-wrap:wrap; gap:12px; margin-top:36px; justify-content:center;
   opacity:0; animation: s2b-up .9s .72s cubic-bezier(.16,.84,.24,1) forwards; }
@@ -460,8 +460,11 @@ const CSS = `
 .s2b-ul svg { flex:none; margin-top:3px; color:var(--lilac); }
 
 /* ---------- tecnologías ---------- */
-.s2b-tech-head { max-width:760px; margin-bottom:30px; }
-.s2b-tech-lead { margin-top:16px; font-size:16.5px; color:var(--muted); max-width:660px; }
+/* arriba del mosaico: el titulo de un lado y las categorias del otro, en
+   columna, como un menu. Abajo, los logos a lo ancho de todo el panel. */
+.s2b-tech-top { display:grid; grid-template-columns:1.1fr .9fr; gap:clamp(28px,4vw,56px); align-items:end; margin-bottom:38px; }
+.s2b-tech-head { max-width:760px; }
+.s2b-tech-lead { margin-top:16px; font-size:16.5px; color:var(--muted); max-width:600px; }
 
 .s2b-tech-panel {
   position:relative; width:100%; margin-top:8px; padding:48px 0 50px; overflow:hidden;
@@ -485,13 +488,18 @@ const CSS = `
   mask-image: radial-gradient(72% 62% at 50% 38%, #000, transparent);
 }
 .s2b-tech-tabs {
-  position:relative; display:flex; gap:6px; flex-wrap:wrap; margin-bottom:28px; padding:5px;
-  border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(167,140,255,.18);
-  width:max-content; max-width:100%;
+  position:relative; display:grid; gap:8px; width:100%; justify-self:end; max-width:380px;
 }
-.s2b-tab { padding:10px 18px; border-radius:999px; font-size:14px; font-weight:600; color:#9E97C4; transition: background .25s, color .25s; }
-.s2b-tab:hover { color:#EDE9FF; }
-.s2b-tab.is-on { background: linear-gradient(120deg,var(--violet),#4B2FD6); color:#fff; }
+.s2b-tab {
+  padding:13px 18px; border-radius:14px; font-size:14.5px; font-weight:600; text-align:left;
+  color:#C4BCE4; background:rgba(255,255,255,.055); border:1px solid rgba(167,140,255,.26);
+  transition: background .25s, color .25s, border-color .25s, transform .25s;
+}
+.s2b-tab:hover { color:#EDE9FF; border-color:rgba(167,140,255,.4); transform:translateX(3px); }
+.s2b-tab.is-on {
+  background: linear-gradient(120deg,var(--violet),#4B2FD6); color:#fff;
+  border-color:transparent; box-shadow:0 16px 34px -18px rgba(109,74,255,.95);
+}
 
 .s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(14,1fr); gap:10px; }
 /* discos, no cuadrados: el mosaico se lee como una constelacion */
@@ -623,8 +631,9 @@ const CSS = `
 /* ---------- responsive ---------- */
 /* las pestanas no entran a lo ancho: pasan a ser una tira que se corre */
 @media (max-width: 860px) {
+  .s2b-tech-top { grid-template-columns:1fr; gap:26px; align-items:start; }
   .s2b-tech-tabs {
-    width:100%; max-width:100%; flex-wrap:nowrap; overflow-x:auto; border-radius:26px;
+    display:flex; gap:8px; width:100%; max-width:100%; flex-wrap:nowrap; overflow-x:auto;
     scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
   }
   .s2b-tech-tabs::-webkit-scrollbar { display:none; }
@@ -633,7 +642,7 @@ const CSS = `
     -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);
             mask-image:linear-gradient(90deg,#000 88%,transparent);
   }
-  .s2b-tab { white-space:nowrap; padding:10px 14px; font-size:13px; }
+  .s2b-tab { white-space:nowrap; padding:10px 15px; font-size:13px; border-radius:999px; }
 }
 @media (max-width: 1000px) {
   .s2b-sec { padding:80px 0; }
@@ -2706,7 +2715,7 @@ export default function StudioB2B() {
                 <h1>{t("Impulsamos tecnología que rinde en producción y", "We build technology that performs in production and")} <span>{t("escala con tu negocio", "scales with your business")}</span></h1>
               </div>
               <p>
-                {t("Diez años haciendo productos a medida y, desde hace tres, agentes de IA que trabajan adentro del negocio. Nada que se caiga cuando llega a producción.", "Ten years building custom products and, for the last three, AI agents that work inside the business. Nothing that falls over once it reaches production.")}
+                {t("Diez años haciendo productos a medida y, desde hace tres, agentes de IA que trabajan adentro del negocio. Nada que se caiga cuando llega a producción.", "Ten years of custom products, three of AI agents that work inside the business — and hold up in production.")}
               </p>
               <div className="s2b-hero-cta">
                 <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell us about your project")} <ArrowRight size={16} /></button>
@@ -2944,6 +2953,7 @@ export default function StudioB2B() {
       <section className="s2b-sec s2b-sec--sm" id="tecnologias">
         <div className="s2b-tech-panel s2b-rv">
           <div className="s2b-tech-inner">
+            <div className="s2b-tech-top">
             <div className="s2b-tech-head">
               <div className="s2b-eyebrow">Stack</div>
               <h2 className="s2b-h2">{t("Tecnologías que", "The technology behind")} <b>{t("potencian nuestras soluciones", "our solutions")}</b></h2>
@@ -2963,6 +2973,7 @@ export default function StudioB2B() {
                   {c.label}
                 </button>
               ))}
+            </div>
             </div>
 
             <div className="s2b-tiles" key={tab}>
