@@ -845,12 +845,13 @@ const soluciones = (t) => [
 
 /* esc: los logos que en su archivo vienen mas chicos piden un poco mas de alto */
 const clientes = (t) => [
-  { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png" },
-  { n: "Numera", src: "/clientes/logonumera.jpg" },
-  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2, pais: t("Estados Unidos", "United States") },
-  { n: "Instituto de Investigaciones Cl\u00ednicas", src: "/clientes/IICC.png", esc: 1.1 },
-  { n: "Pecifa Nacional", src: "/clientes/pecifa.png", esc: 1.3 },
-  { n: "Ninit Group", src: "/clientes/ninit-group.png", pais: t("Miami, Estados Unidos", "Miami, United States") },
+  { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png", pais: t("Argentina", "Argentina"), bandera: "ar" },
+  { n: "Numera", src: "/clientes/logonumera.jpg", pais: t("Uruguay", "Uruguay"), bandera: "uy" },
+  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2, pais: t("Estados Unidos", "United States"), bandera: "us" },
+  { n: "Instituto de Investigaciones Cl\u00ednicas", src: "/clientes/IICC.png", esc: 1.1, pais: t("C\u00f3rdoba, Argentina", "C\u00f3rdoba, Argentina"), bandera: "ar" },
+  { n: "Pecifa Nacional", src: "/clientes/pecifa.png", esc: 1.3, pais: t("Argentina", "Argentina"), bandera: "ar" },
+  { n: "Ninit Group", src: "/clientes/ninit-group.png", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us" },
+  { n: "Escuadra Builders Group", src: "/clientes/escuadra.svg", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us" },
 ];
 
 const servicios = (t) => [
@@ -1015,28 +1016,40 @@ const testimonios = (t) => [
     q: t("Gracias al equipo de Studio B2B hoy tenemos la app móvil, el sitio y el portal de afiliados funcionando juntos. Lo que antes era un llamado o un papel, el afiliado lo resuelve desde el celular, y nosotros vemos todo en un solo lugar. Se hicieron cargo de la parte técnica de punta a punta.", "Thanks to the Studio B2B team we now have the mobile app, the website and the member portal working together. What used to be a phone call or a piece of paper, our members now handle from their phone, and we see everything in one place. They took care of the technical side end to end."),
     n: "Hernán Marcantonio", r: "", e: "Pecifa Nacional",
     cat: t("App móvil, web y afiliados", "Mobile app, web and member portal"), ic: Smartphone,
-    logos: [{ src: "/clientes/pecifa.png", alt: "Pecifa Nacional" }],
+    logos: [{ src: "/clientes/pecifa.png", alt: "Pecifa Nacional", pais: t("Argentina", "Argentina"), bandera: "ar" }],
   },
   {
     q: t("Nos armaron el sitio y la base de datos donde hoy vive la información de nuestros estudios. Entendieron rápido cómo trabaja un centro de investigación: los tiempos, el orden y el cuidado que pide el dato clínico. Quedó todo documentado y a nuestro nombre.", "They built the site and the database where our study information lives today. They quickly understood how a research center works: the timelines, the order and the care clinical data demands. Everything was documented and put in our name."),
     n: "Dr. Mauro Pautaso", r: t("Director Médico", "Medical Director"), e: "",
     cat: t("Sitio web y base de datos", "Website and database"), ic: Database,
     logos: [
-      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO", pais: t("Estados Unidos", "United States"), bandera: true },
-      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba", pais: t("Córdoba, Argentina", "Córdoba, Argentina") },
+      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO", pais: t("Estados Unidos", "United States"), bandera: "us" },
+      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba", pais: t("Córdoba, Argentina", "Córdoba, Argentina"), bandera: "ar" },
     ],
   },
   {
     q: t("El agente de IA que nos armaron atiende conectado con Meta WhatsApp, n8n y el CRM a medida que también nos hicieron. Gracias a ellos automatizamos la compañía: las consultas se responden solas y lo que necesita a una persona llega con todo el contexto. Muy contentos con el trabajo.", "The AI agent they built for us answers connected to Meta WhatsApp, n8n and the custom CRM they also made for us. Thanks to them we automated the company: requests get answered on their own and whatever needs a person arrives with the full context. Very happy with the work."),
     n: "Nicolás Hercun", r: t("CEO de Ninit Group", "CEO at Ninit Group"), e: "",
     cat: t("Agente de IA y CRM a medida", "AI agent and custom CRM"), ic: Bot,
-    logos: [{ src: "/clientes/ninit-group.png", alt: "Ninit Group", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: true }],
+    logos: [{ src: "/clientes/ninit-group.png", alt: "Ninit Group", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us" }],
   },
   {
     q: t("Los recomendamos sin vueltas. El CRM a medida y el sistema de recepción y vendedores los usamos todos los días, y cuando pedimos un cambio está resuelto sin hacernos esperar. Estamos muy contentos con el trabajo que hacemos con ellos día a día.", "We recommend them without hesitation. We use the custom CRM and the front-desk and sales system every single day, and when we ask for a change it gets done without keeping us waiting. We are very happy with the work we do with them day to day."),
     n: t("Equipo de Nuevo Munich", "The Nuevo Munich team"), r: t("Recepción y ventas", "Front desk and sales"), e: "Nuevo Munich",
     cat: t("CRM a medida y sistema de ventas", "Custom CRM and sales system"), ic: Users,
-    logos: [{ src: "/clientes/nuevo-munich.png", alt: "Nuevo Munich" }],
+    logos: [{ src: "/clientes/nuevo-munich.png", alt: "Nuevo Munich", pais: t("Argentina", "Argentina"), bandera: "ar" }],
+  },
+  {
+    q: t("Somos una constructora con licencia y seguro en Miami-Dade y necesitábamos que el sitio trabajara como trabaja la obra. Hoy el cliente entiende nuestro proceso de cuatro pasos, ve los proyectos de Miami Beach, Coconut Grove, Coral Gables y Brickell, y pide su presupuesto sin costo por el formulario o por WhatsApp. Las consultas llegan ordenadas y respondemos el mismo día.", "We are a licensed and insured contractor in Miami-Dade and we needed the site to work the way the job site works. Today clients understand our four-step process, see the projects in Miami Beach, Coconut Grove, Coral Gables and Brickell, and request their free estimate through the form or WhatsApp. Requests come in organized and we answer the same day."),
+    n: t("Equipo de Escuadra Builders Group", "The Escuadra Builders Group team"), r: t("Construcción y gestión de proyectos · Miami", "Construction and project management · Miami"), e: "",
+    cat: t("Sitio web, cotizaciones y WhatsApp", "Website, estimates and WhatsApp"), ic: Code2,
+    logos: [{ src: "/clientes/escuadra.svg", alt: "Escuadra Builders Group", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us" }],
+  },
+  {
+    q: t("Numera empezó como un pedido a medida y hoy es un producto en producción: más de 5.000 suscriptores la usan todos los días para emitir presupuestos, facturas y acuerdos de confidencialidad con firma digital. La construimos de cero y la seguimos sosteniendo.", "Numera started as a custom request and today it is a product in production: more than 5,000 subscribers use it every day to issue quotes, invoices and digitally signed confidentiality agreements. We built it from scratch and we still maintain it."),
+    n: "Numera", r: t("Presupuestos, facturas y acuerdos de confidencialidad", "Quotes, invoices and confidentiality agreements"), e: "",
+    cat: t("App a medida · +5.000 suscriptores", "Custom app · 5,000+ subscribers"), ic: FileText,
+    logos: [{ src: "/clientes/logonumera.jpg", alt: "Numera", pais: t("Uruguay", "Uruguay"), bandera: "uy" }],
   },
 ];
 
@@ -1087,15 +1100,40 @@ function brandColor(hex) {
 }
 
 /* Windows no tiene glifos de bandera, asi que el emoji saldria como "US":
-   la dibujamos, chiquita, con las barras y el canton azul. */
-function BanderaUSA() {
-  return (
-    <svg viewBox="0 0 21 14" width="15" height="10" aria-hidden="true" style={{ borderRadius: 2, flex: "none" }}>
-      <rect width="21" height="14" fill="#F0F1F5" />
-      {[0, 2, 4, 6, 8, 10, 12].map((y) => <rect key={y} y={y} width="21" height="1.08" fill="#C8102E" />)}
-      <rect width="9" height="7.6" fill="#0A3161" />
-    </svg>
-  );
+   las dibujamos chiquitas. `Bandera` recibe el codigo del pais y devuelve la
+   que corresponde; sin codigo no dibuja nada. */
+const banderaCaja = { borderRadius: 2, flex: "none" };
+
+function Bandera({ c }) {
+  if (c === "ar") {
+    return (
+      <svg viewBox="0 0 21 14" width="15" height="10" aria-hidden="true" style={banderaCaja}>
+        <rect width="21" height="14" fill="#74ACDF" />
+        <rect y="4.67" width="21" height="4.66" fill="#FFF" />
+        <circle cx="10.5" cy="7" r="1.5" fill="#F6B40E" />
+      </svg>
+    );
+  }
+  if (c === "uy") {
+    return (
+      <svg viewBox="0 0 21 14" width="15" height="10" aria-hidden="true" style={banderaCaja}>
+        <rect width="21" height="14" fill="#FFF" />
+        {[1.56, 4.67, 7.78, 10.89].map((y) => <rect key={y} y={y} width="21" height="1.55" fill="#0038A8" />)}
+        <rect width="9.33" height="7.78" fill="#FFF" />
+        <circle cx="4.6" cy="3.9" r="1.7" fill="#F6B40E" />
+      </svg>
+    );
+  }
+  if (c === "us") {
+    return (
+      <svg viewBox="0 0 21 14" width="15" height="10" aria-hidden="true" style={banderaCaja}>
+        <rect width="21" height="14" fill="#F0F1F5" />
+        {[0, 2, 4, 6, 8, 10, 12].map((y) => <rect key={y} y={y} width="21" height="1.08" fill="#C8102E" />)}
+        <rect width="9" height="7.6" fill="#0A3161" />
+      </svg>
+    );
+  }
+  return null;
 }
 
 function BrandLogo({ icon }) {
@@ -2819,7 +2857,7 @@ export default function StudioB2B() {
                         loading="lazy"
                         style={c.esc ? { height: `calc(var(--clogo-h) * ${c.esc})` } : undefined}
                       />
-                      {c.pais && <span className="s2b-clogo-pais"><BanderaUSA /> {c.pais}</span>}
+                      {c.pais && <span className="s2b-clogo-pais"><Bandera c={c.bandera} /> {c.pais}</span>}
                     </div>
                   )
                   : <div className="s2b-clogo" key={i}>{c.n}</div>
@@ -3033,7 +3071,7 @@ export default function StudioB2B() {
                         {q.logos.map((l) => (
                           <span key={l.src}>
                             <img src={l.src} alt={l.alt} loading="lazy" />
-                            {l.pais && <em>{l.bandera && <BanderaUSA />} {l.pais}</em>}
+                            {l.pais && <em><Bandera c={l.bandera} /> {l.pais}</em>}
                           </span>
                         ))}
                       </div>
