@@ -103,6 +103,23 @@ const CSS = `
 .s2b-btn--primary::after { content:''; position:absolute; inset:0; background: linear-gradient(100deg, transparent 34%, rgba(255,255,255,.4) 50%, transparent 66%); transform: translateX(-120%); transition: transform .7s ease; }
 .s2b-btn--primary:hover::after { transform: translateX(120%); }
 .s2b-btn--chrome { color:#100A24; background: linear-gradient(170deg,#FFF,var(--chrome-md) 55%,#9AA0B6); box-shadow: 0 12px 30px -14px rgba(190,200,230,.8); }
+/* el contorno vivo del boton principal: el mismo giro que la pastilla del
+   hero, recortado con mascara para que quede solo el filo */
+.s2b-btn--aura { position:relative; }
+.s2b-btn--aura::before {
+  content:''; position:absolute; inset:-1.5px; border-radius:inherit; padding:1.5px; pointer-events:none;
+  background: conic-gradient(from var(--s2b-ang), transparent 0 52%, #C9B6FF 68%, #6D4AFF 82%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: s2b-rot 4.5s linear infinite;
+}
+.s2b-btn--aura::after {
+  content:''; position:absolute; inset:-6px; border-radius:inherit; pointer-events:none; z-index:-1;
+  background: radial-gradient(60% 120% at 50% 50%, rgba(167,140,255,.55), transparent 70%);
+  opacity:0; transition:opacity .35s;
+}
+.s2b-btn--aura:hover::after { opacity:1; }
 .s2b-btn--line { border:1px solid var(--line); color: var(--title); background: var(--surface); }
 .s2b-btn--line:hover { border-color: var(--violet); }
 .s2b-link { display:inline-flex; align-items:center; gap:7px; font-weight:600; font-size:14px; color: var(--violet); }
@@ -285,10 +302,15 @@ const CSS = `
   border:1px solid rgba(24,12,60,.05); box-shadow:0 14px 30px -22px rgba(24,12,60,.55);
 }
 .s2b-clogo--img:hover { filter:none; opacity:1; }
+/* la marca y, abajo, de donde es el cliente */
+.s2b-clogo-box { display:flex; flex-direction:column; align-items:center; gap:9px; flex:none; }
+.s2b-clogo-pais { display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); }
 
 /* ---------- servicios (filas alternadas) ---------- */
 .s2b-rows { display:grid; gap:20px; margin-top:52px; }
-.s2b-row { display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:28px; overflow:hidden; border:1px solid var(--line); background:#fff; box-shadow: 0 24px 60px -40px rgba(24,12,60,.4); }
+.s2b-row { display:grid; grid-template-columns:.82fr 1.18fr; gap:0; border-radius:28px; overflow:hidden; border:1px solid var(--line); background:#fff; box-shadow: 0 24px 60px -40px rgba(24,12,60,.4); }
+.s2b-row:nth-child(even) { grid-template-columns:1.18fr .82fr; }
 .s2b-row:nth-child(even) .s2b-row-txt { order:2; }
 .s2b-row-txt { padding: clamp(28px,4vw,52px); display:flex; flex-direction:column; justify-content:center; }
 .s2b-row-txt h3 { font-size: clamp(22px,2.6vw,30px); margin-bottom:14px; }
@@ -300,8 +322,7 @@ const CSS = `
 .s2b-blob { position:absolute; border-radius:50%; filter: blur(46px); opacity:.85; }
 /* la captura de un trabajo real, en vez del panel de mentira. Se ve entera:
    la altura la pone la propia imagen, nada se recorta. */
-.s2b-shot { position:relative; justify-self:start; margin-left:20px; width:108%; max-width:none;
-  border-radius:16px; overflow:hidden;
+.s2b-shot { position:relative; width:calc(100% - 36px); border-radius:16px; overflow:hidden;
   padding-top:27px; background:#fff; border:1px solid rgba(255,255,255,.8);
   box-shadow:0 34px 70px -28px rgba(24,12,60,.62), 0 4px 14px -8px rgba(24,12,60,.3);
   transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
@@ -386,6 +407,8 @@ const CSS = `
   border:1px solid rgba(167,140,255,.2); background:rgba(255,255,255,.04); }
 .s2b-flow-cierre span { color:#BDB4E4; font-size:14.8px; max-width:64ch; }
 .s2b-flow-cierre b { color:#fff; font-weight:600; }
+.s2b-flow-volver { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+  max-width:1000px; margin-top:26px; }
 
 /* ---------- método ---------- */
 .s2b-method { display:grid; grid-template-columns: .95fr 1.05fr; gap:44px; align-items:center; margin-top:48px; }
@@ -422,7 +445,7 @@ const CSS = `
 .s2b-tech-lead { margin-top:16px; font-size:16.5px; color:var(--muted); max-width:660px; }
 
 .s2b-tech-panel {
-  position:relative; width:100%; margin-top:8px; padding:60px 0 64px; overflow:hidden;
+  position:relative; width:100%; margin-top:8px; padding:48px 0 50px; overflow:hidden;
   border-top:1px solid rgba(167,140,255,.16); border-bottom:1px solid rgba(167,140,255,.16);
   background:
     radial-gradient(720px circle at 84% -12%, rgba(109,74,255,.34), transparent 62%),
@@ -451,10 +474,10 @@ const CSS = `
 .s2b-tab:hover { color:#EDE9FF; }
 .s2b-tab.is-on { background: linear-gradient(120deg,var(--violet),#4B2FD6); color:#fff; }
 
-.s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
+.s2b-tiles { position:relative; display:grid; grid-template-columns:repeat(14,1fr); gap:10px; }
 /* discos, no cuadrados: el mosaico se lee como una constelacion */
 /* el disco no crece sin freno en pantallas anchas: queda parejo y centrado */
-.s2b-tiltbox { min-width:0; width:100%; max-width:132px; justify-self:center; border-radius:50%; }
+.s2b-tiltbox { min-width:0; width:100%; max-width:92px; justify-self:center; border-radius:50%; }
 .s2b-tile {
   position:relative; min-width:0; aspect-ratio:1/1; border-radius:50%; display:grid; place-items:center;
   background:
@@ -483,7 +506,7 @@ const CSS = `
     radial-gradient(120% 120% at 30% 22%, rgba(255,255,255,.14), rgba(167,140,255,.09) 58%, rgba(255,255,255,.02));
   border-color:rgba(167,140,255,.5); box-shadow:0 26px 50px -26px rgba(109,74,255,.9);
 }
-.s2b-tile-logo { width:46px; height:46px; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.s2b-tile-logo { width:32px; height:32px; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
 .s2b-tiltbox:hover .s2b-tile-logo { transform:translateY(-7px) scale(1.06); }
 .s2b-tile-name {
   position:absolute; left:8px; right:8px; bottom:19%; text-align:center;
@@ -493,7 +516,7 @@ const CSS = `
 }
 .s2b-tiltbox:hover .s2b-tile-name { opacity:1; transform:none; }
 /* desfase alternado: funciona con cualquier cantidad de columnas */
-.s2b-tiles > *:nth-child(even) { margin-top:26px; }
+.s2b-tiles > *:nth-child(even) { margin-top:18px; }
 
 /* en pantalla tactil no hay hover: los nombres van siempre puestos */
 @media (hover: none) {
@@ -501,8 +524,8 @@ const CSS = `
   .s2b-tile-logo { transform:translateY(-6px); }
   .s2b-tile:not(.s2b-tile--void)::after { opacity:.5; transform:scale(1); }
 }
-@media (max-width: 1500px) { .s2b-tiles { grid-template-columns:repeat(8,1fr); } }
-@media (max-width: 1180px) { .s2b-tiles { grid-template-columns:repeat(6,1fr); } }
+@media (max-width: 1500px) { .s2b-tiles { grid-template-columns:repeat(11,1fr); } }
+@media (max-width: 1180px) { .s2b-tiles { grid-template-columns:repeat(9,1fr); } }
 
 /* ---------- métricas ---------- */
 /* ---------- testimonios ---------- */
@@ -596,10 +619,10 @@ const CSS = `
   .s2b-split, .s2b-method, .s2b-form-grid, .s2b-head { grid-template-columns:1fr; gap:36px; }
   .s2b-hero { padding-top:64px; }
   .s2b-shortcuts { grid-template-columns:1fr; margin-top:48px; padding-bottom:48px; }
-  .s2b-row { grid-template-columns:1fr; }
+  .s2b-row, .s2b-row:nth-child(even) { grid-template-columns:1fr; }
   .s2b-row:nth-child(even) .s2b-row-txt { order:0; }
   .s2b-row-vis { min-height:230px; order:-1; }
-  .s2b-tiles { grid-template-columns:repeat(4,1fr); }
+  .s2b-tiles { grid-template-columns:repeat(7,1fr); }
   .s2b-tech-panel { padding:28px 0 32px; }
   .s2b-qcard { grid-template-columns:1fr; gap:22px; }
   /* apilada, la placa se acuesta y los dos logos van uno al lado del otro:
@@ -676,9 +699,11 @@ const CSS = `
   .s2b-clogo--img { padding:8px 12px; border-radius:10px; }
   .s2b-brand { --mark:58px; gap:11px; }
   .s2b-brand-txt { font-size:17px; }
-  .s2b-tiles { grid-template-columns:repeat(3,1fr); gap:16px; }
-  .s2b-tiles > *:nth-child(even) { margin-top:14px; }
-  .s2b-tile-logo { width:30px; height:30px; }
+  .s2b-tiles { grid-template-columns:repeat(5,1fr); gap:9px; }
+  .s2b-tiles > *:nth-child(even) { margin-top:11px; }
+  .s2b-tile-logo { width:23px; height:23px; }
+  /* a este tamaño el nombre no entra adentro del disco */
+  .s2b-tile-name { display:none; }
   .s2b-tile--void { display:none; }
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
@@ -771,7 +796,7 @@ const SOLUCIONES = [
 const CLIENTES = [
   { n: "Nuevo Munich", src: "/clientes/nuevo-munich.png" },
   { n: "Numera", src: "/clientes/logonumera.jpg" },
-  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2 },
+  { n: "IPIC SMO", src: "/clientes/ipicsmo.png", esc: 1.2, pais: "Estados Unidos" },
   { n: "Instituto de Investigaciones Cl\u00ednicas", src: "/clientes/IICC.png", esc: 1.1 },
   { n: "Pecifa Nacional", src: "/clientes/pecifa.png", esc: 1.3 },
   { n: "Ninit Group", src: "/clientes/ninit-group.png" },
@@ -991,7 +1016,7 @@ const WA_CHIPS = [
 const NAV_LINKS = [
   { id: "servicios", label: "Servicios" },
   { id: "proceso", label: "Proceso" },
-  { id: "metodo", label: "Método" },
+  { id: "metodo", label: "Nuestro método" },
   { id: "clientes", label: "Clientes" },
 ];
 
@@ -1002,6 +1027,18 @@ function brandColor(hex) {
   const n = parseInt(hex, 16);
   const lum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
   return lum < 0.26 ? "#E7E1FF" : "#" + hex;
+}
+
+/* Windows no tiene glifos de bandera, asi que el emoji saldria como "US":
+   la dibujamos, chiquita, con las barras y el canton azul. */
+function BanderaUSA() {
+  return (
+    <svg viewBox="0 0 21 14" width="15" height="10" aria-hidden="true" style={{ borderRadius: 2, flex: "none" }}>
+      <rect width="21" height="14" fill="#F0F1F5" />
+      {[0, 2, 4, 6, 8, 10, 12].map((y) => <rect key={y} y={y} width="21" height="1.08" fill="#C8102E" />)}
+      <rect width="9" height="7.6" fill="#0A3161" />
+    </svg>
+  );
 }
 
 function BrandLogo({ icon }) {
@@ -2398,6 +2435,13 @@ function WhatsAppBubble() {
   );
 }
 
+/* Que vista pide la direccion. El proceso tiene su propia URL para que el
+   home no sea eterno, y para poder mandarle el link a alguien. */
+const vistaDeUrl = () => {
+  const p = typeof location === "undefined" ? "/" : location.pathname;
+  return p === "/proceso" || p === "/proceso/" ? "proceso" : "home";
+};
+
 /* ================= página ================= */
 
 export default function StudioB2B() {
@@ -2412,6 +2456,23 @@ export default function StudioB2B() {
   const [sending, setSending] = useState(false);
   const [formErr, setFormErr] = useState("");
   const [form, setForm] = useState({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" });
+  /* el proceso vive en su propia direccion para no alargar el home; sin router,
+     con la URL de verdad y el boton atras del navegador andando */
+  const [vista, setVista] = useState(vistaDeUrl);
+
+  useEffect(() => {
+    const sync = () => setVista(vistaDeUrl());
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, []);
+
+  const irA = useCallback((v) => {
+    setDrawer(false); setPop(false);
+    const destino = v === "proceso" ? "/proceso" : "/";
+    if (location.pathname !== destino) history.pushState({}, "", destino);
+    setVista(v);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
 
   useEffect(() => {
     const el = heroRef.current; if (!el) return;
@@ -2437,19 +2498,31 @@ export default function StudioB2B() {
   }, []);
 
   useEffect(() => {
+    document.title = vista === "proceso"
+      ? "El Proceso Studio B2B, paso a paso · Studio B2B"
+      : "Software a medida y agentes de IA en Córdoba · Studio B2B";
+  }, [vista]);
+
+  useEffect(() => {
     const io = new IntersectionObserver(
       (en) => en.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }),
       { threshold: .1, rootMargin: "0px 0px -60px 0px" }
     );
     document.querySelectorAll(".s2b-rv").forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, []);
+  }, [vista]);
 
   const goTo = useCallback((id) => {
     setDrawer(false); setPop(false);
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+    if (id === "proceso") { irA("proceso"); return; }
+    const ir = () => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    /* la seccion puede estar en la otra vista: se vuelve al home y despues se baja */
+    if (document.getElementById(id)) ir();
+    else { irA("home"); setTimeout(ir, 80); }
+  }, [irA]);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const send = async () => {
@@ -2492,7 +2565,7 @@ export default function StudioB2B() {
       <div className="s2b-band s2b-band--dark">
         <header className={"s2b-nav" + (stuck ? " is-stuck" : "")}>
           <div className="s2b-wrap s2b-nav-in">
-            <button className="s2b-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <button className="s2b-brand" onClick={() => (vista === "home" ? window.scrollTo({ top: 0, behavior: "smooth" }) : irA("home"))}>
               <span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span>
               <div className="s2b-brand-txt">STUDIO B2B<small>DESDE 2015</small></div>
             </button>
@@ -2517,7 +2590,7 @@ export default function StudioB2B() {
               {NAV_LINKS.map((n) => (
                 <div key={n.id}><button className="top" onClick={() => goTo(n.id)}>{n.label}</button></div>
               ))}
-              <button className="s2b-btn s2b-btn--chrome" style={{ marginLeft: 8 }} onClick={() => goTo("contacto")}>
+              <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginLeft: 8 }} onClick={() => goTo("contacto")}>
                 Contactanos <ArrowUpRight size={16} />
               </button>
             </nav>
@@ -2534,13 +2607,13 @@ export default function StudioB2B() {
             </div>
             {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
             {NAV_LINKS.map((n) => <button key={n.id} className="dl" onClick={() => goTo(n.id)}>{n.label}</button>)}
-            <button className="s2b-btn s2b-btn--chrome" style={{ marginTop: 26, width: "100%", justifyContent: "center" }} onClick={() => goTo("contacto")}>
+            <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 26, width: "100%", justifyContent: "center" }} onClick={() => goTo("contacto")}>
               Contactanos <ArrowUpRight size={16} />
             </button>
           </div>
         )}
 
-        <section className="s2b-hero" ref={heroRef}>
+        {vista === "home" && <section className="s2b-hero" ref={heroRef}>
           <div className="s2b-aurora" aria-hidden="true"><i /><i /><i /></div>
           <div className="s2b-grid" aria-hidden="true" />
           <div className="s2b-halo" aria-hidden="true" />
@@ -2595,9 +2668,64 @@ export default function StudioB2B() {
               })}
             </div>
           </div>
-        </section>
+        </section>}
       </div>
 
+      {/* ============ PROCESO (pagina aparte) ============ */}
+      {vista === "proceso" && <div className="s2b-band s2b-band--dark" id="proceso">
+        <section className="s2b-sec s2b-sec--sm">
+          <div className="s2b-wrap">
+            <div className="s2b-head s2b-rv">
+              <div>
+                <div className="s2b-eyebrow">Cómo se trabaja con nosotros</div>
+                <h2 className="s2b-h2">El <b>Proceso Studio B2B</b>, paso a paso</h2>
+              </div>
+              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+                De la primera charla a tu sistema en producción. Antes de que pongas un peso
+                ya firmamos confidencialidad y ya viste tu idea funcionando.
+              </p>
+            </div>
+
+            <div className="s2b-flow">
+              {PROCESO.map((p, i) => {
+                const I = p.ic;
+                return (
+                  <div className="s2b-paso s2b-rv" key={p.n} style={{ transitionDelay: Math.min(i, 4) * 70 + "ms" }}>
+                    <div className="s2b-paso-eje"><div className="s2b-paso-nodo">{p.n}</div></div>
+                    <div className="s2b-paso-card">
+                      <div className="s2b-paso-top">
+                        <div className="s2b-paso-ico"><I size={19} /></div>
+                        <h3>{p.t}</h3>
+                      </div>
+                      <p>{p.d}</p>
+                      <div className={"s2b-paso-chip" + (p.pago ? " s2b-paso-chip--pago" : "")}>
+                        {p.pago ? <CircleDollarSign size={13} /> : <Check size={13} />} {p.chip}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="s2b-flow-cierre s2b-rv">
+              <span>
+                Del paso 7 en adelante entra el <b>Método Studio</b>: diagnóstico, prototipo,
+                entregas cada dos semanas y operación. El código y la infraestructura son tuyos desde el día uno.
+              </span>
+              <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("metodo")}>
+                Ver el método <ArrowRight size={16} />
+              </button>
+            </div>
+
+            <div className="s2b-flow-volver s2b-rv">
+              <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> Volver al inicio</button>
+              <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>Empezar por el paso 1 <ArrowRight size={16} /></button>
+            </div>
+          </div>
+        </section>
+      </div>}
+
+      {vista === "home" && <>
       {/* ============ LOGOS CLIENTES ============ */}
       <div className="s2b-band s2b-band--tint">
         <div className="s2b-logos">
@@ -2606,14 +2734,18 @@ export default function StudioB2B() {
             <div className="s2b-marq-track">
               {[...CLIENTES, ...CLIENTES, ...CLIENTES, ...CLIENTES].map((c, i) =>
                 c.src
-                  ? <img
-                      className="s2b-clogo s2b-clogo--img"
-                      key={i}
-                      src={c.src}
-                      alt={c.n}
-                      loading="lazy"
-                      style={c.esc ? { height: `calc(var(--clogo-h) * ${c.esc})` } : undefined}
-                    />
+                  ? (
+                    <div className="s2b-clogo-box" key={i}>
+                      <img
+                        className="s2b-clogo s2b-clogo--img"
+                        src={c.src}
+                        alt={c.n}
+                        loading="lazy"
+                        style={c.esc ? { height: `calc(var(--clogo-h) * ${c.esc})` } : undefined}
+                      />
+                      {c.pais && <span className="s2b-clogo-pais"><BanderaUSA /> {c.pais}</span>}
+                    </div>
+                  )
                   : <div className="s2b-clogo" key={i}>{c.n}</div>
               )}
             </div>
@@ -2685,55 +2817,6 @@ export default function StudioB2B() {
           </div>
         </div>
       </section>
-
-      {/* ============ PROCESO ============ */}
-      <div className="s2b-band s2b-band--dark" id="proceso">
-        <section className="s2b-sec s2b-sec--sm">
-          <div className="s2b-wrap">
-            <div className="s2b-head s2b-rv">
-              <div>
-                <div className="s2b-eyebrow">Cómo se trabaja con nosotros</div>
-                <h2 className="s2b-h2">El <b>Proceso Studio B2B</b>, paso a paso</h2>
-              </div>
-              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                De la primera charla a tu sistema en producción. Antes de que pongas un peso
-                ya firmamos confidencialidad y ya viste tu idea funcionando.
-              </p>
-            </div>
-
-            <div className="s2b-flow">
-              {PROCESO.map((p, i) => {
-                const I = p.ic;
-                return (
-                  <div className="s2b-paso s2b-rv" key={p.n} style={{ transitionDelay: Math.min(i, 4) * 70 + "ms" }}>
-                    <div className="s2b-paso-eje"><div className="s2b-paso-nodo">{p.n}</div></div>
-                    <div className="s2b-paso-card">
-                      <div className="s2b-paso-top">
-                        <div className="s2b-paso-ico"><I size={19} /></div>
-                        <h3>{p.t}</h3>
-                      </div>
-                      <p>{p.d}</p>
-                      <div className={"s2b-paso-chip" + (p.pago ? " s2b-paso-chip--pago" : "")}>
-                        {p.pago ? <CircleDollarSign size={13} /> : <Check size={13} />} {p.chip}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="s2b-flow-cierre s2b-rv">
-              <span>
-                Del paso 7 en adelante entra el <b>Método Studio</b>: diagnóstico, prototipo,
-                entregas cada dos semanas y operación. El código y la infraestructura son tuyos desde el día uno.
-              </span>
-              <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("metodo")}>
-                Ver el método <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
 
       {/* ============ MÉTODO ============ */}
       <section className="s2b-sec s2b-sec--sm" id="metodo" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
@@ -2920,6 +3003,8 @@ export default function StudioB2B() {
         </div>
       </section>
 
+      </>}
+
       {/* ============ CONTACTO + FOOTER ============ */}
       <div className="s2b-band s2b-band--dark" id="contacto">
         <section className="s2b-sec">
@@ -2932,7 +3017,7 @@ export default function StudioB2B() {
                 lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.
               </p>
               <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
-              <div className="s2b-cline"><MapPin size={17} /> Córdoba, Argentina · trabajo remoto</div>
+              <div className="s2b-cline"><MapPin size={17} /> Córdoba, Argentina · Miami, EE.UU. · trabajo remoto</div>
               <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
                 <Quote size={20} style={{ color: "var(--lilac)" }} />
                 <span style={{ fontSize: 14, color: "#9E97C4" }}>Respondemos todos los mensajes, también los que todavía no tienen presupuesto.</span>
@@ -3014,12 +3099,12 @@ export default function StudioB2B() {
                 <ul>
                   <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
                   <li>Córdoba capital · Buenos Aires · toda Argentina</li>
+                  <li>Miami, Estados Unidos</li>
                 </ul>
               </div>
             </div>
             <div className="s2b-foot-bot">
               <span>© {new Date().getFullYear()} Studio B2B · Todos los derechos reservados</span>
-              <span>Hecho en Córdoba</span>
             </div>
           </div>
         </footer>
