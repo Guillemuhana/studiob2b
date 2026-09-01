@@ -535,18 +535,20 @@ const CSS = `
 .s2b-qcard { background:#fff; border:1px solid var(--line); border-radius:26px; padding:clamp(26px,3.6vw,44px); display:grid; grid-template-columns:auto 1fr; gap:32px; box-shadow:0 26px 60px -44px rgba(24,12,60,.6); }
 /* el lugar del logo del cliente: una placa blanca que le sirve igual al escudo
    cuadrado que al logotipo apaisado, y que parte en dos cuando son dos marcas */
-.s2b-qphoto { width:190px; height:188px; flex:none; border-radius:20px; padding:16px;
+.s2b-qphoto { width:190px; height:206px; flex:none; border-radius:20px; padding:16px;
   background:#fff; border:1px solid var(--line); box-shadow:0 18px 36px -30px rgba(24,12,60,.7);
   display:grid; align-content:center; gap:13px; }
 /* overflow oculto: si un logo no carga, el texto alternativo se queda adentro
    de la placa en vez de desbordarse encima de la reseña */
-.s2b-qphoto span { display:grid; place-items:center; min-height:0; overflow:hidden; }
+.s2b-qphoto span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; min-height:0; overflow:hidden; }
+.s2b-qphoto em { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; font-style:normal;
+  font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
 .s2b-qphoto span + span { border-top:1px solid var(--line); padding-top:13px; }
 /* alto fijo por logo + object-fit: el alto en porcentaje no resuelve adentro de
    la placa y los logotipos altos se pasaban de su mitad. Con un solo logo se usa
    toda la placa; con dos, cada uno se queda con la suya. */
 .s2b-qphoto img { width:100%; height:112px; object-fit:contain; }
-.s2b-qphoto--dos img { height:64px; }
+.s2b-qphoto--dos img { height:58px; }
 .s2b-qtag { display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--violet); margin-bottom:16px; }
 .s2b-qtext { font-family:var(--display); font-size:clamp(17px,2vw,23px); line-height:1.45; letter-spacing:-.015em; color:var(--title); }
 .s2b-qfoot { display:flex; align-items:center; gap:14px; margin-top:24px; flex-wrap:wrap; }
@@ -968,11 +970,11 @@ const TESTIMONIOS = [
   },
   {
     q: "Nos armaron el sitio y la base de datos donde hoy vive la información de nuestros estudios. Entendieron rápido cómo trabaja un centro de investigación: los tiempos, el orden y el cuidado que pide el dato clínico. Quedó todo documentado y a nuestro nombre.",
-    n: "Doc. M. Pautaso", r: "IPIC SMO · Instituto de Investigaciones Clínicas", e: "Córdoba, Argentina",
+    n: "Dr. Mauro Pautaso", r: "Director Médico", e: "",
     cat: "Sitio web y base de datos", ic: Database,
     logos: [
-      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO" },
-      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba" },
+      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO", pais: "Estados Unidos", bandera: true },
+      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba", pais: "Córdoba, Argentina" },
     ],
   },
   {
@@ -2957,7 +2959,10 @@ export default function StudioB2B() {
                     <div className="s2b-qcard">
                       <div className={"s2b-qphoto" + (t.logos.length > 1 ? " s2b-qphoto--dos" : "")}>
                         {t.logos.map((l) => (
-                          <span key={l.src}><img src={l.src} alt={l.alt} loading="lazy" /></span>
+                          <span key={l.src}>
+                            <img src={l.src} alt={l.alt} loading="lazy" />
+                            {l.pais && <em>{l.bandera && <BanderaUSA />} {l.pais}</em>}
+                          </span>
                         ))}
                       </div>
                       <div>
@@ -2965,7 +2970,7 @@ export default function StudioB2B() {
                         <p className="s2b-qtext">{t.q}</p>
                         <div className="s2b-qfoot">
                           <div><b>{t.n}</b>{t.r && <span>{t.r}</span>}</div>
-                          <div className="s2b-qlogo">{t.e}</div>
+                          {t.e && <div className="s2b-qlogo">{t.e}</div>}
                         </div>
                       </div>
                     </div>
