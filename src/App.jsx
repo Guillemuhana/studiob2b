@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowUpRight, ArrowRight, ArrowLeft, Sparkles, Code2, Bot, PenTool,
-  Workflow, Smartphone, Plus, Minus, Menu, X, Mail, MapPin, Check,
+  Workflow, Smartphone, Plus, Minus, Menu, X, MapPin, Check, Database, Users,
+  MessageSquare, FileSignature, Search, MonitorPlay, FileText, Wallet, Rocket, CircleDollarSign,
   Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
@@ -186,6 +187,10 @@ const CSS = `
 .s2b-aurora i:nth-child(3) { width:360px; height:360px; top:180px; left:44%; background:#3B2296; animation: s2b-drift 27s ease-in-out infinite alternate; }
 @keyframes s2b-drift { to { transform: translate3d(70px, 46px, 0) scale(1.16); } }
 
+/* el laboratorio -rotulo + red- no tiene caja propia en la compu: sus hijos se
+   siguen ubicando contra el hero, como antes. En el celular se vuelve bloque. */
+.s2b-lab { display: contents; }
+
 /* retícula fina */
 .s2b-neural { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
   -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 96%);
@@ -194,13 +199,15 @@ const CSS = `
 
 /* arriba al costado: el nombre de la red y como se juega con ella */
 .s2b-hint-wrap { position:absolute; top:16px; left:0; right:0; z-index:2; pointer-events:none; }
-.s2b-hint { display:inline-flex; align-items:center; gap:9px; max-width:100%;
-  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:#9E97C4; opacity:0; animation: s2b-hint-in 1.1s 1.4s ease-out forwards; }
-.s2b-hint b { color:#D8CDFF; font-weight:500; letter-spacing:.18em; }
-.s2b-hint i { width:6px; height:6px; border-radius:50%; flex:none; background:#C9B6FF;
+.s2b-hint { display:inline-flex; align-items:center; gap:10px; max-width:100%;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.15em; text-transform:uppercase;
+  color:#B5ACD8; padding:9px 16px; border-radius:999px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(167,140,255,.24); backdrop-filter:blur(8px);
+  opacity:0; animation: s2b-hint-in 1.1s 1.4s ease-out forwards; }
+.s2b-hint b { color:#F2ECFF; font-weight:600; letter-spacing:.17em; }
+.s2b-hint i { width:7px; height:7px; border-radius:50%; flex:none; background:#C9B6FF;
   box-shadow:0 0 0 4px rgba(201,182,255,.16); animation: s2b-hint-late 2.4s ease-in-out infinite; }
-.s2b-hint span { letter-spacing:.1em; text-transform:none; font-size:11px; color:#8F88B8; }
+.s2b-hint span { letter-spacing:.06em; text-transform:none; font-size:12px; color:#A79EC8; }
 .s2b-hint .solo-dedo { display:none; }
 @keyframes s2b-hint-in { to { opacity:1; } }
 @keyframes s2b-hint-late { 0%,100% { transform:scale(1); opacity:.75; } 50% { transform:scale(1.35); opacity:1; } }
@@ -288,21 +295,42 @@ const CSS = `
 .s2b-row-txt p { color:var(--muted); font-size:15.5px; }
 .s2b-chips { display:flex; flex-wrap:wrap; gap:7px; margin:20px 0 24px; }
 .s2b-chip { font-family:var(--mono); font-size:11px; padding:5px 11px; border-radius:999px; background:var(--paper); border:1px solid var(--line); color:var(--muted); }
-.s2b-row-vis { position:relative; min-height:280px; overflow:hidden; display:grid; place-items:center; }
+.s2b-row-vis { position:relative; min-height:280px; overflow:hidden; display:grid; place-items:center;
+  align-content:center; row-gap:20px; padding:22px 0; }
 .s2b-blob { position:absolute; border-radius:50%; filter: blur(46px); opacity:.85; }
 /* la captura de un trabajo real, en vez del panel de mentira. Se ve entera:
    la altura la pone la propia imagen, nada se recorta. */
-.s2b-shot { position:relative; width:88%; border-radius:14px; overflow:hidden;
-  background:#fff; border:1px solid rgba(255,255,255,.7);
-  box-shadow:0 26px 60px -26px rgba(24,12,60,.55);
+.s2b-shot { position:relative; justify-self:start; margin-left:20px; width:108%; max-width:none;
+  border-radius:16px; overflow:hidden;
+  padding-top:27px; background:#fff; border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 34px 70px -28px rgba(24,12,60,.62), 0 4px 14px -8px rgba(24,12,60,.3);
   transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
+/* la barra de ventana, con sus tres luces */
+.s2b-shot::before { content:''; position:absolute; top:0; left:0; right:0; height:27px; z-index:2;
+  background:
+    radial-gradient(circle 3.5px at 16px 14px, #FF6058 99%, transparent 100%),
+    radial-gradient(circle 3.5px at 30px 14px, #FFC02E 99%, transparent 100%),
+    radial-gradient(circle 3.5px at 44px 14px, #2ACB42 99%, transparent 100%),
+    linear-gradient(180deg, #FBFAFF, #F1EEFA);
+  border-bottom:1px solid rgba(24,12,60,.08); }
 .s2b-shot img { width:100%; height:auto; display:block; }
-.s2b-row:hover .s2b-shot { transform:translateY(-6px) scale(1.02);
-  box-shadow:0 34px 70px -28px rgba(24,12,60,.6); }
+.s2b-row:hover .s2b-shot { transform:translateY(-8px) scale(1.035);
+  box-shadow:0 44px 84px -30px rgba(24,12,60,.7), 0 6px 18px -10px rgba(24,12,60,.35); }
 /* el vidrio de arriba, para que se lea como pantalla y no como foto pegada */
-.s2b-shot::after { content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
-  background:linear-gradient(150deg, rgba(255,255,255,.28), rgba(255,255,255,0) 42%);
+.s2b-shot::after { content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit; z-index:3;
+  background:linear-gradient(150deg, rgba(255,255,255,.22), rgba(255,255,255,0) 46%);
   box-shadow: inset 0 0 0 1px rgba(24,12,60,.06); }
+
+/* abajo de la captura, con que corre eso que se esta viendo. Cada logo en su
+   pastilla blanca, asi cualquier color de marca se lee sobre el panel claro. */
+.s2b-vis-stack { position:relative; display:grid; justify-items:center; gap:13px; width:88%; }
+.s2b-vis-stack-t { font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(46,28,102,.5); }
+.s2b-vis-logos { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.s2b-vis-logo { width:44px; height:44px; border-radius:13px; display:grid; place-items:center;
+  background:#fff; box-shadow: 0 12px 26px -18px rgba(24,12,60,.75), inset 0 0 0 1px rgba(24,12,60,.05);
+  transition: transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .45s; }
+.s2b-vis-logo svg { width:22px; height:22px; display:block; }
+.s2b-row:hover .s2b-vis-logo { transform:translateY(-5px); box-shadow: 0 18px 32px -18px rgba(24,12,60,.8), inset 0 0 0 1px rgba(24,12,60,.05); }
 
 .s2b-glass { position:relative; width:78%; border-radius:18px; border:1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.55); backdrop-filter: blur(14px); padding:18px; box-shadow: 0 22px 50px -22px rgba(24,12,60,.5); }
 .s2b-glass .gl-bar { height:8px; border-radius:999px; background: rgba(24,12,60,.14); margin-bottom:10px; }
@@ -310,10 +338,60 @@ const CSS = `
 .s2b-glass .gl-row { display:flex; gap:10px; margin-top:14px; }
 .s2b-glass .gl-tile { flex:1; height:52px; border-radius:12px; background: linear-gradient(150deg, rgba(109,74,255,.22), rgba(167,140,255,.1)); border:1px solid rgba(109,74,255,.16); }
 
+/* ---------- proceso: el diagrama de flujo ---------- */
+/* Un eje vertical con los pasos colgando. La linea de cada paso se dibuja sola
+   cuando el paso entra en pantalla -misma clase .s2b-rv que el resto del sitio-
+   asi el recorrido se arma a medida que se baja, sin escuchar el scroll. */
+/* la columna se corta a 1000px: a lo ancho de la pantalla entera el renglon se
+   hace larguisimo y el paso deja de leerse de un vistazo */
+.s2b-flow { --nodo:54px; --salto:26px; display:grid; margin-top:52px; max-width:1000px; }
+.s2b-paso { display:grid; grid-template-columns:var(--nodo) 1fr; gap:24px; padding-bottom:var(--salto); }
+.s2b-paso:last-child { padding-bottom:0; }
+
+.s2b-paso-eje { position:relative; display:flex; justify-content:center; }
+.s2b-paso-nodo { position:relative; z-index:2; width:var(--nodo); height:var(--nodo); border-radius:50%; flex:none;
+  display:grid; place-items:center; font-family:var(--mono); font-size:13px; letter-spacing:.03em;
+  color:#C9B6FF; background:rgba(11,7,24,.92); border:1px solid rgba(167,140,255,.3);
+  transition: color .55s, border-color .55s, background .55s, box-shadow .55s; }
+.s2b-paso.is-in .s2b-paso-nodo { color:#fff; border-color:rgba(201,182,255,.7);
+  background:linear-gradient(150deg,#6D4AFF,#3B2296);
+  box-shadow:0 0 0 6px rgba(109,74,255,.13), 0 16px 32px -16px rgba(109,74,255,.95); }
+/* el tramo de linea que baja hacia el paso siguiente */
+.s2b-paso-eje::after { content:''; position:absolute; left:50%; margin-left:-1px; width:2px;
+  top:var(--nodo); bottom:calc(var(--salto) * -1);
+  background:linear-gradient(180deg, rgba(167,140,255,.6), rgba(167,140,255,.16));
+  transform:scaleY(0); transform-origin:top center;
+  transition: transform .85s cubic-bezier(.2,.7,.2,1) .14s; }
+.s2b-paso.is-in .s2b-paso-eje::after { transform:scaleY(1); }
+.s2b-paso:last-child .s2b-paso-eje::after { display:none; }
+
+.s2b-paso-card { border-radius:22px; padding:24px 26px; background:rgba(255,255,255,.05);
+  border:1px solid rgba(167,140,255,.2); backdrop-filter:blur(10px);
+  transition: background .3s, border-color .3s, transform .3s; }
+.s2b-paso-card:hover { background:rgba(255,255,255,.09); border-color:rgba(167,140,255,.45); transform:translateY(-3px); }
+.s2b-paso-top { display:flex; align-items:center; gap:13px; margin-bottom:11px; }
+.s2b-paso-ico { width:40px; height:40px; border-radius:13px; flex:none; display:grid; place-items:center;
+  color:#D8CDFF; background:rgba(109,74,255,.24); border:1px solid rgba(167,140,255,.28); }
+.s2b-paso-card h3 { font-size:19.5px; color:#fff; letter-spacing:-.02em; }
+.s2b-paso-card p { color:#BDB4E4; font-size:14.8px; line-height:1.62; }
+.s2b-paso-chip { display:inline-flex; align-items:center; gap:8px; margin-top:15px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase;
+  color:#C9B6FF; background:rgba(109,74,255,.16); border:1px solid rgba(167,140,255,.26);
+  padding:7px 13px; border-radius:999px; }
+/* los pasos donde hay plata de por medio se leen distinto, a propósito */
+.s2b-paso-chip--pago { color:#8FF0B8; background:rgba(87,224,143,.11); border-color:rgba(87,224,143,.3); }
+
+.s2b-flow-cierre { max-width:1000px; display:flex; align-items:center; justify-content:space-between; gap:22px; flex-wrap:wrap;
+  margin-top:38px; padding:22px 26px; border-radius:20px;
+  border:1px solid rgba(167,140,255,.2); background:rgba(255,255,255,.04); }
+.s2b-flow-cierre span { color:#BDB4E4; font-size:14.8px; max-width:64ch; }
+.s2b-flow-cierre b { color:#fff; font-weight:600; }
+
 /* ---------- método ---------- */
 .s2b-method { display:grid; grid-template-columns: .95fr 1.05fr; gap:44px; align-items:center; margin-top:48px; }
-/* el panel del metodo: mientras no haya imagen queda el degrade solo */
-.s2b-method-img { position:relative; border-radius:26px; overflow:hidden; aspect-ratio:16/10;
+/* el panel del metodo: 16/9, el mismo recorte de la foto, para que no le
+   coma el logo de los costados. Si la imagen falta queda el degrade solo. */
+.s2b-method-img { position:relative; border-radius:26px; overflow:hidden; aspect-ratio:16/9;
   background: radial-gradient(120% 120% at 24% 18%, #A78CFF, #6D4AFF 42%, #24124F 100%); border:1px solid rgba(167,140,255,.3);
   box-shadow: 0 30px 70px -34px rgba(24,12,60,.55); }
 .s2b-method-img img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -432,7 +510,20 @@ const CSS = `
 .s2b-qtrack { display:flex; transition: transform .55s cubic-bezier(.2,.8,.2,1); }
 .s2b-qslide { min-width:100%; padding:2px; }
 .s2b-qcard { background:#fff; border:1px solid var(--line); border-radius:26px; padding:clamp(26px,3.6vw,44px); display:grid; grid-template-columns:auto 1fr; gap:32px; box-shadow:0 26px 60px -44px rgba(24,12,60,.6); }
-.s2b-qphoto { width:132px; height:160px; border-radius:20px; display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:34px; color:#fff; flex:none; }
+/* el lugar del logo del cliente: una placa blanca que le sirve igual al escudo
+   cuadrado que al logotipo apaisado, y que parte en dos cuando son dos marcas */
+.s2b-qphoto { width:190px; height:188px; flex:none; border-radius:20px; padding:16px;
+  background:#fff; border:1px solid var(--line); box-shadow:0 18px 36px -30px rgba(24,12,60,.7);
+  display:grid; align-content:center; gap:13px; }
+/* overflow oculto: si un logo no carga, el texto alternativo se queda adentro
+   de la placa en vez de desbordarse encima de la reseña */
+.s2b-qphoto span { display:grid; place-items:center; min-height:0; overflow:hidden; }
+.s2b-qphoto span + span { border-top:1px solid var(--line); padding-top:13px; }
+/* alto fijo por logo + object-fit: el alto en porcentaje no resuelve adentro de
+   la placa y los logotipos altos se pasaban de su mitad. Con un solo logo se usa
+   toda la placa; con dos, cada uno se queda con la suya. */
+.s2b-qphoto img { width:100%; height:112px; object-fit:contain; }
+.s2b-qphoto--dos img { height:64px; }
 .s2b-qtag { display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--violet); margin-bottom:16px; }
 .s2b-qtext { font-family:var(--display); font-size:clamp(17px,2vw,23px); line-height:1.45; letter-spacing:-.015em; color:var(--title); }
 .s2b-qfoot { display:flex; align-items:center; gap:14px; margin-top:24px; flex-wrap:wrap; }
@@ -450,9 +541,11 @@ const CSS = `
 .s2b-faq { margin-top:40px; border-top:1px solid var(--line); }
 .s2b-fq { width:100%; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:22px 0; text-align:left; font-family:var(--display); font-size:clamp(17px,1.9vw,20px); color:var(--title); }
 .s2b-fi { border-bottom:1px solid var(--line); }
-.s2b-fa { overflow:hidden; max-height:0; opacity:0; transition: max-height .42s cubic-bezier(.2,.8,.2,1), opacity .32s; }
-.s2b-fa.is-open { max-height:300px; opacity:1; }
-.s2b-fa p { color:var(--muted); font-size:15px; padding-bottom:22px; max-width:70ch; }
+/* se abre hasta el alto real de la respuesta: con un max-height fijo las
+   respuestas largas se cortaban en el celular, donde ocupan el doble de lineas */
+.s2b-fa { display:grid; grid-template-rows:0fr; opacity:0; transition: grid-template-rows .42s cubic-bezier(.2,.8,.2,1), opacity .32s; }
+.s2b-fa.is-open { grid-template-rows:1fr; opacity:1; }
+.s2b-fa p { overflow:hidden; min-height:0; color:var(--muted); font-size:15px; padding-bottom:22px; max-width:70ch; }
 
 /* ---------- contacto ---------- */
 .s2b-form-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:start; }
@@ -509,14 +602,75 @@ const CSS = `
   .s2b-tiles { grid-template-columns:repeat(4,1fr); }
   .s2b-tech-panel { padding:28px 0 32px; }
   .s2b-qcard { grid-template-columns:1fr; gap:22px; }
-  .s2b-qphoto { width:96px; height:96px; border-radius:22px; font-size:26px; }
+  /* apilada, la placa se acuesta y los dos logos van uno al lado del otro:
+     de otra forma se come media pantalla antes de la reseña */
+  .s2b-qphoto { width:100%; max-width:320px; height:auto; border-radius:16px; padding:14px; gap:14px;
+    grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); grid-auto-rows:auto; }
+  .s2b-qphoto span { min-height:62px; }
+  .s2b-qphoto img, .s2b-qphoto--dos img { height:62px; }
+  .s2b-qphoto span + span { border-top:none; border-left:1px solid var(--line); padding-top:0; padding-left:14px; }
   .s2b-foot-grid { grid-template-columns:1fr 1fr; }
   .s2b-menu { display:none; }
   .s2b-burger { display:block; }
   .s2b-head { align-items:start; }
 }
+/* En el celular la red deja de estar atras del titular -donde se encimaba con
+   el texto, los botones y la idea que se arma- y pasa a tener su propio lugar:
+   una franja abajo del copy, con marco, donde se la ve entera. */
+@media (max-width: 820px) {
+  .s2b-hero { display:flex; flex-direction:column; padding-top:58px; }
+  /* como ahora son cajas de un flex, hay que dejarlas achicarse: si no, la
+     pastilla y el titular mandan su ancho minimo y el hero se va de pantalla */
+  .s2b-hero > * { min-width:0; max-width:100%; }
+  .s2b-hero-copy   { order:1; }
+  .s2b-lab         { order:2; display:block; position:relative; margin-top:36px; padding:0 24px; }
+  .s2b-hero-atajos { order:3; }
+  .s2b-hero-atajos .s2b-shortcuts { margin-top:40px; }
+
+  /* el rotulo baja con la red: ahora es el titulo de la franja, en dos
+     renglones -nombre arriba, instruccion abajo- para que no se parta feo */
+  .s2b-lab .s2b-hint-wrap { position:static; margin-bottom:10px; }
+  .s2b-lab .s2b-hint-wrap .s2b-wrap { padding:0; }
+  .s2b-hint { animation-delay:.9s; flex-wrap:wrap; row-gap:5px; padding:0; background:none; border:none; backdrop-filter:none; }
+  .s2b-hint b { white-space:nowrap; }
+  .s2b-hint span { flex:1 0 100%; padding-left:15px; }
+
+  /* la vitrina: la red adentro, con su propia reticula y su borde */
+  .s2b-neural {
+    position:relative; inset:auto; width:100%; z-index:1;
+    height: clamp(258px, 40vh, 330px);
+    border-radius:24px;
+    background:
+      linear-gradient(rgba(167,140,255,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(167,140,255,.07) 1px, transparent 1px),
+      radial-gradient(120% 92% at 50% 0%, rgba(109,74,255,.24), transparent 72%),
+      rgba(10,6,22,.42);
+    background-size: 44px 44px, 44px 44px, auto, auto;
+    box-shadow: inset 0 0 0 1px rgba(167,140,255,.2), 0 30px 60px -44px rgba(109,74,255,.95);
+    -webkit-mask-image:none; mask-image:none;
+  }
+  /* la reticula del fondo ya no pisa el texto: vive adentro de la vitrina */
+  .s2b-grid { display:none; }
+  .s2b-halo { inset:-10% -10% 46%; }
+}
 @media (max-width: 600px) {
   .s2b-logos { padding:44px 0; --clogo-h:68px; }
+  /* el eje del proceso se achica: en el celular cada pixel de ancho es del texto */
+  .s2b-flow { --nodo:40px; --salto:20px; }
+  .s2b-paso { gap:14px; }
+  .s2b-paso-nodo { font-size:11.5px; }
+  .s2b-paso-card { padding:19px 18px; border-radius:18px; }
+  .s2b-paso-top { gap:11px; margin-bottom:9px; }
+  .s2b-paso-ico { width:34px; height:34px; border-radius:11px; }
+  .s2b-paso-card h3 { font-size:17.5px; }
+  .s2b-paso-card p { font-size:14.2px; }
+  .s2b-paso-chip { font-size:9.8px; letter-spacing:.08em; padding:6px 11px; margin-top:13px; }
+  .s2b-flow-cierre { padding:20px; margin-top:30px; }
+  /* los seis logos entran en un solo renglon, no cinco y uno solo abajo */
+  .s2b-vis-stack { width:94%; }
+  .s2b-vis-logos { gap:8px; }
+  .s2b-vis-logo { width:40px; height:40px; border-radius:12px; }
+  .s2b-vis-logo svg { width:20px; height:20px; }
   .s2b-marq-track { gap:44px; }
   .s2b-clogo { font-size:22px; }
   .s2b-clogo--img { padding:8px 12px; border-radius:10px; }
@@ -529,8 +683,8 @@ const CSS = `
   .s2b-foot-grid { grid-template-columns:1fr; }
   .s2b-grid { background-size:52px 52px; }
   .s2b-hint-wrap { top:12px; }
-  .s2b-hint { font-size:9.5px; gap:7px; }
-  .s2b-hint span { font-size:10px; }
+  .s2b-hint { font-size:11px; gap:8px; }
+  .s2b-hint span { font-size:11.5px; }
 }
 /* ---------- burbuja de WhatsApp ---------- */
 .s2b-wa {
@@ -631,6 +785,10 @@ const SERVICIOS = [
     cta: "Ver cómo funciona", to: "agentes",
     img: "/trabajos/agente-n8n.png", an: 1400, al: 483,
     alt: "Flujo de un agente en producción: entra por WhatsApp o SMS, decide, consulta la base y escribe en el CRM",
+    /* la captura es bien apaisada y dejaba media fila vacia: abajo van los
+       logos de lo que de verdad corre adentro del agente */
+    logosT: "Corre sobre",
+    logos: [siN8n, siOpenai, siClaude, siGooglegemini, siGroq, siSupabase],
     blobs: ["#A78CFF", "#6D4AFF"], bg: "linear-gradient(150deg,#F0ECFF,#E4DCFF)",
   },
   {
@@ -650,6 +808,48 @@ const SERVICIOS = [
     img: "/trabajos/ipicsmo.jpg", an: 1400, al: 646,
     alt: "IPIC SMO, sitio y sistema de diseño que armamos para una organización de investigación clínica",
     blobs: ["#FFC6E8", "#A78CFF"], bg: "linear-gradient(150deg,#FBEDFF,#F0E6FF)",
+  },
+];
+
+/* El camino comercial, de la primera charla a la entrega. Es lo que el cliente
+   necesita saber antes de decidir: cuando firma, cuando ve algo funcionando y
+   cuando pone plata. `pago` marca los pasos donde hay dinero de por medio, que
+   se pintan distinto para que no haya sorpresas. */
+const PROCESO = [
+  {
+    n: "01", t: "Charlamos tu idea", ic: MessageSquare,
+    d: "Una reunión para entender qué querés resolver, cómo trabaja hoy tu equipo y qué esperás de la app o del sistema. De ahí salimos con el problema escrito en criollo, no con un formulario lleno de casilleros.",
+    chip: "Reunión sin costo",
+  },
+  {
+    n: "02", t: "Firmamos confidencialidad", ic: FileSignature,
+    d: "Antes de tocar la idea firmamos, con firma digital, un acuerdo de confidencialidad. Lo que nos contás no sale de acá y la idea queda a tu nombre desde el minuto cero. Recién después seguimos.",
+    chip: "NDA con firma digital",
+  },
+  {
+    n: "03", t: "Estudiamos el proyecto", ic: Search,
+    d: "Analizamos la idea en serio: qué funciones lleva, con qué tecnología conviene hacerla, qué necesita de seguridad y manejo de datos, qué recursos y cuánto tiempo. De ese estudio sale el alcance y el número.",
+    chip: "Alcance · tecnología · seguridad · costos",
+  },
+  {
+    n: "04", t: "Te armamos una demo, gratis", ic: MonitorPlay,
+    d: "Antes de que pongas un peso ves tu idea funcionando. Te dejamos la demo en línea las 24 horas para que la pruebes con tu equipo, la estudies con calma y nos pidas los cambios que quieras.",
+    chip: "Online 24 hs · sin cargo",
+  },
+  {
+    n: "05", t: "Presupuesto digital", ic: FileText,
+    d: "Te llega un presupuesto en línea hecho con Numera, nuestra propia app: qué incluye, qué no, plazos y precio, escrito para que se entienda sin ser técnico. Lo aceptás o lo rechazás desde el mismo enlace.",
+    chip: "Se acepta o se rechaza online",
+  },
+  {
+    n: "06", t: "Seña para arrancar", ic: Wallet, pago: true,
+    d: "Con el presupuesto aceptado se abona una seña del 20%. Es lo que deja tranquilas a las dos partes: nosotros reservamos al equipo y vos tenés fecha de arranque firme.",
+    chip: "20% al aceptar",
+  },
+  {
+    n: "07", t: "Tu idea se convierte en realidad", ic: Rocket, pago: true,
+    d: "Desarrollamos con demos cada dos semanas, así ves el avance sobre el producto real y no sobre un informe. Cuando la app queda en línea se abona el 40%, y el 40% restante al finalizar la entrega.",
+    chip: "40% en línea · 40% al finalizar",
   },
 ];
 
@@ -731,16 +931,37 @@ function armarMosaico(cant) {
   return celdas;
 }
 
+/* Clientes de verdad, con su logo. Cada uno cuenta lo que le construimos:
+   `logos` es lo que va en la tarjeta -uno, o dos cuando son dos marcas de la
+   misma casa- y `e` es el nombre que queda escrito al pie. */
 const TESTIMONIOS = [
-  { q: "Entendieron el negocio antes de proponer tecnología. En diez años trabajando con proveedores, no me había pasado. El sistema salió en el plazo que dijeron y sigue creciendo con nosotros.", n: "Marina Ferreyra", r: "Directora de Operaciones", e: "Grupo Andino", cat: "Software a medida", ic: Code2, i: "MF", g: "linear-gradient(150deg,#6D4AFF,#2A1568)" },
-  { q: "El agente de WhatsApp absorbió el 70% de las consultas en el primer mes. El equipo comercial recuperó las mañanas y ahora atiende solo lo que vale la pena atender.", n: "Diego Salas", r: "Gerente Comercial", e: "Nortex", cat: "Agentes de IA", ic: Bot, i: "DS", g: "linear-gradient(150deg,#A78CFF,#4B2FD6)" },
-  { q: "Trabajan con orden y comunicación real. Cada dos semanas veíamos el producto funcionando, no un informe de avance. Eso cambió la relación con nuestro directorio.", n: "Pablo Iriarte", r: "CIO", e: "Vialta", cat: "Diseño de producto", ic: PenTool, i: "PI", g: "linear-gradient(150deg,#8FB4FF,#3B2296)" },
+  {
+    q: "Gracias al equipo de Studio B2B hoy tenemos la app móvil, el sitio y el portal de afiliados funcionando juntos. Lo que antes era un llamado o un papel, el afiliado lo resuelve desde el celular, y nosotros vemos todo en un solo lugar. Se hicieron cargo de la parte técnica de punta a punta.",
+    n: "Hernán Marcantonio", r: "", e: "Pecifa Nacional",
+    cat: "App móvil, web y afiliados", ic: Smartphone,
+    logos: [{ src: "/clientes/pecifa.png", alt: "Pecifa Nacional" }],
+  },
+  {
+    q: "Nos armaron el sitio y la base de datos donde hoy vive la información de nuestros estudios. Entendieron rápido cómo trabaja un centro de investigación: los tiempos, el orden y el cuidado que pide el dato clínico. Quedó todo documentado y a nuestro nombre.",
+    n: "Doc. M. Pautaso", r: "IPIC SMO · Instituto de Investigaciones Clínicas", e: "Córdoba, Argentina",
+    cat: "Sitio web y base de datos", ic: Database,
+    logos: [
+      { src: "/clientes/ipicsmo.png", alt: "IPIC SMO" },
+      { src: "/clientes/iicc1.png", alt: "Instituto de Investigaciones Clínicas Córdoba" },
+    ],
+  },
+  {
+    q: "Los recomendamos sin vueltas. El CRM a medida y el sistema de recepción y vendedores los usamos todos los días, y cuando pedimos un cambio está resuelto sin hacernos esperar. Estamos muy contentos con el trabajo que hacemos con ellos día a día.",
+    n: "Equipo de Nuevo Munich", r: "Recepción y ventas", e: "Nuevo Munich",
+    cat: "CRM a medida y sistema de ventas", ic: Users,
+    logos: [{ src: "/clientes/nuevo-munich.png", alt: "Nuevo Munich" }],
+  },
 ];
 
 const FAQS = [
   { q: "¿Cuánto tarda un proyecto?", a: "Un agente de IA acotado sale en 4 a 6 semanas. Una plataforma completa, entre 3 y 6 meses, con entregas usables cada dos semanas desde la tercera." },
-  { q: "¿Cómo cobran?", a: "Arrancamos con una reunión virtual para entender qué necesitás. Tu idea o tu sistema a medida pasa al área de desarrollo: lo analizamos y te armamos una demo sin ningún cargo, gratis. Recién ahí decidís si avanzás o no. Si avanzás, te entregamos el presupuesto y se arranca con una seña del 10% del trabajo, que es lo que nos deja en confianza a las dos partes; después un 40% y el resto al finalizar." },
-  { q: "¿El código queda nuestro?", a: "Sí. Repositorio, infraestructura y documentación a tu nombre desde el primer día. Si mañana querés seguir con otro equipo, podés hacerlo sin trabas." },
+  { q: "¿Cómo cobran?", a: "Arrancamos con una reunión virtual para entender qué necesitás. Tu idea o tu sistema a medida pasa al área de desarrollo: lo analizamos y te armamos una demo sin ningún cargo, gratis. Recién ahí decidís si avanzás o no. Si avanzás, te entregamos el presupuesto y se arranca con una seña del 20% del trabajo, que es lo que nos deja en confianza a las dos partes; después un 40% y el resto al finalizar." },
+  { q: "¿El código queda nuestro?", a: "Sí. Repositorio, infraestructura y documentación a tu nombre desde el primer día. Además, con Numera —nuestra propia app— no solo te llega el presupuesto detallado línea por línea: junto con él va el acuerdo de confidencialidad firmado, así lo que nos contás y lo que construimos es tuyo y no sale de acá. Si mañana querés seguir con otro equipo, podés hacerlo sin trabas." },
   { q: "¿Trabajan fuera de Argentina?", a: "Sí. Hoy tenemos clientes en Latinoamérica, España y Estados Unidos, en modalidad remota con reuniones fijas semanales." },
   { q: "¿Se puede empezar chico?", a: "Es lo que recomendamos. Un primer alcance de 4 a 6 semanas que resuelva un problema concreto y deje algo funcionando en producción." },
 ];
@@ -769,6 +990,7 @@ const WA_CHIPS = [
 
 const NAV_LINKS = [
   { id: "servicios", label: "Servicios" },
+  { id: "proceso", label: "Proceso" },
   { id: "metodo", label: "Método" },
   { id: "clientes", label: "Clientes" },
 ];
@@ -808,6 +1030,10 @@ const RED = {
   llegada: 0.52,     // cuanta carga deja cada impulso al llegar
   espontaneo: 1.1,   // disparos por segundo que arranca la red sola
   arco: 88,          // a esta distancia de un boton, la neurona le tira una chispa
+  /* En el celular el lienzo deja de ser el hero entero y pasa a ser una franja
+     propia, abajo del titular. Ahi entran menos neuronas, mas chicas y con el
+     alcance mas corto, asi se lee una red y no un enjambre encimado. */
+  franja: { densidad: 10500, min: 10, max: 18, alcance: 152, puntero: 150, escala: 0.78, chico: true },
 };
 
 /* Tiempos de una idea, en segundos: pensar, apretarse, abrirse, vivir, irse */
@@ -816,7 +1042,7 @@ const IDEA = { nodos: 34, piensa: 2.3, junta: 0.62, arma: 0.62, vive: 2.1, sale:
 /* Lo que le construimos al cliente. Salen en este orden, una atras de otra:
    primero la app movil, despues otra cosa, y asi. Cada una tiene su acento. */
 const IDEAS = [
-  { rotulo: "APP M\u00d3VIL",  w: 98,  h: 188, dibujo: "movil",  acento: [150, 214, 255] },
+  { rotulo: "APP M\u00d3VIL",  w: 114, h: 216, dibujo: "movil",  acento: [150, 214, 255] },
   { rotulo: "DASHBOARD",   w: 192, h: 120, dibujo: "panel",  acento: [255, 202, 128] },
   { rotulo: "AGENTE IA",   w: 176, h: 120, dibujo: "chat",   acento: [176, 156, 255] },
   { rotulo: "E-COMMERCE",  w: 186, h: 120, dibujo: "tienda", acento: [125, 235, 174] },
@@ -941,80 +1167,235 @@ function interiorIdea(ctx, tipo, x, y, an, al, a, apar, acento) {
   };
 
   if (tipo === "movil") {
-    /* telefono: isla, saludo, tarjeta con degrade, accesos, lista y tab bar */
-    const pad = 9, cx = x + pad, ancho = an - pad * 2;
+    /* Un telefono de verdad y no un rectangulo con barras: marco, pantalla
+       hundida, barra de estado, isla dinamica y botones al costado. Adentro
+       la app se mueve sola mientras la idea vive: el grafico se dibuja, el
+       numero sube, de la isla baja un aviso y alguien toca el boton. */
+    const m = 5;                                   // el marco del equipo
+    const sx = x + m, sy = y + m, sw = an - m * 2, sh = al - m * 2;
+    const pad = 8, cx = sx + pad, ancho = sw - pad * 2;
+    const t = (desde, dur) => Math.max(0, Math.min(1, (apar - desde) / dur));
+    const suave = (k) => k * k * (3 - 2 * k);
+    const blanco = (op) => "rgba(255,255,255," + (op * a).toFixed(3) + ")";
 
-    barra(x + an / 2 - 13, y + 7, 26, 5, 3, "rgba(8,5,20," + (0.85 * a).toFixed(3) + ")");
-    ctx.fillStyle = linea(0.5);
-    ctx.fillRect(cx, y + 8, 8, 2);
-    ctx.fillRect(x + an - pad - 12, y + 8, 12, 2);
+    ctx.save();
+    rutaRedonda(ctx, sx, sy, sw, sh, 13);
+    ctx.clip();
 
+    /* la pantalla es mas oscura que el marco: asi se lee el equipo */
+    const fondo = ctx.createLinearGradient(sx, sy, sx + sw, sy + sh);
+    fondo.addColorStop(0, "rgba(10,6,26," + (0.97 * a).toFixed(3) + ")");
+    fondo.addColorStop(1, "rgba(19,11,44," + (0.97 * a).toFixed(3) + ")");
+    ctx.fillStyle = fondo;
+    ctx.fillRect(sx, sy, sw, sh);
+
+    /* barra de estado: hora a la izquierda, senal y bateria a la derecha */
+    ctx.font = "600 6px ui-monospace, SFMono-Regular, Menlo, monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = blanco(0.7);
+    ctx.fillText("9:41", cx, sy + 9);
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = blanco(0.5 + i * 0.12);
+      ctx.fillRect(sx + sw - pad - 20 + i * 3, sy + 10 - (2 + i * 1.4), 2, 2 + i * 1.4);
+    }
+    barra(sx + sw - pad - 9, sy + 6, 9, 5, 1.6, blanco(0.28));
+    barra(sx + sw - pad - 8.2, sy + 6.8, 6, 3.4, 1, blanco(0.8));
+    ctx.textAlign = "start";
+    ctx.textBaseline = "alphabetic";
+
+    /* saludo y avatar */
     entra(0, () => {
-      barra(cx, y + 22, 34, 4, 2, linea(0.55));
-      barra(cx, y + 30, 22, 3, 2, lleno(0.45));
-      barra(x + an - pad - 12, y + 21, 12, 12, 6, lleno(0.5));
+      barra(cx, sy + 20, 30, 3.5, 2, linea(0.5));
+      barra(cx, sy + 27, 46, 5, 2.5, blanco(0.85));
+      const av = ctx.createLinearGradient(sx + sw - pad - 15, sy + 19, sx + sw - pad, sy + 34);
+      av.addColorStop(0, ac(0.9));
+      av.addColorStop(1, lleno(0.7));
+      barra(sx + sw - pad - 15, sy + 19, 15, 15, 7.5, av);
     });
 
+    /* la tarjeta viva: el numero sube y el grafico se dibuja solo */
     entra(1, () => {
-      const th = 44;
-      const g = ctx.createLinearGradient(cx, y + 40, cx + ancho, y + 40 + th);
-      g.addColorStop(0, ac(0.5));
-      g.addColorStop(1, lleno(0.55));
-      rutaRedonda(ctx, cx, y + 40, ancho, th, 10);
+      const ty = sy + 40, th = 54;
+      const g = ctx.createLinearGradient(cx, ty, cx + ancho, ty + th);
+      g.addColorStop(0, ac(0.55));
+      g.addColorStop(1, lleno(0.5));
+      rutaRedonda(ctx, cx, ty, ancho, th, 11);
       ctx.fillStyle = g;
       ctx.fill();
-      barra(cx + 9, y + 51, 30, 3, 2, "rgba(255,255,255," + (0.6 * a).toFixed(3) + ")");
-      barra(cx + 9, y + 59, 46, 6, 3, "rgba(255,255,255," + (0.9 * a).toFixed(3) + ")");
-      barra(cx + 9, y + 71, 20, 3, 2, "rgba(255,255,255," + (0.5 * a).toFixed(3) + ")");
-    });
 
-    entra(2, () => {
-      for (let i = 0; i < 3; i++) {
-        const bw = (ancho - 12) / 3;
-        barra(cx + i * (bw + 6), y + 92, bw, 22, 7, i === 0 ? ac(0.28) : lleno(0.22));
-        barra(cx + i * (bw + 6) + bw / 2 - 4, y + 99, 8, 8, 4, i === 0 ? ac(0.75) : lleno(0.5));
+      barra(cx + 9, ty + 9, 26, 3, 1.5, blanco(0.55));
+
+      /* el contador: arranca en cero y llega a su numero */
+      const k = suave(t(0.25, 0.85));
+      ctx.font = "700 12px 'Space Grotesk', 'Segoe UI', system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillStyle = blanco(0.95);
+      ctx.fillText("$ " + Math.round(1248 * k).toLocaleString("es-AR"), cx + 9, ty + 28);
+      ctx.textAlign = "start";
+
+      /* la flechita de que subio */
+      const sube = t(0.95, 0.3);
+      if (sube > 0) {
+        ctx.save();
+        ctx.globalAlpha = sube;
+        ctx.fillStyle = "rgba(125,235,174," + a.toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.moveTo(cx + 56, ty + 25);
+        ctx.lineTo(cx + 59.5, ty + 19);
+        ctx.lineTo(cx + 63, ty + 25);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      /* el grafico, con su area y el punto encendido en la punta */
+      const px = cx + 8, pw = ancho - 16, py = ty + 34, ph = 13;
+      const alto = [0.25, 0.55, 0.35, 0.7, 0.5, 0.88, 0.72, 1];
+      const dib = suave(t(0.3, 0.8));
+      if (dib > 0.02) {
+        const ptx = (i) => px + (i / (alto.length - 1)) * pw;
+        const pty = (i) => py + ph - alto[i] * ph;
+        const hasta = dib * (alto.length - 1);
+        const seg = Math.min(alto.length - 2, Math.floor(hasta));
+        const f = Math.max(0, Math.min(1, hasta - seg));
+        const hx = ptx(seg) + (ptx(seg + 1) - ptx(seg)) * f;
+        const hy = pty(seg) + (pty(seg + 1) - pty(seg)) * f;
+        const traza = () => {
+          ctx.beginPath();
+          ctx.moveTo(ptx(0), pty(0));
+          for (let i = 1; i <= seg; i++) ctx.lineTo(ptx(i), pty(i));
+          ctx.lineTo(hx, hy);
+        };
+        /* el area de abajo, apenas insinuada */
+        traza();
+        ctx.lineTo(hx, py + ph);
+        ctx.lineTo(px, py + ph);
+        ctx.closePath();
+        ctx.fillStyle = blanco(0.15);
+        ctx.fill();
+        traza();
+        ctx.strokeStyle = blanco(0.95);
+        ctx.lineWidth = 1.4;
+        ctx.lineJoin = "round";
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        const halo = ctx.createRadialGradient(hx, hy, 0, hx, hy, 7);
+        halo.addColorStop(0, blanco(0.5));
+        halo.addColorStop(1, blanco(0));
+        ctx.fillStyle = halo;
+        ctx.beginPath(); ctx.arc(hx, hy, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = blanco(1);
+        ctx.beginPath(); ctx.arc(hx, hy, 1.9, 0, Math.PI * 2); ctx.fill();
       }
     });
 
+    /* accesos rapidos */
+    entra(2, () => {
+      for (let i = 0; i < 3; i++) {
+        const bw = (ancho - 10) / 3;
+        barra(cx + i * (bw + 5), sy + 102, bw, 24, 8, i === 0 ? ac(0.26) : lleno(0.18));
+        barra(cx + i * (bw + 5) + bw / 2 - 4.5, sy + 108, 9, 9, 4.5, i === 0 ? ac(0.85) : lleno(0.55));
+        barra(cx + i * (bw + 5) + bw / 2 - 7, sy + 120, 14, 2, 1, blanco(0.22));
+      }
+    });
+
+    /* la lista, con el ultimo movimiento marcado en verde */
     for (let i = 0; i < 3; i++) {
       entra(3 + i, () => {
-        const fy = y + 122 + i * 17;
-        barra(cx, fy, 12, 12, 6, lleno(0.4));
-        barra(cx + 17, fy + 1, ancho - 30, 3, 2, linea(0.5));
-        barra(cx + 17, fy + 7, ancho - 44, 3, 2, lleno(0.32));
+        const fy = sy + 134 + i * 18;
+        barra(cx, fy, 13, 13, 6.5, i === 0 ? ac(0.5) : lleno(0.34));
+        barra(cx + 18, fy + 1, ancho - 42, 3, 1.5, linea(0.5));
+        barra(cx + 18, fy + 7.5, ancho - 58, 2.5, 1.5, lleno(0.3));
+        barra(sx + sw - pad - 16, fy + 3.5, 16, 6, 3,
+          i === 0 ? "rgba(125,235,174," + (0.3 * a).toFixed(3) + ")" : lleno(0.16));
       });
     }
 
+    /* barra de pestanas de vidrio */
     entra(6, () => {
-      /* tab bar de vidrio, con el activo en pastilla */
-      barra(cx, y + al - 26, ancho, 20, 10, "rgba(255,255,255," + (0.09 * a).toFixed(3) + ")");
+      barra(cx, sy + sh - 30, ancho, 22, 11, blanco(0.09));
       for (let i = 0; i < 4; i++) {
-        const bx = cx + 8 + i * ((ancho - 16) / 3.4);
-        if (i === 0) barra(bx - 5, y + al - 23, 18, 14, 7, ac(0.3));
-        ctx.fillStyle = i === 0 ? ac(0.95) : lleno(0.55);
+        const bx = cx + 9 + i * ((ancho - 18) / 3.3);
+        if (i === 0) barra(bx - 6, sy + sh - 27, 19, 16, 8, ac(0.32));
+        ctx.fillStyle = i === 0 ? ac(0.95) : lleno(0.5);
         ctx.beginPath();
-        ctx.arc(bx + 4, y + al - 16, 2.6, 0, Math.PI * 2);
+        ctx.arc(bx + 3.5, sy + sh - 19, 2.6, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
+    /* boton flotante: late mientras trabaja y alguien lo toca */
     entra(7, () => {
-      /* boton flotante con su resplandor */
-      const bx = x + an - pad - 16, by = y + al - 46;
-      const g = ctx.createRadialGradient(bx + 8, by + 8, 0, bx + 8, by + 8, 22);
-      g.addColorStop(0, ac(0.4));
+      const bx = sx + sw - pad - 18, by = sy + sh - 56;
+      const g = ctx.createRadialGradient(bx + 9, by + 9, 0, bx + 9, by + 9, 24);
+      g.addColorStop(0, ac(0.45));
       g.addColorStop(1, ac(0));
       ctx.fillStyle = g;
-      ctx.fillRect(bx - 14, by - 14, 44, 44);
-      barra(bx, by, 16, 16, 8, ac(0.9));
+      ctx.fillRect(bx - 15, by - 15, 48, 48);
+      const late = (apar * 0.8) % 1;
+      if (apar > 0.6) {
+        ctx.strokeStyle = ac(0.45 * (1 - late));
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(bx + 9, by + 9, 9 + late * 11, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
+      barra(bx, by, 18, 18, 9, ac(0.92));
       ctx.strokeStyle = "rgba(12,8,28," + (0.85 * a).toFixed(3) + ")";
-      ctx.lineWidth = 1.4;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(bx + 8, by + 4.5); ctx.lineTo(bx + 8, by + 11.5);
-      ctx.moveTo(bx + 4.5, by + 8); ctx.lineTo(bx + 11.5, by + 8);
+      ctx.moveTo(bx + 9, by + 5); ctx.lineTo(bx + 9, by + 13);
+      ctx.moveTo(bx + 5, by + 9); ctx.lineTo(bx + 13, by + 9);
       ctx.stroke();
       ctx.lineWidth = 1;
+
+      /* el toque: alguien lo aprieta y queda la onda */
+      const toque = t(1.45, 0.55);
+      if (toque > 0 && toque < 1) {
+        ctx.strokeStyle = blanco(0.45 * (1 - toque));
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(bx + 9, by + 9, 6 + toque * 15, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
     });
+
+    /* la isla: al rato se estira y baja el aviso de que entro algo */
+    const av = suave(t(1.05, 0.5));
+    const iw = 26 + av * (ancho - 26);
+    const ih = 8 + av * 13;
+    const ix = sx + sw / 2 - iw / 2, iy = sy + 5;
+    barra(ix, iy, iw, ih, ih / 2, "rgba(6,4,16," + (0.94 * a).toFixed(3) + ")");
+    if (av > 0.35) {
+      ctx.save();
+      ctx.globalAlpha = (av - 0.35) / 0.65;
+      ctx.fillStyle = ac(0.95);
+      ctx.beginPath();
+      ctx.arc(ix + 11, iy + ih / 2, 3.4, 0, Math.PI * 2);
+      ctx.fill();
+      barra(ix + 19, iy + ih / 2 - 4.5, 32, 3, 1.5, blanco(0.8));
+      barra(ix + 19, iy + ih / 2 + 1, 21, 2.5, 1.5, blanco(0.4));
+      barra(ix + iw - 22, iy + ih / 2 - 3.5, 16, 7, 3.5, "rgba(125,235,174," + (0.7 * a).toFixed(3) + ")");
+      ctx.restore();
+    }
+
+    /* la rayita de abajo, la que se arrastra para salir */
+    barra(sx + sw / 2 - 15, sy + sh - 6, 30, 2.4, 1.2, blanco(0.45));
+    ctx.restore();
+
+    /* filo interno de la pantalla, para que se separe del marco */
+    rutaRedonda(ctx, sx, sy, sw, sh, 13);
+    ctx.strokeStyle = blanco(0.12);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    /* los botones del costado: es lo que termina de hacerlo telefono */
+    barra(x - 0.6, y + 46, 1.6, 15, 0.8, blanco(0.16));
+    barra(x - 0.6, y + 66, 1.6, 15, 0.8, blanco(0.16));
+    barra(x + an - 1, y + 52, 1.6, 24, 0.8, blanco(0.16));
     return;
   }
 
@@ -1241,11 +1622,16 @@ function NeuralBg() {
     let impulsos = [];   // lo unico que se mueve de verdad
     const puntero = { x: 0, y: 0, ax: 0, ay: 0, activo: false, dedo: false, carga: 0, pausa: 0 };
     let idea = null;
+    /* los numeros de la red cambian segun el lienzo que toco: el hero completo
+       en la compu, la franja del celular */
+    let red = RED;
     let destello = 0;
     let latidos = [];
     let proxLatido = 0;
     let cual = 0;
     let sembrado = 0;    // reloj del disparo espontaneo
+    let sola = 5;        // en la franja del celular la idea tambien se arma sola
+    let visible = true;  // si la red no esta en pantalla no hay nada que pintar
 
     /* header, pill y botones del hero: la neurona que dispara cerca les tira una chispa */
     let objetivos = [];
@@ -1256,12 +1642,15 @@ function NeuralBg() {
       ).map((el) => {
         const b = el.getBoundingClientRect();
         return { x: b.left - r.left, y: b.top - r.top, w: b.width, h: b.height };
-      });
+      })
+        /* si el boton quedo afuera del lienzo -en el celular la franja no los
+           contiene- no tiene sentido tirarle una chispa que nadie ve */
+        .filter((t) => t.x < w && t.y < h && t.x + t.w > 0 && t.y + t.h > 0);
     };
 
     /* ---- tejer la red: posiciones en grilla salteada, dendritas y axones ---- */
     const tejer = () => {
-      const n = Math.round(Math.min(RED.max, Math.max(RED.min, (w * h) / RED.densidad)));
+      const n = Math.round(Math.min(red.max, Math.max(red.min, (w * h) / red.densidad)));
       const cols = Math.max(2, Math.round(Math.sqrt((n * w) / h)));
       const filas = Math.max(2, Math.ceil(n / cols));
       const cw = w / cols, ch = h / filas;
@@ -1273,7 +1662,7 @@ function NeuralBg() {
           const hx = (c + 0.5) * cw + (Math.random() - 0.5) * cw * 0.75;
           const hy = (f + 0.5) * ch + (Math.random() - 0.5) * ch * 0.75;
           /* casi todas medianas y alguna celula grande, como en el tejido real */
-          const esc = Math.random() < 0.18 ? 1.25 + Math.random() * 0.5 : 0.72 + Math.random() * 0.4;
+          const esc = (Math.random() < 0.18 ? 1.25 + Math.random() * 0.5 : 0.72 + Math.random() * 0.4) * (red.escala || 1);
           const forma = morfologia(esc);
           neuronas.push({
             x: hx, y: hy, hx, hy,
@@ -1299,14 +1688,14 @@ function NeuralBg() {
       neuronas.forEach((p, i) => {
         const cerca = neuronas
           .map((q, j) => ({ j, d: Math.hypot(q.hx - p.hx, q.hy - p.hy) }))
-          .filter((o) => o.j !== i && o.d < RED.alcance)
+          .filter((o) => o.j !== i && o.d < red.alcance)
           .sort((a, b) => a.d - b.d)
-          .slice(0, RED.axones + (Math.random() < 0.3 ? 1 : 0));
+          .slice(0, red.axones + (Math.random() < 0.3 ? 1 : 0));
         /* una de cada cinco saca ademas un axon largo, de los que cruzan */
         if (Math.random() < 0.2) {
           const lejos = neuronas
             .map((q, j) => ({ j, d: Math.hypot(q.hx - p.hx, q.hy - p.hy) }))
-            .filter((o) => o.j !== i && o.d > RED.alcance && o.d < RED.alcance * 2.4)
+            .filter((o) => o.j !== i && o.d > red.alcance && o.d < red.alcance * 2.4)
             .sort((a, b) => a.d - b.d)[0];
           if (lejos) cerca.push(lejos);
         }
@@ -1340,6 +1729,10 @@ function NeuralBg() {
       cv.style.width = w + "px";
       cv.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      /* quien manda es el CSS: si el lienzo dejo de estar absoluto es porque el
+         celular le dio su propia franja, y ahi la red se juega con otros numeros */
+      const franja = getComputedStyle(box).position !== "absolute";
+      red = franja ? { ...RED, ...RED.franja } : RED;
       tejer();
       medirObjetivos();
     };
@@ -1363,7 +1756,7 @@ function NeuralBg() {
       if (p.descanso > 0 || p.tomado) return;
       p.brillo = 1;
       p.carga = 0;
-      p.descanso = RED.descanso + Math.random() * 0.25;
+      p.descanso = red.descanso + Math.random() * 0.25;
       for (let k = 0; k < axones.length; k++) {
         const ax = axones[k];
         if (ax.de !== i && ax.a !== i) continue;
@@ -1378,16 +1771,23 @@ function NeuralBg() {
     /* ---- la idea: los mismos nodos, ahora somas, se acomodan en la app ---- */
     const nacerIdea = (x, y) => {
       const receta = IDEAS[cual % IDEAS.length];
-      const an = Math.min(receta.w, w - 48), al = Math.min(receta.h, h - 90);
+      /* el aire de abajo es para el rotulo y la frase; en la franja del celular
+         no hay ademas botones que esquivar, asi que alcanza con eso */
+      const aire = red.chico ? 54 : 70;
+      const an = Math.min(receta.w, w - 48), al = Math.min(receta.h, h - aire - 20);
       if (an < 70 || al < 70) return;
       const cx = Math.min(w - an / 2 - 20, Math.max(an / 2 + 20, x));
-      const cy = Math.min(h - al / 2 - 70, Math.max(al / 2 + 20, y));
+      const cy = Math.min(h - al / 2 - aire, Math.max(al / 2 + 20, y));
 
+      /* con pocas neuronas no se las lleva todas: alguna queda latiendo afuera */
+      const cupo = red.chico
+        ? Math.max(8, Math.round(neuronas.length * 0.75))
+        : Math.min(IDEA.nodos, neuronas.length);
       const elegidos = neuronas
         .filter((p) => !p.tomado)
         .map((p) => ({ p, d: Math.hypot(p.x - cx, p.y - cy) }))
         .sort((a, b) => a.d - b.d)
-        .slice(0, Math.min(IDEA.nodos, neuronas.length))
+        .slice(0, Math.min(IDEA.nodos, cupo))
         .map((o) => o.p);
       if (elegidos.length < 8) return;
 
@@ -1550,6 +1950,16 @@ function NeuralBg() {
           puntero.carga = Math.max(0, puntero.carga - dt * 0.9);
         }
 
+        /* en el celular nadie deja el dedo apoyado todo el rato: si la franja
+           esta sola, cada tanto la red arma una idea por su cuenta */
+        if (red.chico && !quieto && !puntero.activo) {
+          sola -= dt;
+          if (sola <= 0 && puntero.pausa <= 0) {
+            sola = 6.5 + Math.random() * 3;
+            nacerIdea(w * (0.32 + Math.random() * 0.36), h * (0.36 + Math.random() * 0.14));
+          }
+        }
+
         /* el pensamiento late: cada onda sincroniza un poco a la red de alrededor */
         if (puntero.activo && puntero.carga > 0.08 && !quieto) {
           proxLatido -= dt;
@@ -1559,8 +1969,8 @@ function NeuralBg() {
             for (const p of neuronas) {
               if (p.tomado) continue;
               const d = Math.hypot(puntero.x - p.x, puntero.y - p.y);
-              if (d > RED.puntero) continue;
-              p.carga += (1 - d / RED.puntero) * (0.2 + puntero.carga * 0.5);
+              if (d > red.puntero) continue;
+              p.carga += (1 - d / red.puntero) * (0.2 + puntero.carga * 0.5);
             }
           }
         } else {
@@ -1574,7 +1984,7 @@ function NeuralBg() {
       if (!quieto) {
         sembrado -= dt;
         if (sembrado <= 0 && neuronas.length) {
-          sembrado = 1 / RED.espontaneo;
+          sembrado = 1 / red.espontaneo;
           const p = Math.floor(Math.random() * neuronas.length);
           if (!neuronas[p].tomado) neuronas[p].carga += 0.75;
         }
@@ -1589,8 +1999,8 @@ function NeuralBg() {
           if (puntero.activo) {
             const dx = puntero.x - p.hx, dy = puntero.y - p.hy;
             const d = Math.hypot(dx, dy) || 1;
-            if (d < RED.puntero) {
-              const cerca = 1 - d / RED.puntero;
+            if (d < red.puntero) {
+              const cerca = 1 - d / red.puntero;
               const tiron = cerca * (0.06 + puntero.carga * 0.42);
               cx += dx * tiron; cy += dy * tiron;
               atrae = Math.min(1, cerca * (0.4 + puntero.carga * 0.6));
@@ -1616,8 +2026,8 @@ function NeuralBg() {
         p.brillo = Math.max(0, p.brillo - dt * 1.5);
         if (p.descanso > 0) p.descanso -= dt;
         else if (!p.tomado) {
-          p.carga = Math.max(0, p.carga - dt * RED.fuga);
-          if (p.carga >= RED.umbral && !quieto) disparar(i);
+          p.carga = Math.max(0, p.carga - dt * red.fuga);
+          if (p.carga >= red.umbral && !quieto) disparar(i);
         }
       }
 
@@ -1629,7 +2039,7 @@ function NeuralBg() {
         if (s.t >= 1) {
           const destino = ax.de === s.desde ? ax.a : ax.de;
           const q = neuronas[destino];
-          if (q && !q.tomado) { q.carga += RED.llegada; q.brillo = Math.max(q.brillo, 0.3); }
+          if (q && !q.tomado) { q.carga += red.llegada; q.brillo = Math.max(q.brillo, 0.3); }
           ax.luz = 1;
           continue;
         }
@@ -1727,8 +2137,8 @@ function NeuralBg() {
             const qx = Math.max(t.x, Math.min(p.x, t.x + t.w));
             const qy = Math.max(t.y, Math.min(p.y, t.y + t.h));
             const d = Math.hypot(p.x - qx, p.y - qy);
-            if (d > RED.arco) continue;
-            const fuerza = 1 - d / RED.arco;
+            if (d > red.arco) continue;
+            const fuerza = 1 - d / red.arco;
             if (Math.random() < 0.09 * fuerza) chispas.push([p.x, p.y, qx, qy, fuerza * p.brillo]);
           }
         }
@@ -1816,7 +2226,7 @@ function NeuralBg() {
       if (!vivo) return;
       const dt = Math.min(0.05, previo ? (ahora - previo) / 1000 : 0.016);
       previo = ahora;
-      if (!document.hidden) pintar(dt);
+      if (!document.hidden && visible) pintar(dt);
       raf = requestAnimationFrame(bucle);
     };
 
@@ -1860,10 +2270,16 @@ function NeuralBg() {
     const ro = new ResizeObserver(medir);
     ro.observe(box);
 
+    /* cuando la red se fue de pantalla el bucle sigue vivo pero no pinta:
+       en el celular eso es bateria que no se gasta */
+    const io = new IntersectionObserver((e) => { visible = e[0].isIntersecting; }, { rootMargin: "100px" });
+    io.observe(box);
+
     return () => {
       vivo = false;
       cancelAnimationFrame(raf);
       ro.disconnect();
+      io.disconnect();
       window.removeEventListener("pointermove", alMover);
       window.removeEventListener("pointerdown", alApoyar);
       window.removeEventListener("pointerup", alSoltar);
@@ -2127,18 +2543,25 @@ export default function StudioB2B() {
         <section className="s2b-hero" ref={heroRef}>
           <div className="s2b-aurora" aria-hidden="true"><i /><i /><i /></div>
           <div className="s2b-grid" aria-hidden="true" />
-          <NeuralBg />
-          <div className="s2b-hint-wrap">
-            <div className="s2b-wrap">
-              <div className="s2b-hint">
-                <i /> <b>Tus neuronas</b>
-                <span className="solo-mouse">dejá el mouse quieto y se arma una idea</span>
-                <span className="solo-dedo">mantené el dedo apoyado y se arma una idea</span>
+          <div className="s2b-halo" aria-hidden="true" />
+
+          {/* el laboratorio: rotulo + red. En la compu no tiene caja propia y
+              queda de fondo; en el celular se vuelve una franja abajo del
+              titular, con su lugar, para que no se mezcle con el texto. */}
+          <div className="s2b-lab">
+            <div className="s2b-hint-wrap">
+              <div className="s2b-wrap">
+                <div className="s2b-hint">
+                  <i /> <b>Tus neuronas</b>
+                  <span className="solo-mouse">dejá el mouse quieto y se arma una idea</span>
+                  <span className="solo-dedo">mantené el dedo apoyado y se arma una idea</span>
+                </div>
               </div>
             </div>
+            <NeuralBg />
           </div>
-          <div className="s2b-halo" aria-hidden="true" />
-          <div className="s2b-wrap">
+
+          <div className="s2b-wrap s2b-hero-copy">
             <div className="s2b-hero-in">
               <div className="s2b-pill">Producto digital e IA · Córdoba, Argentina</div>
               <div className="s2b-sweep">
@@ -2156,7 +2579,9 @@ export default function StudioB2B() {
               </div>
               <div className="s2b-hero-note"><span className="s2b-dot" /> 2 lugares para arrancar este trimestre</div>
             </div>
+          </div>
 
+          <div className="s2b-wrap s2b-hero-atajos">
             <div className="s2b-shortcuts">
               {SOLUCIONES.map((s) => {
                 const I = s.icon;
@@ -2202,11 +2627,11 @@ export default function StudioB2B() {
           <div className="s2b-head s2b-rv">
             <div>
               <div className="s2b-eyebrow">Soluciones</div>
-              <h2 className="s2b-h2">Tres frentes, <b>un mismo equipo</b></h2>
+              <h2 className="s2b-h2">Tu idea se convierte en <b>realidad</b>: app, web y sistemas a medida</h2>
             </div>
             <p className="s2b-lead">
-              No tercerizamos. Diseño, desarrollo e IA se sientan en la misma mesa,
-              así que las decisiones no se pierden entre proveedores.
+              Tres frentes y un mismo equipo. No tercerizamos: diseño, desarrollo e IA se sientan
+              en la misma mesa, así que las decisiones no se pierden entre proveedores.
             </p>
           </div>
 
@@ -2228,9 +2653,25 @@ export default function StudioB2B() {
                     <div className="s2b-blob" style={{ width: 240, height: 240, top: -50, right: -40, background: s.blobs[0] }} />
                     <div className="s2b-blob" style={{ width: 200, height: 200, bottom: -60, left: -30, background: s.blobs[1], opacity: .55 }} />
                     {s.img ? (
-                      <div className="s2b-shot">
-                        <img src={s.img} alt={s.alt} loading="lazy" width={s.an} height={s.al} />
-                      </div>
+                      <>
+                        <div className="s2b-shot">
+                          <img src={s.img} alt={s.alt} loading="lazy" width={s.an} height={s.al} />
+                        </div>
+                        {s.logos && (
+                          <div className="s2b-vis-stack">
+                            <span className="s2b-vis-stack-t">{s.logosT}</span>
+                            <div className="s2b-vis-logos">
+                              {s.logos.map((l, k) => (
+                                <span className="s2b-vis-logo" key={l.title} title={l.title} style={{ transitionDelay: k * 40 + "ms" }}>
+                                  <svg viewBox="0 0 24 24" role="img" aria-label={l.title} fill={"#" + l.hex}>
+                                    <path d={l.path} fillRule={l.regla || "nonzero"} />
+                                  </svg>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="s2b-glass">
                         <div className="gl-bar w1" /><div className="gl-bar w2" /><div className="gl-bar w3" />
@@ -2244,6 +2685,55 @@ export default function StudioB2B() {
           </div>
         </div>
       </section>
+
+      {/* ============ PROCESO ============ */}
+      <div className="s2b-band s2b-band--dark" id="proceso">
+        <section className="s2b-sec s2b-sec--sm">
+          <div className="s2b-wrap">
+            <div className="s2b-head s2b-rv">
+              <div>
+                <div className="s2b-eyebrow">Cómo se trabaja con nosotros</div>
+                <h2 className="s2b-h2">El <b>Proceso Studio B2B</b>, paso a paso</h2>
+              </div>
+              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+                De la primera charla a tu sistema en producción. Antes de que pongas un peso
+                ya firmamos confidencialidad y ya viste tu idea funcionando.
+              </p>
+            </div>
+
+            <div className="s2b-flow">
+              {PROCESO.map((p, i) => {
+                const I = p.ic;
+                return (
+                  <div className="s2b-paso s2b-rv" key={p.n} style={{ transitionDelay: Math.min(i, 4) * 70 + "ms" }}>
+                    <div className="s2b-paso-eje"><div className="s2b-paso-nodo">{p.n}</div></div>
+                    <div className="s2b-paso-card">
+                      <div className="s2b-paso-top">
+                        <div className="s2b-paso-ico"><I size={19} /></div>
+                        <h3>{p.t}</h3>
+                      </div>
+                      <p>{p.d}</p>
+                      <div className={"s2b-paso-chip" + (p.pago ? " s2b-paso-chip--pago" : "")}>
+                        {p.pago ? <CircleDollarSign size={13} /> : <Check size={13} />} {p.chip}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="s2b-flow-cierre s2b-rv">
+              <span>
+                Del paso 7 en adelante entra el <b>Método Studio</b>: diagnóstico, prototipo,
+                entregas cada dos semanas y operación. El código y la infraestructura son tuyos desde el día uno.
+              </span>
+              <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("metodo")}>
+                Ver el método <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* ============ MÉTODO ============ */}
       <section className="s2b-sec s2b-sec--sm" id="metodo" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
@@ -2263,7 +2753,7 @@ export default function StudioB2B() {
             <div className="s2b-method-img s2b-rv">
               <img
                 src="/metodo.jpg"
-                alt="El equipo de Studio B2B trabajando"
+                alt="El equipo de Studio B2B frente al tablero de tareas del día, repasando qué está por hacer, en proceso, en revisión y hecho"
                 loading="lazy"
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
               />
@@ -2382,12 +2872,16 @@ export default function StudioB2B() {
                 return (
                   <div className="s2b-qslide" key={t.n}>
                     <div className="s2b-qcard">
-                      <div className="s2b-qphoto" style={{ background: t.g }}>{t.i}</div>
+                      <div className={"s2b-qphoto" + (t.logos.length > 1 ? " s2b-qphoto--dos" : "")}>
+                        {t.logos.map((l) => (
+                          <span key={l.src}><img src={l.src} alt={l.alt} loading="lazy" /></span>
+                        ))}
+                      </div>
                       <div>
                         <div className="s2b-qtag"><I size={14} /> {t.cat}</div>
                         <p className="s2b-qtext">{t.q}</p>
                         <div className="s2b-qfoot">
-                          <div><b>{t.n}</b><span>{t.r}</span></div>
+                          <div><b>{t.n}</b>{t.r && <span>{t.r}</span>}</div>
                           <div className="s2b-qlogo">{t.e}</div>
                         </div>
                       </div>
@@ -2437,7 +2931,6 @@ export default function StudioB2B() {
                 Contanos el desafío. Te respondemos en menos de 24 horas hábiles con una primera
                 lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.
               </p>
-              <div className="s2b-cline"><Mail size={17} /> hola@studiob2b.com</div>
               <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
               <div className="s2b-cline"><MapPin size={17} /> Córdoba, Argentina · trabajo remoto</div>
               <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
@@ -2519,7 +3012,6 @@ export default function StudioB2B() {
               <div>
                 <h5>Contacto</h5>
                 <ul>
-                  <li><a href="mailto:hola@studiob2b.com">hola@studiob2b.com</a></li>
                   <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
                   <li>Córdoba capital · Buenos Aires · toda Argentina</li>
                 </ul>
