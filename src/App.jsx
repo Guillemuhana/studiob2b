@@ -925,7 +925,7 @@ const proceso = (t) => [
   },
   {
     n: "07", t: t("Tu idea se convierte en realidad", "Your idea becomes real"), ic: Rocket, pago: true,
-    d: t("Desarrollamos con demos cada dos semanas, así ves el avance sobre el producto real y no sobre un informe. Cuando la app queda en línea se abona el 40%, y el 40% restante al finalizar la entrega.", "We build with a demo every two weeks, so you see progress on the real product instead of a status report. When the app goes live you pay 40%, and the remaining 40% on delivery."),
+    d: t("Esta es la etapa donde tu app o sistema toma forma y queda en línea, funcionando de verdad. Desde ahí seguimos trabajando juntos, con tus devoluciones, hasta dejarlo perfecto. Cuando la app queda en línea se abona el 40%, y el 40% restante al finalizar la entrega.", "This is the stage where your app or system takes shape and goes online, really running. From there we keep working together, with your feedback, until it is exactly right. When the app goes live you pay 40%, and the remaining 40% on delivery."),
     chip: t("40% en línea · 40% al finalizar", "40% at launch · 40% on delivery"),
   },
 ];
@@ -1083,11 +1083,46 @@ const waChips = (t) => [
   t("Hola, quiero hacerles una consulta.", "Hi, I have a question for you."),
 ];
 
+/* Las opciones del formulario. Estan en una lista aparte y no escritas a mano
+   adentro del select para poder tocarlas sin meterse en el JSX. */
+const tiposDeApp = (t) => [
+  t("Tienda online / E-commerce", "Online store / E-commerce"),
+  t("Sistema de gestión empresarial", "Business management system"),
+  t("CRM para clientes y ventas", "CRM for clients and sales"),
+  t("Facturación y presupuestos", "Invoicing and quotes"),
+  t("Turnos y reservas", "Appointments and bookings"),
+  t("Delivery y pedidos", "Delivery and orders"),
+  t("Catálogo de productos", "Product catalog"),
+  t("Control de stock", "Inventory control"),
+  t("Administración de empleados", "Employee management"),
+  t("Aplicación para gimnasios", "App for gyms"),
+  t("Aplicación para restaurantes", "App for restaurants"),
+  t("Aplicación para profesionales", "App for professionals"),
+  t("Aplicación educativa", "Education app"),
+  t("Aplicación para eventos", "Events app"),
+  t("Aplicación inmobiliaria", "Real estate app"),
+  t("Aplicación de transporte o logística", "Transport or logistics app"),
+  t("Marketplace", "Marketplace"),
+  t("Red social o comunidad", "Social network or community"),
+  t("Plataforma de cursos", "Course platform"),
+  t("Sistema de membresías", "Membership system"),
+  t("Aplicación con inteligencia artificial", "App with artificial intelligence"),
+  t("Chatbot o asistente virtual", "Chatbot or virtual assistant"),
+  t("Aplicación conectada con WhatsApp", "App connected to WhatsApp"),
+  t("Aplicación para control de acceso con QR", "QR access control app"),
+  t("Aplicación institucional", "Institutional app"),
+  t("Aplicación solidaria", "Nonprofit app"),
+  t("Aplicación personalizada desde cero", "Custom app from scratch"),
+  t("Mejoras en una aplicación existente", "Improvements to an existing app"),
+  t("No estoy seguro, necesito asesoramiento", "Not sure, I need advice"),
+  t("Otro", "Other"),
+];
+
 const navLinks = (t) => [
   { id: "servicios", label: t("Servicios", "Services") },
   { id: "proceso", label: t("Proceso", "Process") },
-  { id: "metodo", label: t("Nuestro método", "Our method") },
   { id: "clientes", label: t("Clientes", "Clients") },
+  { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
 ];
 
 /* ================= utilidades ================= */
@@ -2531,12 +2566,41 @@ function WhatsAppBubble({ t, chips }) {
   );
 }
 
-/* Que vista pide la direccion. El proceso tiene su propia URL para que el
-   home no sea eterno, y para poder mandarle el link a alguien. */
+/* Que vista pide la direccion. El proceso y las preguntas tienen su propia URL
+   para que el home no sea eterno, y para poder mandarle el link a alguien. */
+const RUTAS = { proceso: "/proceso", preguntas: "/preguntas" };
+/* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
+   la pagina del proceso: es ahi donde se explica como trabajamos y donde el
+   cliente decide, y de paso el home queda mas liviano. */
+const DUENO = { contacto: "proceso" };
 const vistaDeUrl = () => {
-  const p = typeof location === "undefined" ? "/" : location.pathname;
-  return p === "/proceso" || p === "/proceso/" ? "proceso" : "home";
+  const p = (typeof location === "undefined" ? "/" : location.pathname).replace(/\/+$/, "") || "/";
+  const v = Object.keys(RUTAS).find((k) => RUTAS[k] === p);
+  return v || "home";
 };
+
+/* Ancho de celular. Se usa para no montar las resenas en pantallas chicas:
+   apiladas se comen media pantalla de scroll y el logo del cliente ya aparece
+   arriba, en la tira de marcas. */
+function useCelular() {
+  const consulta = "(max-width: 820px)";
+  const [celular, setCelular] = useState(
+    () => typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia(consulta).matches
+      : false
+  );
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia(consulta);
+    const ver = (e) => setCelular(e.matches);
+    setCelular(mq.matches);
+    mq.addEventListener ? mq.addEventListener("change", ver) : mq.addListener(ver);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener("change", ver) : mq.removeListener(ver);
+    };
+  }, []);
+  return celular;
+}
 
 /* ================= página ================= */
 
@@ -2547,11 +2611,12 @@ export default function StudioB2B() {
   const [drawer, setDrawer] = useState(false);
   const [tab, setTab] = useState("soft");
   const [qi, setQi] = useState(0);
+  const celular = useCelular();
   const [faq, setFaq] = useState(0);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [formErr, setFormErr] = useState("");
-  const [form, setForm] = useState({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" });
+  const [form, setForm] = useState({ nombre: "", empresa: "", email: "", tel: "", tipo: "", msg: "" });
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
   const [idioma, setIdioma] = useState(idiomaGuardado);
@@ -2566,6 +2631,7 @@ export default function StudioB2B() {
   const TESTIMONIOS = useMemo(() => testimonios(t), [t]);
   const FAQS = useMemo(() => faqs(t), [t]);
   const NAV_LINKS = useMemo(() => navLinks(t), [t]);
+  const TIPOS_APP = useMemo(() => tiposDeApp(t), [t]);
   const WA_CHIPS = useMemo(() => waChips(t), [t]);
   const AGENT_LINES = useMemo(() => agentLines(t), [t]);
   const logosTab = useMemo(() => (TECNOLOGIAS.find((c) => c.id === tab) || TECNOLOGIAS[0]).logos, [TECNOLOGIAS, tab]);
@@ -2585,7 +2651,7 @@ export default function StudioB2B() {
 
   const irA = useCallback((v) => {
     setDrawer(false); setPop(false);
-    const destino = v === "proceso" ? "/proceso" : "/";
+    const destino = RUTAS[v] || "/";
     if (location.pathname !== destino) history.pushState({}, "", destino);
     setVista(v);
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -2615,9 +2681,10 @@ export default function StudioB2B() {
   }, []);
 
   useEffect(() => {
-    document.title = vista === "proceso"
-      ? "El Proceso Studio B2B, paso a paso · Studio B2B"
-      : "Software a medida y agentes de IA en Córdoba · Studio B2B";
+    document.title =
+      vista === "proceso" ? "El Proceso Studio B2B, paso a paso · Studio B2B" :
+      vista === "preguntas" ? "Preguntas frecuentes · Studio B2B" :
+      "Software a medida y agentes de IA en Córdoba · Studio B2B";
   }, [vista]);
 
   useEffect(() => {
@@ -2631,14 +2698,15 @@ export default function StudioB2B() {
 
   const goTo = useCallback((id) => {
     setDrawer(false); setPop(false);
-    if (id === "proceso") { irA("proceso"); return; }
-    const ir = () => {
+    if (RUTAS[id]) { irA(id); return; }
+    const ir = (suave) => {
       const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (el) el.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
     };
-    /* la seccion puede estar en la otra vista: se vuelve al home y despues se baja */
-    if (document.getElementById(id)) ir();
-    else { irA("home"); setTimeout(ir, 80); }
+    /* la seccion puede estar en otra vista: primero se cambia de pagina y
+       despues se baja, ya sin animacion porque el salto fue de pantalla */
+    if (document.getElementById(id)) ir(true);
+    else { irA(DUENO[id] || "home"); setTimeout(() => ir(false), 80); }
   }, [irA]);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -2661,7 +2729,7 @@ export default function StudioB2B() {
           Empresa: form.empresa || "-",
           Email: form.email,
           Telefono: form.tel || "-",
-          "Tipo de proyecto": form.tipo,
+          "Tipo de proyecto": form.tipo || "-",
           Contexto: form.msg || "-",
         }),
       });
@@ -2762,7 +2830,7 @@ export default function StudioB2B() {
               </p>
               <div className="s2b-hero-cta">
                 <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell us about your project")} <ArrowRight size={16} /></button>
-                <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("metodo")}>
+                <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("proceso")}>
                   <Workflow size={15} /> {t("Cómo trabajamos", "How we work")}
                 </button>
               </div>
@@ -2832,16 +2900,103 @@ export default function StudioB2B() {
             </div>
 
             <div className="s2b-flow-volver s2b-rv">
-              <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}</button>
               <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>{t("Empezar por el paso 1", "Start with step 1")} <ArrowRight size={16} /></button>
             </div>
           </div>
         </section>
+
+        <section className="s2b-sec" id="contacto">
+          <div className="s2b-wrap s2b-form-grid">
+            <div className="s2b-rv">
+              <div className="s2b-eyebrow">{t("Siguiente paso", "Next step")}</div>
+              <h2 className="s2b-h2">{t("Tu próximo proyecto", "Your next project")} <b>{t("empieza acá", "starts here")}</b></h2>
+              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+                {t("Contanos el desafío. Te respondemos en menos de 24 horas hábiles con una primera lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.", "Tell us the challenge. We reply within 24 business hours with a first read of the problem and a discovery proposal. The first call is free.")}
+              </p>
+              <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
+              <div className="s2b-cline"><MapPin size={17} /> {t("Córdoba, Argentina · Miami, EE.UU.", "Córdoba, Argentina · Miami, USA")}</div>
+              <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
+                <Quote size={20} style={{ color: "var(--lilac)" }} />
+                <span style={{ fontSize: 14, color: "#9E97C4" }}>{t("Respondemos todos los mensajes, también los que todavía no tienen presupuesto.", "We answer every message, including the ones that don't have a budget yet.")}</span>
+              </div>
+            </div>
+
+            <div className="s2b-panel s2b-rv">
+              {sent ? (
+                <div>
+                  <div className="s2b-sent"><Check size={20} /> {t("Mensaje enviado. Te respondemos a", "Message sent. We'll reply to")} {form.email}.</div>
+                  <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm({ nombre: "", empresa: "", email: "", tel: "", tipo: "", msg: "" }); }}>
+                    {t("Enviar otro", "Send another")}
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="s2b-f"><label htmlFor="f1">{t("Nombre", "Name")}</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder={t("Cómo te llamás", "Your name")} /></div>
+                  <div className="s2b-f"><label htmlFor="f2">{t("Empresa", "Company")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
+                  <div className="s2b-f"><label htmlFor="f3">Email</label><input id="f3" type="email" value={form.email} onChange={set("email")} placeholder="tu@empresa.com" /></div>
+                  <div className="s2b-f"><label htmlFor="f4">{t("Teléfono", "Phone")}</label><input id="f4" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
+                  <div className="s2b-f">
+                    <label htmlFor="f5">{t("¿Qué tipo de aplicación necesitás?", "What kind of app do you need?")}</label>
+                    <select id="f5" value={form.tipo} onChange={set("tipo")}>
+                      <option value="">{t("Elegí una opción", "Choose an option")}</option>
+                      {TIPOS_APP.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="s2b-f"><label htmlFor="f6">{t("Contexto", "Context")}</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder={t("Qué problema querés resolver y en qué plazo", "What problem you need solved and by when")} /></div>
+                  {formErr && (
+                    <div className="s2b-formerr" role="alert">
+                      {formErr}{" "}
+                      <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">{t("Abrir WhatsApp", "Open WhatsApp")}</a>
+                    </div>
+                  )}
+                  <button
+                    className="s2b-btn s2b-btn--chrome"
+                    style={{ width: "100%", justifyContent: "center", opacity: sending ? 0.7 : 1 }}
+                    onClick={send}
+                    disabled={sending}
+                  >
+                    {sending ? t("Enviando…", "Sending…") : t("Enviar mensaje", "Send message")} <ArrowUpRight size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="s2b-wrap s2b-flow-volver s2b-rv" style={{ marginTop: 34 }}>
+            <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}</button>
+            <button className="s2b-link" onClick={() => irA("preguntas")}>{t("Preguntas frecuentes", "FAQ")} <ArrowRight size={15} /></button>
+          </div>
+        </section>
       </div>}
+
+      {/* ============ PREGUNTAS FRECUENTES (pagina aparte) ============ */}
+      {vista === "preguntas" && <section className="s2b-sec s2b-sec--sm" id="preguntas">
+        <div className="s2b-wrap" style={{ maxWidth: 900 }}>
+          <div className="s2b-rv">
+            <div className="s2b-eyebrow">{t("Preguntas", "Questions")}</div>
+            <h2 className="s2b-h2">{t("Lo que", "What")} <b>{t("suelen preguntarnos", "people usually ask us")}</b></h2>
+          </div>
+          <div className="s2b-faq">
+            {FAQS.map((f, i) => (
+              <div className="s2b-fi s2b-rv" key={f.q}>
+                <button className="s2b-fq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
+                  {f.q}{faq === i ? <Minus size={19} /> : <Plus size={19} />}
+                </button>
+                <div className={"s2b-fa" + (faq === i ? " is-open" : "")}><p>{f.a}</p></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="s2b-flow-volver s2b-rv">
+            <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}</button>
+            <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>{t("Hacenos tu consulta", "Ask us your question")} <ArrowRight size={16} /></button>
+          </div>
+        </div>
+      </section>}
 
       {vista === "home" && <>
       {/* ============ LOGOS CLIENTES ============ */}
-      <div className="s2b-band s2b-band--tint">
+      <div className="s2b-band s2b-band--tint" id={celular ? "clientes" : undefined}>
         <div className="s2b-logos">
           <div className="s2b-logos-t">{t("Empresas que confían en Studio B2B", "Companies that trust Studio B2B")}</div>
           <div className="s2b-marq">
@@ -3053,7 +3208,9 @@ export default function StudioB2B() {
       </section>
 
       {/* ============ TESTIMONIOS ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="clientes">
+      {/* en el celular no se muestran: ocupan mucho scroll y el cliente ya
+         quedo presentado arriba, en la tira de logos */}
+      {!celular && <section className="s2b-sec s2b-sec--sm" id="clientes">
         <div className="s2b-wrap">
           <div className="s2b-rv">
             <div className="s2b-eyebrow">{t("Resultados", "Results")}</div>
@@ -3096,89 +3253,12 @@ export default function StudioB2B() {
             <div className="s2b-qdots">{TESTIMONIOS.map((_, i) => <i key={i} className={i === qi ? "on" : ""} />)}</div>
           </div>
         </div>
-      </section>
-
-      {/* ============ FAQ ============ */}
-      <section className="s2b-sec s2b-sec--sm">
-        <div className="s2b-wrap" style={{ maxWidth: 900 }}>
-          <div className="s2b-rv">
-            <div className="s2b-eyebrow">{t("Preguntas", "Questions")}</div>
-            <h2 className="s2b-h2">{t("Lo que", "What")} <b>{t("suelen preguntarnos", "people usually ask us")}</b></h2>
-          </div>
-          <div className="s2b-faq">
-            {FAQS.map((f, i) => (
-              <div className="s2b-fi s2b-rv" key={f.q}>
-                <button className="s2b-fq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
-                  {f.q}{faq === i ? <Minus size={19} /> : <Plus size={19} />}
-                </button>
-                <div className={"s2b-fa" + (faq === i ? " is-open" : "")}><p>{f.a}</p></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      </section>}
 
       </>}
 
-      {/* ============ CONTACTO + FOOTER ============ */}
-      <div className="s2b-band s2b-band--dark" id="contacto">
-        <section className="s2b-sec">
-          <div className="s2b-wrap s2b-form-grid">
-            <div className="s2b-rv">
-              <div className="s2b-eyebrow">{t("Siguiente paso", "Next step")}</div>
-              <h2 className="s2b-h2">{t("Tu próximo proyecto", "Your next project")} <b>{t("empieza acá", "starts here")}</b></h2>
-              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                {t("Contanos el desafío. Te respondemos en menos de 24 horas hábiles con una primera lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.", "Tell us the challenge. We reply within 24 business hours with a first read of the problem and a discovery proposal. The first call is free.")}
-              </p>
-              <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
-              <div className="s2b-cline"><MapPin size={17} /> {t("Córdoba, Argentina · Miami, EE.UU. · trabajo remoto", "Córdoba, Argentina · Miami, USA · remote")}</div>
-              <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
-                <Quote size={20} style={{ color: "var(--lilac)" }} />
-                <span style={{ fontSize: 14, color: "#9E97C4" }}>{t("Respondemos todos los mensajes, también los que todavía no tienen presupuesto.", "We answer every message, including the ones that don't have a budget yet.")}</span>
-              </div>
-            </div>
-
-            <div className="s2b-panel s2b-rv">
-              {sent ? (
-                <div>
-                  <div className="s2b-sent"><Check size={20} /> {t("Mensaje enviado. Te respondemos a", "Message sent. We'll reply to")} {form.email}.</div>
-                  <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm({ nombre: "", empresa: "", email: "", tel: "", tipo: "Agente de IA", msg: "" }); }}>
-                    {t("Enviar otro", "Send another")}
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <div className="s2b-f"><label htmlFor="f1">{t("Nombre", "Name")}</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder={t("Cómo te llamás", "Your name")} /></div>
-                  <div className="s2b-f"><label htmlFor="f2">{t("Empresa", "Company")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
-                  <div className="s2b-f"><label htmlFor="f3">Email</label><input id="f3" type="email" value={form.email} onChange={set("email")} placeholder="tu@empresa.com" /></div>
-                  <div className="s2b-f"><label htmlFor="f4">{t("Teléfono", "Phone")}</label><input id="f4" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
-                  <div className="s2b-f">
-                    <label htmlFor="f5">{t("Qué necesitás", "What you need")}</label>
-                    <select id="f5" value={form.tipo} onChange={set("tipo")}>
-                      <option>{t("Agente de IA", "AI agent")}</option><option>{t("Software a medida", "Custom software")}</option><option>{t("App móvil", "Mobile app")}</option>
-                      <option>{t("Diseño de producto", "Product design")}</option><option>{t("Automatización", "Automation")}</option><option>{t("Todavía no lo tengo claro", "Not sure yet")}</option>
-                    </select>
-                  </div>
-                  <div className="s2b-f"><label htmlFor="f6">{t("Contexto", "Context")}</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder={t("Qué problema querés resolver y en qué plazo", "What problem you need solved and by when")} /></div>
-                  {formErr && (
-                    <div className="s2b-formerr" role="alert">
-                      {formErr}{" "}
-                      <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">{t("Abrir WhatsApp", "Open WhatsApp")}</a>
-                    </div>
-                  )}
-                  <button
-                    className="s2b-btn s2b-btn--chrome"
-                    style={{ width: "100%", justifyContent: "center", opacity: sending ? 0.7 : 1 }}
-                    onClick={send}
-                    disabled={sending}
-                  >
-                    {sending ? t("Enviando…", "Sending…") : t("Enviar mensaje", "Send message")} <ArrowUpRight size={16} />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+      {/* ============ FOOTER ============ */}
+      <div className="s2b-band s2b-band--dark">
 
         <footer className="s2b-foot">
           <div className="s2b-wrap">
@@ -3212,7 +3292,7 @@ export default function StudioB2B() {
                 <h5>{t("Contacto", "Contact")}</h5>
                 <ul>
                   <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
-                  <li>{t("Córdoba capital · Buenos Aires · toda Argentina", "Córdoba · Buenos Aires · all of Argentina")}</li>
+                  <li>{t("Córdoba, Argentina", "Córdoba, Argentina")}</li>
                   <li>{t("Miami, Estados Unidos", "Miami, United States")}</li>
                 </ul>
               </div>
@@ -3231,10 +3311,12 @@ export default function StudioB2B() {
       </div>
 
       <WhatsAppBubble t={t} chips={WA_CHIPS} />
-      <script
+      {/* el schema de preguntas va solo en la pagina donde las preguntas se ven:
+          Google lo pide asi para el resultado enriquecido */}
+      {vista === "preguntas" && <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd(FAQS)) }}
-      />
+      />}
     </div>
   );
 }
