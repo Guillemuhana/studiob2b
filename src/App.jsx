@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
-  ArrowUpRight, ArrowRight, ArrowLeft, Sparkles, Code2, Bot, PenTool,
+  ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, MapPin, Check, Database, Users,
   MessageSquare, FileSignature, Search, MonitorPlay, FileText, Wallet, Rocket, CircleDollarSign,
   Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
+  Building2, Lightbulb, Boxes, LayoutDashboard, Plug, Layers, Repeat,
+  ClipboardList, FileSpreadsheet, ShoppingCart, CalendarCheck, Store,
+  GraduationCap, Truck, CreditCard, ShieldCheck, Headphones, TrendingUp,
+  Target, Palette, FlaskConical, Send, Sprout, Blocks,
+  KeyRound, Network, Globe, Handshake,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
 import {
@@ -207,7 +212,7 @@ const CSS = `
 @property --s2b-g3 { syntax: '<color>'; inherits: false; initial-value: #6D4AFF; }
 @property --s2b-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 
-.s2b-hero { padding: 92px 0 0; position:relative; }
+.s2b-hero { padding: 92px 0 104px; position:relative; }
 .s2b-hero-in { position:relative; z-index:2; text-align:center; display:grid; justify-items:center; }
 
 /* halo que sigue al cursor */
@@ -633,6 +638,221 @@ const CSS = `
 .s2b-social a:hover { color:#fff; border-color:var(--lilac); transform:translateY(-2px); }
 .s2b-foot-bot { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; margin-top:44px; padding-top:22px; border-top:1px solid rgba(167,140,255,.14); font-family:var(--mono); font-size:11.5px; color:#7E7799; }
 
+/* ==================================================================
+   SECCIONES DEL HOME NUEVO
+   Todo se escribe primero para el celular -que es de donde va a llegar
+   la mayoria del trafico- y recien despues crece con min-width.
+   ================================================================== */
+
+/* ---------- linea de posicionamiento debajo del titular ---------- */
+.s2b-kicker { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px 12px;
+  margin-top:22px; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#B5ACD8; }
+.s2b-kicker i { width:4px; height:4px; border-radius:50%; background:rgba(167,140,255,.6); flex:none; }
+.s2b-hero-pie { margin-top:22px; font-size:13.5px; color:#9E97C4; max-width:46ch;
+  display:flex; align-items:center; gap:8px; justify-content:center; text-align:center; }
+.s2b-hero-pie svg { flex:none; color:var(--lilac); }
+
+/* ---------- las dos puertas: empresa o idea ---------- */
+.s2b-puertas { display:grid; gap:16px; margin-top:44px; }
+.s2b-puerta { position:relative; display:flex; flex-direction:column; text-align:left;
+  padding:26px 22px; border-radius:24px; border:1px solid var(--line); background:var(--surface);
+  box-shadow:0 24px 60px -46px rgba(24,12,60,.5); overflow:hidden;
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s; }
+.s2b-puerta::before { content:''; position:absolute; inset:0 0 auto; height:3px;
+  background:linear-gradient(90deg,var(--violet),var(--lilac)); opacity:.9; }
+.s2b-puerta:hover { transform:translateY(-4px); border-color:rgba(109,74,255,.34);
+  box-shadow:0 34px 70px -40px rgba(24,12,60,.55); }
+.s2b-puerta-ico { width:48px; height:48px; border-radius:15px; display:grid; place-items:center; color:#fff;
+  background:linear-gradient(150deg,var(--violet),#3B2296); margin-bottom:18px;
+  box-shadow:0 14px 30px -16px rgba(109,74,255,.9); }
+.s2b-puerta-rot { font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--violet); margin-bottom:9px; }
+.s2b-puerta h3 { font-size:clamp(20px,4.6vw,25px); line-height:1.2; margin-bottom:12px; }
+.s2b-puerta > p { color:var(--muted); font-size:15px; }
+.s2b-puerta-tags { display:flex; flex-wrap:wrap; gap:7px; margin:20px 0 24px; }
+.s2b-puerta .s2b-btn { align-self:flex-start; margin-top:auto; }
+
+/* ---------- los dolores de una empresa ---------- */
+.s2b-dolores { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:36px; }
+.s2b-dolor { display:flex; align-items:center; gap:10px; padding:14px 15px; border-radius:15px;
+  border:1px solid var(--line); background:#fff; font-size:13.5px; color:var(--text); line-height:1.3;
+  transition:border-color .25s, transform .25s; }
+.s2b-dolor:hover { border-color:rgba(109,74,255,.3); transform:translateY(-2px); }
+.s2b-dolor svg { flex:none; color:#B0A8CC; }
+
+/* el embudo: lo disperso arriba, un solo sistema abajo */
+.s2b-embudo { display:grid; justify-items:center; gap:14px; margin-top:38px; padding:28px 20px;
+  border-radius:24px; border:1px solid var(--line); background:linear-gradient(180deg,#fff,var(--paper)); }
+.s2b-embudo-fila { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+.s2b-embudo-fila span { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--muted); background:var(--paper); border:1px solid var(--line); padding:8px 13px; border-radius:999px; }
+.s2b-embudo-flecha { color:var(--violet); opacity:.6; }
+.s2b-embudo-marca { display:inline-flex; align-items:center; gap:10px; padding:13px 22px; border-radius:999px;
+  font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; color:#fff;
+  background:linear-gradient(120deg,var(--violet),#3B2296); box-shadow:0 18px 40px -20px rgba(109,74,255,.95); }
+.s2b-embudo-fin { font-family:var(--display); font-size:clamp(19px,4.4vw,26px); font-weight:600;
+  letter-spacing:-.02em; color:var(--title); text-align:center; }
+
+/* ---------- tengo una idea ---------- */
+.s2b-idea-traes { display:grid; gap:9px; margin:24px 0 0; padding:0; list-style:none; }
+.s2b-idea-traes li { display:flex; align-items:flex-start; gap:10px; font-size:15px; color:var(--text); }
+.s2b-idea-traes svg { flex:none; margin-top:4px; color:var(--lilac); }
+
+/* el recorrido de una idea: en el celular es una tira que se corre sola */
+.s2b-ruta { display:flex; align-items:center; gap:8px; margin-top:34px; padding-bottom:6px;
+  overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
+  -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);
+          mask-image:linear-gradient(90deg,#000 90%,transparent); }
+.s2b-ruta::-webkit-scrollbar { display:none; }
+.s2b-ruta b { flex:none; font-family:var(--mono); font-weight:500; font-size:11.5px; letter-spacing:.08em;
+  text-transform:uppercase; padding:10px 15px; border-radius:999px; white-space:nowrap;
+  color:#D8CDFF; background:rgba(255,255,255,.06); border:1px solid rgba(167,140,255,.26); }
+.s2b-ruta b:last-child { color:#fff; background:linear-gradient(120deg,var(--violet),#3B2296); border-color:transparent; }
+.s2b-ruta i { flex:none; color:rgba(167,140,255,.5); display:grid; place-items:center; }
+
+/* ---------- grilla de tarjetas: que desarrollamos / por que nosotros ---------- */
+.s2b-cards { display:grid; grid-template-columns:1fr; gap:12px; margin-top:40px; }
+.s2b-card { padding:20px; border-radius:20px; border:1px solid var(--line); background:#fff;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1), border-color .28s, box-shadow .28s; }
+.s2b-card:hover { transform:translateY(-4px); border-color:rgba(109,74,255,.3);
+  box-shadow:0 26px 54px -40px rgba(24,12,60,.6); }
+.s2b-card-ico { width:40px; height:40px; border-radius:13px; display:grid; place-items:center; margin-bottom:15px;
+  color:var(--violet); background:rgba(109,74,255,.09); border:1px solid rgba(109,74,255,.14);
+  transition:background .28s, color .28s; }
+.s2b-card:hover .s2b-card-ico { color:#fff; background:linear-gradient(150deg,var(--violet),#3B2296); border-color:transparent; }
+.s2b-card h3 { font-size:17px; margin-bottom:8px; letter-spacing:-.02em; }
+.s2b-card p { font-size:14px; color:var(--muted); line-height:1.55; }
+
+/* ---------- MVP ---------- */
+.s2b-mvp { display:grid; gap:32px; margin-top:38px; }
+.s2b-mvp-lista { display:grid; gap:10px; padding:0; margin:0; list-style:none; }
+.s2b-mvp-lista li { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:15px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(167,140,255,.2); font-size:14.5px; color:#C9C2E6; }
+.s2b-mvp-lista svg { flex:none; margin-top:2px; color:#8FF0B8; }
+
+/* ---------- IA: los usos, en pastillas ---------- */
+.s2b-usos { display:flex; flex-wrap:wrap; gap:8px; margin-top:26px; }
+.s2b-uso { display:inline-flex; align-items:center; gap:8px; padding:9px 15px; border-radius:999px;
+  font-size:13.5px; color:#D8CDFF; background:rgba(255,255,255,.06); border:1px solid rgba(167,140,255,.24);
+  transition:background .25s, border-color .25s, transform .25s; }
+.s2b-uso:hover { background:rgba(167,140,255,.16); border-color:rgba(167,140,255,.5); transform:translateY(-2px); }
+.s2b-uso i { width:5px; height:5px; border-radius:50%; background:var(--lilac); flex:none; }
+
+/* ---------- tipos de productos: mosaico visual ---------- */
+.s2b-prods { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:40px; }
+.s2b-prod { display:flex; flex-direction:column; align-items:flex-start; gap:11px; padding:17px 15px;
+  border-radius:18px; border:1px solid var(--line); background:#fff;
+  font-family:var(--display); font-weight:600; font-size:14px; letter-spacing:-.015em; color:var(--title);
+  line-height:1.25; transition:transform .25s, border-color .25s, box-shadow .25s; }
+.s2b-prod:hover { transform:translateY(-3px); border-color:rgba(109,74,255,.32);
+  box-shadow:0 20px 44px -34px rgba(24,12,60,.6); }
+.s2b-prod svg { color:var(--violet); flex:none; }
+
+/* ---------- portfolio: casos reales ---------- */
+.s2b-casos { display:grid; grid-template-columns:1fr; gap:18px; margin-top:44px; }
+.s2b-caso { display:flex; flex-direction:column; border-radius:24px; overflow:hidden;
+  border:1px solid var(--line); background:#fff; box-shadow:0 24px 60px -46px rgba(24,12,60,.5);
+  transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
+.s2b-caso:hover { transform:translateY(-4px); box-shadow:0 34px 74px -42px rgba(24,12,60,.6); }
+/* la parte de arriba: la captura del trabajo, o el logo cuando no hay captura */
+.s2b-caso-vis { position:relative; display:grid; place-items:center; padding:22px 18px; min-height:150px;
+  background:linear-gradient(150deg,#F0ECFF,#E4DCFF); overflow:hidden; }
+.s2b-caso-vis .s2b-shot { width:100%; }
+.s2b-caso-marca { display:grid; justify-items:center; gap:11px; padding:14px 20px; border-radius:18px;
+  background:#fff; box-shadow:0 18px 40px -30px rgba(24,12,60,.7); }
+.s2b-caso-marca img { height:56px; width:auto; max-width:190px; object-fit:contain; display:block; }
+.s2b-caso-cuerpo { display:flex; flex-direction:column; gap:12px; padding:22px 20px 24px; flex:1; }
+.s2b-caso-top { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.s2b-caso-cuerpo h3 { font-size:19px; letter-spacing:-.02em; }
+.s2b-caso-pais { display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-family:var(--mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--muted); }
+.s2b-caso-tipo { display:inline-flex; align-self:flex-start; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--violet);
+  background:rgba(109,74,255,.09); border:1px solid rgba(109,74,255,.16); padding:6px 12px; border-radius:999px; }
+.s2b-caso-dato { display:grid; gap:4px; }
+.s2b-caso-dato b { font-family:var(--mono); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--muted); font-weight:400; }
+.s2b-caso-dato p { font-size:14.2px; color:var(--text); line-height:1.55; }
+.s2b-caso .s2b-chips { margin:6px 0 0; }
+
+/* la voz del cliente adentro de su propio caso: la prueba llega junto con
+   el trabajo, y no en un carrusel aparte que repite los mismos seis logos */
+.s2b-caso-frase { display:flex; gap:9px; margin:4px 0 0; padding:14px 15px; border-radius:14px;
+  background:var(--paper); border:1px solid var(--line); }
+.s2b-caso-frase svg { flex:none; margin-top:3px; color:var(--lilac); }
+.s2b-caso-frase p { font-size:13.6px; line-height:1.5; color:var(--title); font-style:italic; }
+.s2b-caso-frase cite { display:block; margin-top:7px; font-style:normal; font-family:var(--mono);
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+
+/* ---------- proceso resumido en el home ---------- */
+.s2b-pasos { display:grid; grid-template-columns:1fr; gap:10px; margin-top:40px; }
+.s2b-paso-mini { display:grid; grid-template-columns:auto 1fr; gap:15px; align-items:start;
+  padding:17px 18px; border-radius:18px; border:1px solid var(--line); background:#fff;
+  transition:border-color .25s, transform .25s; }
+.s2b-paso-mini:hover { border-color:rgba(109,74,255,.3); transform:translateX(3px); }
+.s2b-paso-mini-ico { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; flex:none;
+  color:var(--violet); background:rgba(109,74,255,.09); border:1px solid rgba(109,74,255,.14); }
+.s2b-paso-mini .n { font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; color:var(--violet); }
+.s2b-paso-mini h4 { font-size:16.5px; margin:3px 0 5px; letter-spacing:-.02em; }
+.s2b-paso-mini p { font-size:14px; color:var(--muted); line-height:1.5; }
+
+/* ---------- cierre: la ultima llamada antes del formulario ---------- */
+.s2b-cierre { display:grid; gap:20px; justify-items:center; text-align:center; }
+.s2b-cierre-cta { display:flex; flex-wrap:wrap; gap:11px; justify-content:center; }
+
+/* ---------- ajustes de celular ---------- */
+@media (max-width: 640px) {
+  /* El hero de celular se aprieta a proposito: alguien que entra desde una
+     publicidad tiene que ver titular, subtitulo y los dos botones sin scrollear,
+     y la red justo abajo. Cada margen de aca se midio contra esa pantalla. */
+  .s2b-hero { padding-top:34px; padding-bottom:64px; }
+  /* la pastilla dice lo mismo que la linea de posicionamiento: en el celular
+     sobra una de las dos, y la que queda es la que esta al lado del titular */
+  .s2b-hero .s2b-pill { display:none; }
+  .s2b-sweep { margin-top:0; }
+  .s2b-hero p { font-size:15.3px; margin-top:17px; }
+  .s2b-kicker { margin-top:15px; }
+  .s2b-hero-cta { margin-top:22px; }
+  .s2b-hero-pie { margin-top:15px; }
+  .s2b-lab { margin-top:24px; }
+  /* dos botones a lo ancho entero: el pulgar no tiene que apuntar */
+  .s2b-hero-cta { width:100%; gap:10px; }
+  .s2b-hero-cta .s2b-btn { flex:1 0 100%; justify-content:center; }
+  .s2b-kicker { font-size:10px; letter-spacing:.13em; gap:6px 9px; }
+  .s2b-hero-pie { font-size:12.8px; }
+  /* el titular de seccion no puede empujar la pantalla a lo ancho */
+  .s2b-h2 { max-width:100%; }
+  .s2b-puerta .s2b-btn { width:100%; justify-content:center; }
+  .s2b-dolor { font-size:12.6px; padding:12px 12px; gap:8px; }
+  .s2b-embudo { padding:22px 14px; }
+  .s2b-embudo-fila span { font-size:10px; padding:7px 11px; }
+  .s2b-prod { font-size:13px; padding:15px 13px; }
+  .s2b-caso-cuerpo { padding:20px 17px 22px; }
+  .s2b-caso-vis { padding:18px 14px; min-height:0; }
+  .s2b-caso-marca img { height:46px; max-width:150px; }
+}
+
+/* ---------- de tablet para arriba ---------- */
+@media (min-width: 700px) {
+  .s2b-puertas { grid-template-columns:repeat(2,1fr); gap:20px; }
+  .s2b-puerta { padding:34px 30px; }
+  .s2b-dolores { grid-template-columns:repeat(4,1fr); gap:12px; }
+  .s2b-cards { grid-template-columns:repeat(2,1fr); gap:14px; }
+  .s2b-prods { grid-template-columns:repeat(4,1fr); }
+  .s2b-casos { grid-template-columns:repeat(2,1fr); gap:20px; }
+  .s2b-pasos { grid-template-columns:repeat(2,1fr); }
+  .s2b-mvp { grid-template-columns:1.05fr .95fr; gap:44px; align-items:center; }
+  .s2b-embudo { padding:36px; gap:16px; }
+  .s2b-caso-vis { min-height:190px; padding:26px 22px; }
+}
+@media (min-width: 1000px) {
+  .s2b-cards { grid-template-columns:repeat(3,1fr); }
+  .s2b-casos { grid-template-columns:repeat(3,1fr); }
+  .s2b-pasos { grid-template-columns:repeat(4,1fr); }
+  /* los tres primeros casos son los que tienen captura: ocupan mas lugar */
+  .s2b-caso--ancho { grid-column:span 1; }
+}
+
 /* ---------- responsive ---------- */
 /* las pestanas no entran a lo ancho: pasan a ser una tira que se corre */
 @media (max-width: 860px) {
@@ -854,6 +1074,207 @@ const clientes = (t) => [
   { n: "Escuadra Builders Group", src: "/clientes/escuadra.svg", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us" },
 ];
 
+
+/* ==================================================================
+   Los dos caminos que tiene que reconocer alguien que llega de una
+   publicidad: "tengo una empresa" o "tengo una idea". Todo el home se
+   ordena alrededor de esa bifurcacion.
+   ================================================================== */
+const ayuda = (t) => [
+  {
+    id: "empresas", ic: Building2,
+    rot: t("Para empresas", "For businesses"),
+    tt: t("Software diseñado alrededor de tu negocio.", "Software built around your business."),
+    d: t("Creamos sistemas personalizados para reemplazar procesos manuales, planillas de Excel, WhatsApp y herramientas desconectadas.", "We build custom systems to replace manual processes, spreadsheets and disconnected tools."),
+    tags: ["CRM", t("Presupuestos", "Quotes"), t("Clientes", "Clients"), t("Inventario", "Inventory"), t("Ventas", "Sales"), t("Automatización", "Automation"), t("IA", "AI"), "Dashboards"],
+    cta: t("Quiero mejorar mi empresa", "Improve my business"), to: "empresas",
+  },
+  {
+    id: "idea", ic: Lightbulb,
+    rot: t("Tengo una idea", "I have an idea"),
+    tt: t("Convertí tu idea en un producto real.", "Turn your idea into a real product."),
+    d: t("Te acompañamos desde la definición de la idea hasta el diseño, el desarrollo y el lanzamiento.", "We help from concept and strategy through design, development and launch."),
+    tags: ["Mobile App", "Web App", "Marketplace", "SaaS", "MVP", "Platform", "AI App"],
+    cta: t("Quiero desarrollar mi idea", "Build my idea"), to: "idea",
+  },
+];
+
+/* Lo que hoy le duele al dueño de una empresa. Son sintomas, no promesas:
+   cada uno lo reconoce en su propia operacion. */
+const dolores = (t) => [
+  { ic: FileSpreadsheet, t: "Excel" },
+  { ic: MessageSquare, t: "WhatsApp" },
+  { ic: FileText, t: t("Presupuestos manuales", "Manual quotes") },
+  { ic: Users, t: t("Clientes sin seguimiento", "No client follow-up") },
+  { ic: Boxes, t: t("Inventario desordenado", "Messy inventory") },
+  { ic: Repeat, t: t("Tareas repetitivas", "Repetitive tasks") },
+  { ic: Layers, t: t("Información dispersa", "Scattered information") },
+  { ic: ClipboardList, t: t("Procesos manuales", "Manual processes") },
+];
+
+const dispersos = (t) => ["Excel", "WhatsApp", "Email", t("Papel", "Paper"), t("Sistemas sueltos", "Disconnected tools")];
+
+/* Con que puede venir alguien que tiene una idea. La lista existe para sacarle
+   la presion de encima: no hace falta traer todo resuelto. */
+const ideaEntradas = (t) => [
+  t("una idea", "an idea"),
+  t("un boceto", "a sketch"),
+  t("una necesidad", "a need"),
+  t("un modelo de negocio", "a business model"),
+  t("una app que querés mejorar", "an app you want to improve"),
+  t("un problema que querés resolver", "a problem you want to solve"),
+];
+
+const ideaFlujo = (t) => [
+  t("Idea", "Idea"), t("Validación", "Validation"), "MVP", t("Diseño UX/UI", "UX/UI design"),
+  t("Desarrollo", "Development"), t("Lanzamiento", "Launch"), t("Evolución", "Growth"),
+];
+
+const mvpObjetivos = (t) => [
+  t("Validar la idea con usuarios reales.", "Validate the idea with real users."),
+  t("Salir al mercado más rápido.", "Get to market faster."),
+  t("Reducir la inversión inicial.", "Reduce the upfront investment."),
+  t("Probar el modelo antes de escalarlo.", "Test the model before scaling it."),
+  t("Mejorar el producto según resultados.", "Improve the product based on results."),
+  t("Crecer por etapas, sin frenar.", "Grow in stages, without stopping."),
+];
+
+/* Todo lo que sabemos construir. Es una grilla y no un parrafo: alguien que
+   llega de Instagram tiene que encontrar lo suyo de un vistazo. */
+const queDesarrollamos = (t) => [
+  { ic: Code2, t: t("Software a medida", "Custom software"), d: t("Sistemas diseñados alrededor de los procesos reales de cada empresa.", "Systems designed around each company's real processes.") },
+  { ic: Smartphone, t: t("Aplicaciones móviles", "Mobile apps"), d: t("Apps para clientes, empleados o para un producto nuevo, en iOS y Android.", "Apps for clients, staff or a brand new product, on iOS and Android.") },
+  { ic: Globe, t: t("Aplicaciones web", "Web apps"), d: t("Plataformas rápidas, modernas y preparadas para crecer.", "Fast, modern platforms built to scale.") },
+  { ic: Users, t: t("CRM personalizado", "Custom CRM"), d: t("Clientes, oportunidades, ventas y seguimiento en un solo lugar.", "Clients, leads, sales and follow-up in one place.") },
+  { ic: Building2, t: t("Sistemas empresariales", "Business systems"), d: t("Plataformas internas para ordenar las distintas áreas de una empresa.", "Internal platforms that bring a company's different areas together.") },
+  { ic: Workflow, t: t("Automatización", "Automation"), d: t("Las tareas repetitivas dejan de ocupar horas de tu equipo.", "Repetitive tasks stop eating your team's hours.") },
+  { ic: Sparkles, t: t("Inteligencia Artificial", "Artificial intelligence"), d: t("IA integrada dentro de procesos y sistemas que ya están funcionando.", "AI built into processes and systems that are already running.") },
+  { ic: Bot, t: t("Agentes de IA", "AI agents"), d: t("Asistentes que atienden, califican y resuelven en ventas y operaciones.", "Assistants that answer, qualify and resolve across sales and operations.") },
+  { ic: CreditCard, t: "SaaS", d: t("Productos digitales por suscripción, con su panel y su facturación.", "Subscription products, with their own dashboard and billing.") },
+  { ic: Store, t: "Marketplaces", d: t("Plataformas que conectan clientes, vendedores o proveedores.", "Platforms that connect clients, sellers or suppliers.") },
+  { ic: LayoutDashboard, t: "Dashboards", d: t("La información del negocio ordenada en paneles que se entienden.", "Your business data organized into panels that actually read clearly.") },
+  { ic: Plug, t: t("Integraciones", "Integrations"), d: t("APIs, WhatsApp, email, pagos, CRM y las herramientas que ya usás.", "APIs, WhatsApp, email, payments, CRM and the tools you already use.") },
+  { ic: Rocket, t: "MVP", d: t("La primera versión funcional de una idea, lista para salir.", "The first working version of an idea, ready to ship.") },
+  { ic: KeyRound, t: t("Portales para clientes", "Client portals"), d: t("Accesos privados para clientes, empleados o proveedores.", "Private access for clients, staff or suppliers.") },
+];
+
+/* Donde la IA entra de verdad en un negocio. La lista existe para sacarse de
+   encima la idea de que esto son chatbots. */
+const iaUsos = (t) => [
+  t("Agentes de ventas", "Sales agents"),
+  t("Asistentes para vendedores", "Assistants for sales reps"),
+  t("Atención automática", "Automated support"),
+  t("Calificación de leads", "Lead qualification"),
+  t("Seguimientos automáticos", "Automated follow-ups"),
+  t("Análisis de documentos", "Document analysis"),
+  t("Asistentes internos", "Internal assistants"),
+  t("Automatización de procesos", "Process automation"),
+  t("IA dentro de aplicaciones", "AI inside applications"),
+  t("Análisis de información", "Data analysis"),
+];
+
+/* Productos concretos, nombrados por rubro. A proposito no repite ninguna de
+   las tarjetas de "que desarrollamos": alla estan las capacidades, aca esta
+   para que alguien reconozca lo suyo en una palabra. */
+const productos = (t) => [
+  { ic: CalendarCheck, t: t("Turnos y reservas", "Appointments and bookings") },
+  { ic: FileText, t: t("Sistema de presupuestos", "Quoting system") },
+  { ic: Boxes, t: t("Control de stock", "Stock control") },
+  { ic: ClipboardList, t: t("Gestión de empleados", "Employee management") },
+  { ic: Truck, t: t("Delivery y pedidos", "Delivery and orders") },
+  { ic: ShoppingCart, t: t("Tienda online a medida", "Custom online store") },
+  { ic: GraduationCap, t: t("Plataforma de cursos", "Course platform") },
+  { ic: KeyRound, t: t("Sistema de membresías", "Membership system") },
+  { ic: TrendingUp, t: t("App para gimnasios", "App for gyms") },
+  { ic: Store, t: t("App para restaurantes", "App for restaurants") },
+  { ic: Building2, t: t("App inmobiliaria", "Real estate app") },
+  { ic: Network, t: t("Transporte y logística", "Transport and logistics") },
+  { ic: Headphones, t: t("App para profesionales", "App for professionals") },
+  { ic: Sparkles, t: t("App de eventos", "Events app") },
+  { ic: CreditCard, t: t("Sistema de facturación", "Invoicing system") },
+  { ic: ShieldCheck, t: t("App institucional", "Institutional app") },
+];
+
+/* Como se desarrolla un producto, de la primera charla al crecimiento. Es el
+   resumen del ciclo; el recorrido comercial completo vive en /proceso. */
+const procesoResumen = (t) => [
+  { n: "01", ic: Search, t: t("Descubrimiento", "Discovery"), d: t("Entendemos tu idea, tu empresa, el problema y el objetivo.", "We get to know your idea, your company, the problem and the goal.") },
+  { n: "02", ic: Target, t: t("Estrategia", "Strategy"), d: t("Definimos la mejor solución y las funcionalidades necesarias.", "We define the right solution and the features it needs.") },
+  { n: "03", ic: Palette, t: t("Diseño UX/UI", "UX/UI design"), d: t("Diseñamos cómo se va a ver y cómo se va a usar.", "We design how it will look and how it will be used.") },
+  { n: "04", ic: Code2, t: t("Desarrollo", "Development"), d: t("Convertimos el diseño en un producto real y funcionando.", "We turn the design into a real, working product.") },
+  { n: "05", ic: FlaskConical, t: t("Pruebas", "Testing"), d: t("Probamos funcionalidades, responsive y experiencia de uso.", "We test features, responsiveness and the user experience.") },
+  { n: "06", ic: Send, t: t("Lanzamiento", "Launch"), d: t("Publicamos y dejamos el producto listo para usuarios reales.", "We publish and get the product ready for real users.") },
+  { n: "07", ic: Sprout, t: t("Evolución", "Growth"), d: t("Seguimos desarrollando nuevas funcionalidades cuando hacen falta.", "We keep building new features as they are needed.") },
+];
+
+const porQue = (t) => [
+  { ic: Blocks, t: t("Desarrollo a medida", "Built to measure"), d: t("No usamos soluciones genéricas cuando el negocio necesita algo propio.", "We don't reach for generic solutions when the business needs something of its own.") },
+  { ic: Headphones, t: t("Comunicación directa", "Direct communication"), d: t("Hablás con el equipo que desarrolla, durante todo el proyecto.", "You talk to the team doing the work, for the whole project.") },
+  { ic: Palette, t: t("Diseño + tecnología", "Design + technology"), d: t("No solamente programamos: pensamos producto, experiencia y funcionamiento.", "We don't just write code: we think about product, experience and how it actually runs.") },
+  { ic: TrendingUp, t: t("Preparado para crecer", "Ready to scale"), d: t("Desarrollamos pensando en que el producto pueda evolucionar.", "We build so the product can keep evolving.") },
+  { ic: Sparkles, t: t("IA con criterio", "AI with judgment"), d: t("Integramos inteligencia artificial cuando de verdad aporta valor, no para figurar.", "We bring artificial intelligence in when it genuinely adds value, not for show.") },
+  { ic: Handshake, t: t("Acompañamiento", "Ongoing support"), d: t("Podemos seguir mejorando el sistema después del lanzamiento.", "We can keep improving the system after launch.") },
+];
+
+/* Trabajos reales, contados con lo que dijeron los propios clientes. Nada de
+   esto es inventado: sale de los testimonios que ya estaban en el sitio. */
+const casos = (t) => [
+  {
+    id: "numera", n: "Numera", tipo: t("App a medida · SaaS", "Custom app · SaaS"),
+    logo: "/clientes/logonumera.jpg", pais: t("Uruguay", "Uruguay"), bandera: "uy",
+    img: "/trabajos/numera.jpg", an: 1400, al: 793,
+    alt: t("Numera, la plataforma de presupuestos y facturas que desarrollamos a medida", "Numera, the quoting and invoicing platform we built from scratch"),
+    problema: t("Un pedido a medida para emitir presupuestos, facturas y acuerdos de confidencialidad sin depender de documentos sueltos.", "A custom request to issue quotes, invoices and confidentiality agreements without relying on loose documents."),
+    solucion: t("La construimos de cero y hoy es un producto en producción que seguimos sosteniendo: más de 5.000 suscriptores la usan todos los días.", "We built it from scratch and today it is a product in production that we still maintain: more than 5,000 subscribers use it every day."),
+    fn: [t("Presupuestos", "Quotes"), t("Facturas", "Invoices"), t("Firma digital", "Digital signature"), t("Suscripciones", "Subscriptions")],
+    frase: t("Más de 5.000 suscriptores la usan todos los días.", "More than 5,000 subscribers use it every day."), quien: "Numera",
+  },
+  {
+    id: "ninit", n: "Ninit Group", tipo: t("Agente de IA y CRM a medida", "AI agent and custom CRM"),
+    logo: "/clientes/ninit-group.png", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us",
+    img: "/trabajos/agente-n8n.png", an: 1400, al: 483,
+    alt: t("Flujo de un agente en producción: entra por WhatsApp o SMS, decide, consulta la base y escribe en el CRM", "An agent flow in production: it comes in through WhatsApp or SMS, decides, queries the database and writes to the CRM"),
+    problema: t("Cada consulta que entraba por WhatsApp la tenía que responder una persona, una por una.", "Every request coming in through WhatsApp had to be answered by a person, one at a time."),
+    solucion: t("Un agente conectado a Meta WhatsApp, n8n y un CRM a medida: las consultas se responden solas y lo que necesita a una persona llega con todo el contexto.", "An agent connected to Meta WhatsApp, n8n and a custom CRM: requests get answered on their own and whatever needs a person arrives with the full context."),
+    fn: ["WhatsApp API", "n8n", t("CRM a medida", "Custom CRM"), t("Derivación con contexto", "Context-rich handoff")],
+    frase: t("Gracias a ellos automatizamos la compañía.", "Thanks to them we automated the company."), quien: t("Nicolás Hercun · CEO de Ninit Group", "Nicolás Hercun · CEO at Ninit Group"),
+  },
+  {
+    id: "ipic", n: "IPIC SMO · IICC", tipo: t("Sitio web y base de datos", "Website and database"),
+    logo: "/clientes/ipicsmo.png", pais: t("Estados Unidos · Córdoba", "United States · Córdoba"), bandera: "us",
+    img: "/trabajos/ipicsmo.jpg", an: 1400, al: 646,
+    alt: t("IPIC SMO, sitio y sistema de diseño que armamos para una organización de investigación clínica", "IPIC SMO, the website and design system we built for a clinical research organization"),
+    problema: t("La información de los estudios clínicos necesitaba un lugar propio, ordenado y a nombre del centro.", "The clinical study information needed a place of its own, organized and in the center's name."),
+    solucion: t("Sitio y base de datos donde hoy vive la información de los estudios, con los tiempos y el cuidado que pide el dato clínico. Quedó todo documentado.", "A website and database where the study information lives today, with the timelines and the care clinical data demands. Everything documented."),
+    fn: [t("Sitio web", "Website"), t("Base de datos", "Database"), t("Sistema de diseño", "Design system"), t("Documentación", "Documentation")],
+    frase: t("Entendieron rápido cómo trabaja un centro de investigación.", "They quickly understood how a research center works."), quien: t("Dr. Mauro Pautaso · Director Médico", "Dr. Mauro Pautaso · Medical Director"),
+  },
+  {
+    id: "pecifa", n: "Pecifa Nacional", tipo: t("App móvil, web y portal de afiliados", "Mobile app, web and member portal"),
+    logo: "/clientes/pecifa.png", pais: t("Argentina", "Argentina"), bandera: "ar", esc: 1.3,
+    problema: t("Lo que el afiliado necesitaba resolver era un llamado o un papel.", "Whatever a member needed to sort out meant a phone call or a piece of paper."),
+    solucion: t("App móvil, sitio y portal de afiliados funcionando juntos: el afiliado resuelve desde el celular y la organización ve todo en un solo lugar.", "Mobile app, website and member portal working together: members handle it from their phone and the organization sees everything in one place."),
+    fn: [t("App móvil", "Mobile app"), t("Portal de afiliados", "Member portal"), t("Sitio web", "Website")],
+    frase: t("Se hicieron cargo de la parte técnica de punta a punta.", "They took care of the technical side end to end."), quien: "Hernán Marcantonio",
+  },
+  {
+    id: "munich", n: "Nuevo Munich", tipo: t("CRM a medida y sistema de ventas", "Custom CRM and sales system"),
+    logo: "/clientes/nuevo-munich.png", pais: t("Argentina", "Argentina"), bandera: "ar",
+    problema: t("Recepción y ventas trabajaban cada una con sus propias planillas y anotaciones.", "The front desk and the sales team each worked from their own spreadsheets and notes."),
+    solucion: t("Un CRM a medida y un sistema de recepción y vendedores que el equipo usa todos los días, con los cambios resueltos sin hacerlos esperar.", "A custom CRM and a front-desk and sales system the team uses every single day, with change requests resolved without keeping them waiting."),
+    fn: ["CRM", t("Recepción", "Front desk"), t("Ventas", "Sales"), t("Soporte continuo", "Ongoing support")],
+    frase: t("Cuando pedimos un cambio está resuelto sin hacernos esperar.", "When we ask for a change it gets done without keeping us waiting."), quien: t("Equipo de Nuevo Munich", "The Nuevo Munich team"),
+  },
+  {
+    id: "escuadra", n: "Escuadra Builders Group", tipo: t("Sitio web, cotizaciones y WhatsApp", "Website, estimates and WhatsApp"),
+    logo: "/clientes/escuadra.svg", pais: t("Miami, Estados Unidos", "Miami, United States"), bandera: "us",
+    problema: t("Las consultas llegaban sueltas y el cliente no terminaba de entender cómo trabajaba la constructora.", "Requests arrived scattered and clients never quite understood how the contractor worked."),
+    solucion: t("Un sitio que explica el proceso de cuatro pasos y muestra los proyectos, con pedido de presupuesto por formulario o WhatsApp. Las consultas llegan ordenadas.", "A site that explains their four-step process and shows the projects, with estimate requests by form or WhatsApp. Requests now arrive organized."),
+    fn: [t("Sitio web", "Website"), t("Cotizaciones", "Estimates"), "WhatsApp", t("Proyectos", "Projects")],
+    frase: t("Las consultas llegan ordenadas y respondemos el mismo día.", "Requests come in organized and we answer the same day."), quien: t("Equipo de Escuadra Builders Group", "The Escuadra Builders Group team"),
+  },
+];
+
 const servicios = (t) => [
   {
     icon: Bot, t: t("Agentes de IA en producción", "AI agents in production"),
@@ -930,12 +1351,6 @@ const proceso = (t) => [
   },
 ];
 
-const etapas = (t) => [
-  { n: "01", t: t("Diagnóstico", "Discovery"), d: t("Dos semanas mirando el negocio. Salís con alcance cerrado, plan y número.", "Two weeks looking at the business. You come out with a closed scope, a plan and a price.") },
-  { n: "02", t: t("Prototipo", "Prototype"), d: t("Un prototipo navegable que tu equipo prueba antes de que escribamos código.", "A clickable prototype your team tries before we write a line of code.") },
-  { n: "03", t: t("Entregas", "Delivery"), d: t("Ciclos de dos semanas con demo en vivo sobre el producto real.", "Two-week cycles with a live demo on the real product.") },
-  { n: "04", t: t("Operación", "Operations"), d: t("Monitoreo, soporte y roadmap trimestral. El código es tuyo desde el día uno.", "Monitoring, support and a quarterly roadmap. The code is yours from day one.") },
-];
 
 const agentLines = (t) => [
   { t: "> agente.iniciar('comercial')", c: "cmd" },
@@ -1054,6 +1469,15 @@ const testimonios = (t) => [
 ];
 
 const faqs = (t) => [
+  { q: t("¿Pueden ayudarme si solamente tengo una idea?", "Can you help me if all I have is an idea?"), a: t("Sí, es el caso más común. No hace falta que traigas todo definido: alcanza con la idea, un boceto o el problema que querés resolver. Nosotros te ayudamos a darle forma de producto, definir qué lleva y por dónde conviene empezar.", "Yes, that is the most common case. You don't need it all figured out: an idea, a sketch or the problem you want to solve is enough. We help you shape it into a product, define what it needs and where it makes sense to start.") },
+  { q: t("¿Cuánto cuesta desarrollar una app?", "How much does it cost to build an app?"), a: t("Cada proyecto es diferente y el costo depende de las funcionalidades, el alcance, el diseño, las integraciones y la complejidad. Primero analizamos la idea o la necesidad y recién ahí preparamos una propuesta con el número.", "Every project is different and the cost depends on features, scope, design, integrations and complexity. We analyze the idea or the need first, and only then put together a proposal with the price.") },
+  { q: t("¿Qué es un MVP?", "What is an MVP?"), a: t("Es la primera versión funcional de tu producto: lleva las funcionalidades más importantes, sale antes y te deja probar la idea con usuarios reales. No es una versión recortada, es una forma de invertir con menos riesgo y crecer sobre lo que funciona.", "It is the first working version of your product: it carries the most important features, ships sooner and lets you test the idea with real users. It isn't a stripped-down version, it is a way to invest with less risk and grow on what works.") },
+  { q: t("¿Desarrollan aplicaciones móviles?", "Do you build mobile apps?"), a: t("Sí, para iOS y Android. Nos ocupamos del diseño, el desarrollo, la publicación en las tiendas y las actualizaciones posteriores.", "Yes, for iOS and Android. We handle design, development, store releases and later updates.") },
+  { q: t("¿Pueden desarrollar un CRM?", "Can you build a CRM?"), a: t("Sí, y es de lo que más hacemos. Un CRM a medida se arma alrededor de cómo vende tu equipo, no al revés: clientes, oportunidades, seguimiento, presupuestos y los informes que de verdad mirás.", "Yes, and it is one of the things we build most. A custom CRM is shaped around how your team sells, not the other way round: clients, leads, follow-up, quotes and the reports you actually look at.") },
+  { q: t("¿Pueden integrar Inteligencia Artificial?", "Can you integrate artificial intelligence?"), a: t("Sí, y la integramos adentro de sistemas y procesos que ya están funcionando: agentes de ventas, atención automática, calificación de consultas, análisis de documentos y asistentes internos. La sumamos cuando aporta valor real, no para figurar.", "Yes, and we build it into systems and processes that are already running: sales agents, automated support, lead qualification, document analysis and internal assistants. We add it when it delivers real value, not for show.") },
+  { q: t("¿Pueden mejorar un sistema existente?", "Can you improve an existing system?"), a: t("Sí. Podemos tomar una app o un sistema que ya está en uso, revisarlo y seguir desarrollándolo: funcionalidades nuevas, mejoras de rendimiento, rediseño o integraciones con otras herramientas.", "Yes. We can take over an app or a system already in use, review it and keep building on it: new features, performance work, a redesign or integrations with other tools.") },
+  { q: t("¿Trabajan con empresas y con emprendedores?", "Do you work with companies and with entrepreneurs?"), a: t("Con los dos. Con empresas que necesitan ordenar su operación y dejar atrás las planillas sueltas, y con emprendedores y profesionales que quieren lanzar un producto digital propio.", "With both. With companies that need to organize their operation and leave scattered spreadsheets behind, and with entrepreneurs and professionals who want to launch a digital product of their own.") },
+  { q: t("¿Ofrecen soporte después del lanzamiento?", "Do you offer support after launch?"), a: t("Sí. Podemos seguir con mantenimiento, mejoras y funcionalidades nuevas después de que el producto sale. Varios de los sistemas que hicimos los seguimos sosteniendo hoy.", "Yes. We can continue with maintenance, improvements and new features after the product ships. Several of the systems we built are still maintained by us today.") },
   { q: t("¿Cuánto tarda un proyecto?", "How long does a project take?"), a: t("Un agente de IA acotado sale en 4 a 6 semanas. Una plataforma completa, entre 3 y 6 meses, con entregas usables cada dos semanas desde la tercera.", "A focused AI agent ships in 4 to 6 weeks. A full platform, between 3 and 6 months, with usable releases every two weeks from week three onward.") },
   { q: t("¿Cómo cobran?", "How do you charge?"), a: t("Arrancamos con una reunión virtual para entender qué necesitás. Tu idea o tu sistema a medida pasa al área de desarrollo: lo analizamos y te armamos una demo sin ningún cargo, gratis. Recién ahí decidís si avanzás o no. Si avanzás, te entregamos el presupuesto y se arranca con una seña del 20% del trabajo, que es lo que nos deja en confianza a las dos partes; después un 40% y el resto al finalizar.", "We start with a video call to understand what you need. Your idea or custom system goes to the development team: we analyze it and build you a demo at no charge, free. Only then do you decide whether to go ahead. If you do, we send the quote and start with a 20% deposit, which is what puts both sides at ease; then 40% and the rest on delivery.") },
   { q: t("¿El código queda nuestro?", "Do we own the code?"), a: t("Sí. Repositorio, infraestructura y documentación a tu nombre desde el primer día. Además, con Numera —nuestra propia app— no solo te llega el presupuesto detallado línea por línea: junto con él va el acuerdo de confidencialidad firmado, así lo que nos contás y lo que construimos es tuyo y no sale de acá. Si mañana querés seguir con otro equipo, podés hacerlo sin trabas.", "Yes. Repository, infrastructure and documentation in your name from day one. On top of that, with Numera —our own app— you don't just get a quote itemized line by line: the signed confidentiality agreement comes with it, so what you tell us and what we build is yours and stays here. If tomorrow you want to continue with another team, you can, with nothing in your way.") },
@@ -1074,6 +1498,7 @@ const faqLd = (lista) => ({
 });
 
 const FORM_TO = "guillemuhana@gmail.com";
+const FORM_VACIO = { nombre: "", empresa: "", email: "", tel: "", tipo: "", etapa: "", presupuesto: "", msg: "" };
 const WA_NUM = "5493515931673";
 const WA_SHOW = "+54 9 351 593-1673";
 const waLink = (msg) => "https://wa.me/" + WA_NUM + "?text=" + encodeURIComponent(msg);
@@ -1083,39 +1508,83 @@ const waChips = (t) => [
   t("Hola, quiero hacerles una consulta.", "Hi, I have a question for you."),
 ];
 
-/* Las opciones del formulario. Estan en una lista aparte y no escritas a mano
-   adentro del select para poder tocarlas sin meterse en el JSX. */
-const tiposDeApp = (t) => [
-  t("Tienda online / E-commerce", "Online store / E-commerce"),
-  t("Sistema de gestión empresarial", "Business management system"),
-  t("CRM para clientes y ventas", "CRM for clients and sales"),
-  t("Facturación y presupuestos", "Invoicing and quotes"),
-  t("Turnos y reservas", "Appointments and bookings"),
-  t("Delivery y pedidos", "Delivery and orders"),
-  t("Catálogo de productos", "Product catalog"),
-  t("Control de stock", "Inventory control"),
-  t("Administración de empleados", "Employee management"),
-  t("Aplicación para gimnasios", "App for gyms"),
-  t("Aplicación para restaurantes", "App for restaurants"),
-  t("Aplicación para profesionales", "App for professionals"),
-  t("Aplicación educativa", "Education app"),
-  t("Aplicación para eventos", "Events app"),
-  t("Aplicación inmobiliaria", "Real estate app"),
-  t("Aplicación de transporte o logística", "Transport or logistics app"),
-  t("Marketplace", "Marketplace"),
-  t("Red social o comunidad", "Social network or community"),
-  t("Plataforma de cursos", "Course platform"),
-  t("Sistema de membresías", "Membership system"),
-  t("Aplicación con inteligencia artificial", "App with artificial intelligence"),
-  t("Chatbot o asistente virtual", "Chatbot or virtual assistant"),
-  t("Aplicación conectada con WhatsApp", "App connected to WhatsApp"),
-  t("Aplicación para control de acceso con QR", "QR access control app"),
-  t("Aplicación institucional", "Institutional app"),
-  t("Aplicación solidaria", "Nonprofit app"),
-  t("Aplicación personalizada desde cero", "Custom app from scratch"),
-  t("Mejoras en una aplicación existente", "Improvements to an existing app"),
-  t("No estoy seguro, necesito asesoramiento", "Not sure, I need advice"),
-  t("Otro", "Other"),
+/* La primera pregunta del formulario, agrupada por los dos publicos del sitio.
+   Reemplaza a la lista suelta de tipos de app: la misma informacion, pero
+   ordenada para que cada visitante encuentre lo suyo sin leer treinta lineas. */
+const necesidades = (t) => [
+  {
+    g: t("Para mi empresa", "For my business"),
+    o: [
+      t("Software a medida para mi empresa", "Custom software for my business"),
+      t("CRM para clientes y ventas", "CRM for clients and sales"),
+      t("Sistema de gestión empresarial", "Business management system"),
+      t("Sistema administrativo interno", "Internal admin system"),
+      t("Facturación y presupuestos", "Invoicing and quotes"),
+      t("Control de stock e inventario", "Stock and inventory control"),
+      t("Turnos y reservas", "Appointments and bookings"),
+      t("Administración de empleados", "Employee management"),
+      t("Automatización de procesos", "Process automation"),
+      t("Dashboards e informes", "Dashboards and reports"),
+      t("Portal para clientes o proveedores", "Client or supplier portal"),
+      t("Integración con otras herramientas", "Integration with other tools"),
+      t("Mejoras en un sistema existente", "Improvements to an existing system"),
+    ],
+  },
+  {
+    g: t("Tengo una idea", "I have an idea"),
+    o: [
+      t("Tengo una idea para una app", "I have an idea for an app"),
+      t("Aplicación móvil", "Mobile app"),
+      t("Aplicación web", "Web app"),
+      t("Marketplace", "Marketplace"),
+      t("Plataforma SaaS", "SaaS platform"),
+      t("MVP: primera versión funcional", "MVP: first working version"),
+      t("Tienda online / E-commerce", "Online store / E-commerce"),
+      t("Delivery y pedidos", "Delivery and orders"),
+      t("Plataforma de cursos", "Course platform"),
+      t("Sistema de membresías", "Membership system"),
+      t("Red social o comunidad", "Social network or community"),
+      t("Aplicación para eventos", "Events app"),
+      t("Aplicación inmobiliaria", "Real estate app"),
+      t("Aplicación de transporte o logística", "Transport or logistics app"),
+    ],
+  },
+  {
+    g: t("Inteligencia Artificial", "Artificial intelligence"),
+    o: [
+      t("Agente de IA", "AI agent"),
+      t("Chatbot o asistente virtual", "Chatbot or virtual assistant"),
+      t("Aplicación con inteligencia artificial", "App with artificial intelligence"),
+      t("IA conectada con WhatsApp", "AI connected to WhatsApp"),
+    ],
+  },
+  {
+    g: t("Otro", "Other"),
+    o: [
+      t("Todavía no lo sé, necesito asesoramiento", "Not sure yet, I need advice"),
+      t("Otro", "Other"),
+    ],
+  },
+];
+
+const etapasProyecto = (t) => [
+  t("Tengo solamente una idea", "I only have an idea"),
+  t("Estoy investigando", "I'm doing research"),
+  t("Ya tengo el proyecto definido", "The project is already defined"),
+  t("Tengo diseños", "I have designs"),
+  t("Ya tengo una app funcionando", "I already have an app running"),
+  t("Necesito mejorar un sistema existente", "I need to improve an existing system"),
+  t("No estoy seguro", "Not sure"),
+];
+
+/* El presupuesto nunca es obligatorio: preguntarlo de mas espanta consultas
+   que despues resultan buenas. */
+const presupuestos = (t) => [
+  t("Todavía no lo sé", "I don't know yet"),
+  t("Hasta USD 5.000", "Up to USD 5,000"),
+  "USD 5.000 - 10.000",
+  "USD 10.000 - 25.000",
+  "USD 25.000+",
 ];
 
 const navLinks = (t) => [
@@ -2616,7 +3085,7 @@ export default function StudioB2B() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [formErr, setFormErr] = useState("");
-  const [form, setForm] = useState({ nombre: "", empresa: "", email: "", tel: "", tipo: "", msg: "" });
+  const [form, setForm] = useState(FORM_VACIO);
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
   const [idioma, setIdioma] = useState(idiomaGuardado);
@@ -2625,13 +3094,26 @@ export default function StudioB2B() {
   const CLIENTES = useMemo(() => clientes(t), [t]);
   const SERVICIOS = useMemo(() => servicios(t), [t]);
   const PROCESO = useMemo(() => proceso(t), [t]);
-  const ETAPAS = useMemo(() => etapas(t), [t]);
   const AGENT_PTS = useMemo(() => agentPts(t), [t]);
   const TECNOLOGIAS = useMemo(() => tecnologias(t), [t]);
   const TESTIMONIOS = useMemo(() => testimonios(t), [t]);
   const FAQS = useMemo(() => faqs(t), [t]);
   const NAV_LINKS = useMemo(() => navLinks(t), [t]);
-  const TIPOS_APP = useMemo(() => tiposDeApp(t), [t]);
+  const AYUDA = useMemo(() => ayuda(t), [t]);
+  const DOLORES = useMemo(() => dolores(t), [t]);
+  const DISPERSOS = useMemo(() => dispersos(t), [t]);
+  const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
+  const IDEA_FLUJO = useMemo(() => ideaFlujo(t), [t]);
+  const MVP_OBJETIVOS = useMemo(() => mvpObjetivos(t), [t]);
+  const QUE_DESARROLLAMOS = useMemo(() => queDesarrollamos(t), [t]);
+  const IA_USOS = useMemo(() => iaUsos(t), [t]);
+  const PRODUCTOS = useMemo(() => productos(t), [t]);
+  const PROCESO_RESUMEN = useMemo(() => procesoResumen(t), [t]);
+  const POR_QUE = useMemo(() => porQue(t), [t]);
+  const CASOS = useMemo(() => casos(t), [t]);
+  const NECESIDADES = useMemo(() => necesidades(t), [t]);
+  const ETAPAS_PROY = useMemo(() => etapasProyecto(t), [t]);
+  const PRESUPUESTOS = useMemo(() => presupuestos(t), [t]);
   const WA_CHIPS = useMemo(() => waChips(t), [t]);
   const AGENT_LINES = useMemo(() => agentLines(t), [t]);
   const logosTab = useMemo(() => (TECNOLOGIAS.find((c) => c.id === tab) || TECNOLOGIAS[0]).logos, [TECNOLOGIAS, tab]);
@@ -2680,12 +3162,19 @@ export default function StudioB2B() {
     return () => window.removeEventListener("scroll", s);
   }, []);
 
+  /* El titulo de la pestana sigue a la vista y al idioma. El del index.html es
+     el que ve Google en el home; este es el que ve la persona mientras navega. */
   useEffect(() => {
     document.title =
-      vista === "proceso" ? "El Proceso Studio B2B, paso a paso · Studio B2B" :
-      vista === "preguntas" ? "Preguntas frecuentes · Studio B2B" :
-      "Software a medida y agentes de IA en Córdoba · Studio B2B";
-  }, [vista]);
+      vista === "proceso" ? t("El Proceso Studio B2B, paso a paso | Studio B2B", "The Studio B2B Process, step by step | Studio B2B") :
+      vista === "preguntas" ? t("Preguntas frecuentes | Studio B2B", "Frequently asked questions | Studio B2B") :
+      t("Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial",
+        "Studio B2B | Custom Software, Apps & AI Solutions");
+    const d = document.querySelector('meta[name="description"]');
+    if (d) d.setAttribute("content", t(
+      "Desarrollamos aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina.",
+      "Custom software, mobile apps, CRM systems and AI solutions for businesses and entrepreneurs. Built from Córdoba, Argentina."));
+  }, [vista, t]);
 
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -2729,7 +3218,9 @@ export default function StudioB2B() {
           Empresa: form.empresa || "-",
           Email: form.email,
           Telefono: form.tel || "-",
-          "Tipo de proyecto": form.tipo || "-",
+          "Qué necesita": form.tipo || "-",
+          "Etapa del proyecto": form.etapa || "-",
+          "Presupuesto estimado": form.presupuesto || "-",
           Contexto: form.msg || "-",
         }),
       });
@@ -2741,6 +3232,90 @@ export default function StudioB2B() {
       setSending(false);
     }
   };
+
+  /* El formulario vive en un solo lugar y se muestra en dos: al final del home
+     -que es donde cae la mayoria del trafico- y al cierre de /proceso, que es
+     el link que se le pasa al cliente. Como nunca hay dos vistas a la vez, el
+     id "contacto" sigue siendo unico en la pagina. */
+  const bloqueContacto = (
+    <section className="s2b-sec" id="contacto">
+      <div className="s2b-wrap s2b-form-grid">
+        <div className="s2b-rv">
+          <div className="s2b-eyebrow">{t("Siguiente paso", "Next step")}</div>
+          <h2 className="s2b-h2">{t("Tu próximo proyecto", "Your next project")} <b>{t("empieza acá", "starts here")}</b></h2>
+          <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+            {t("Contanos qué necesitás. Te respondemos en menos de 24 horas hábiles con una primera lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.", "Tell us what you need. We reply within 24 business hours with a first read of the problem and a discovery proposal. The first call is free.")}
+          </p>
+          <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
+          <div className="s2b-cline"><MapPin size={17} /> {t("Córdoba, Argentina · Miami, EE.UU.", "Córdoba, Argentina · Miami, USA")}</div>
+          <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
+            <Quote size={20} style={{ color: "var(--lilac)" }} />
+            <span style={{ fontSize: 14, color: "#9E97C4" }}>{t("Respondemos todos los mensajes, también los que todavía no tienen presupuesto.", "We answer every message, including the ones that don't have a budget yet.")}</span>
+          </div>
+        </div>
+
+        <div className="s2b-panel s2b-rv">
+          {sent ? (
+            <div>
+              <div className="s2b-sent"><Check size={20} /> {t("Mensaje enviado. Te respondemos a", "Message sent. We'll reply to")} {form.email}.</div>
+              <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm(FORM_VACIO); }}>
+                {t("Enviar otro", "Send another")}
+              </button>
+            </div>
+          ) : (
+            <div>
+              {/* La primera pregunta es la que mas dice de la consulta: agrupada
+                  por los dos publicos, para que cada uno encuentre lo suyo. */}
+              <div className="s2b-f">
+                <label htmlFor="f5">{t("¿Qué necesitás?", "What do you need?")}</label>
+                <select id="f5" value={form.tipo} onChange={set("tipo")}>
+                  <option value="">{t("Elegí una opción", "Choose an option")}</option>
+                  {NECESIDADES.map((g) => (
+                    <optgroup label={g.g} key={g.g}>
+                      {g.o.map((o) => <option key={o}>{o}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <div className="s2b-f"><label htmlFor="f1">{t("Nombre", "Name")}</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder={t("Cómo te llamás", "Your name")} /></div>
+              <div className="s2b-f"><label htmlFor="f2">{t("Empresa (opcional)", "Company (optional)")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
+              <div className="s2b-f"><label htmlFor="f3">Email</label><input id="f3" type="email" inputMode="email" autoComplete="email" value={form.email} onChange={set("email")} placeholder="tu@empresa.com" /></div>
+              <div className="s2b-f"><label htmlFor="f4">{t("WhatsApp / Teléfono", "WhatsApp / Phone")}</label><input id="f4" type="tel" inputMode="tel" autoComplete="tel" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
+              <div className="s2b-f">
+                <label htmlFor="f7">{t("¿En qué etapa estás?", "What stage are you at?")}</label>
+                <select id="f7" value={form.etapa} onChange={set("etapa")}>
+                  <option value="">{t("Elegí una opción", "Choose an option")}</option>
+                  {ETAPAS_PROY.map((o) => <option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="s2b-f">
+                <label htmlFor="f8">{t("Presupuesto estimado (opcional)", "Estimated budget (optional)")}</label>
+                <select id="f8" value={form.presupuesto} onChange={set("presupuesto")}>
+                  <option value="">{t("Prefiero no decirlo todavía", "I'd rather not say yet")}</option>
+                  {PRESUPUESTOS.map((o) => <option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="s2b-f"><label htmlFor="f6">{t("Contanos brevemente qué necesitás", "Tell us briefly what you need")}</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder={t("Qué problema querés resolver y en qué plazo", "What problem you need solved and by when")} /></div>
+              {formErr && (
+                <div className="s2b-formerr" role="alert">
+                  {formErr}{" "}
+                  <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">{t("Abrir WhatsApp", "Open WhatsApp")}</a>
+                </div>
+              )}
+              <button
+                className="s2b-btn s2b-btn--chrome"
+                style={{ width: "100%", justifyContent: "center", opacity: sending ? 0.7 : 1 }}
+                onClick={send}
+                disabled={sending}
+              >
+                {sending ? t("Enviando…", "Sending…") : t("Enviar mensaje", "Send message")} <ArrowUpRight size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 
   return (
     <div className="s2b">
@@ -2821,37 +3396,32 @@ export default function StudioB2B() {
 
           <div className="s2b-wrap s2b-hero-copy">
             <div className="s2b-hero-in">
-              <div className="s2b-pill">{t("Producto digital e inteligencia artificial", "Digital product & artificial intelligence")}</div>
+              <div className="s2b-pill">{t("Software a medida · Apps · IA", "Custom Software · Apps · AI Solutions")}</div>
               <div className="s2b-sweep">
-                <h1>{t("Impulsamos tecnología que rinde en producción y", "We build technology that performs in production and")} <span>{t("escala con tu negocio", "scales with your business")}</span></h1>
+                <h1>{t("Creamos software que transforma", "We build software that transforms")} <span>{t("ideas y negocios", "ideas and businesses")}</span></h1>
               </div>
               <p>
-                {t("Diez años haciendo productos a medida y, desde hace tres, agentes de IA que trabajan adentro del negocio. Nada que se caiga cuando llega a producción.", "Ten years of custom products, three of AI agents that work inside the business — and hold up in production.")}
+                {t("Desarrollamos aplicaciones, sistemas a medida e inteligencia artificial para empresas, emprendedores y personas que quieren convertir una idea en un producto digital real.", "Custom software, apps and AI solutions for businesses, entrepreneurs and people who want to turn an idea into a real digital product.")}
               </p>
+              {/* la linea de posicionamiento: en cuatro palabras, a que nos dedicamos */}
+              <div className="s2b-kicker">
+                {[t("Software a medida", "Custom software"), "Apps", "CRM", t("Inteligencia Artificial", "AI Solutions")].map((x, i) => (
+                  <React.Fragment key={x}>{i > 0 && <i aria-hidden="true" />}<span>{x}</span></React.Fragment>
+                ))}
+              </div>
               <div className="s2b-hero-cta">
-                <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell us about your project")} <ArrowRight size={16} /></button>
-                <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("proceso")}>
-                  <Workflow size={15} /> {t("Cómo trabajamos", "How we work")}
+                <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell Us About Your Project")} <ArrowRight size={16} /></button>
+                <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("idea")}>
+                  <Lightbulb size={15} /> {t("Tengo una idea de app", "I Have an App Idea")}
                 </button>
               </div>
-              <div className="s2b-hero-note"><span className="s2b-dot" /> {t("2 lugares para arrancar este trimestre", "2 slots left to start this quarter")}</div>
+              <p className="s2b-hero-pie">
+                <MapPin size={15} />
+                {t("Desarrollo de soluciones digitales a medida desde Córdoba, Argentina.", "Custom digital products built from Córdoba, Argentina.")}
+              </p>
             </div>
           </div>
 
-          <div className="s2b-wrap s2b-hero-atajos">
-            <div className="s2b-shortcuts">
-              {SOLUCIONES.map((s) => {
-                const I = s.icon;
-                return (
-                  <button key={s.id} className="s2b-shortcut" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>
-                    <div className="row"><I size={22} /><ArrowUpRight size={18} /></div>
-                    <b>{s.t}</b>
-                    <span>{s.d}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </section>}
       </div>
 
@@ -2905,68 +3475,57 @@ export default function StudioB2B() {
           </div>
         </section>
 
-        <section className="s2b-sec" id="contacto">
-          <div className="s2b-wrap s2b-form-grid">
-            <div className="s2b-rv">
-              <div className="s2b-eyebrow">{t("Siguiente paso", "Next step")}</div>
-              <h2 className="s2b-h2">{t("Tu próximo proyecto", "Your next project")} <b>{t("empieza acá", "starts here")}</b></h2>
-              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                {t("Contanos el desafío. Te respondemos en menos de 24 horas hábiles con una primera lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.", "Tell us the challenge. We reply within 24 business hours with a first read of the problem and a discovery proposal. The first call is free.")}
-              </p>
-              <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
-              <div className="s2b-cline"><MapPin size={17} /> {t("Córdoba, Argentina · Miami, EE.UU.", "Córdoba, Argentina · Miami, USA")}</div>
-              <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
-                <Quote size={20} style={{ color: "var(--lilac)" }} />
-                <span style={{ fontSize: 14, color: "#9E97C4" }}>{t("Respondemos todos los mensajes, también los que todavía no tienen presupuesto.", "We answer every message, including the ones that don't have a budget yet.")}</span>
-              </div>
-            </div>
+      {/* ============ TESTIMONIOS ============ */}
+      {/* Viven aca y no en el home: alla los mismos seis clientes ya cuentan su
+          caso en el portfolio, y repetirlos era leer dos veces lo mismo. Aca
+          cierran el recorrido, justo antes del formulario. En el celular no se
+          muestran: apiladas ocupan media pantalla de scroll. */}
+      {!celular && <section className="s2b-sec s2b-sec--sm">
+        <div className="s2b-wrap">
+          <div className="s2b-rv">
+            <div className="s2b-eyebrow">{t("Resultados", "Results")}</div>
+            <h2 className="s2b-h2">{t("Lo que dicen", "What we hear from")} <b>{t("los que ya trabajaron con nosotros", "the people who already worked with us")}</b></h2>
+          </div>
 
-            <div className="s2b-panel s2b-rv">
-              {sent ? (
-                <div>
-                  <div className="s2b-sent"><Check size={20} /> {t("Mensaje enviado. Te respondemos a", "Message sent. We'll reply to")} {form.email}.</div>
-                  <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm({ nombre: "", empresa: "", email: "", tel: "", tipo: "", msg: "" }); }}>
-                    {t("Enviar otro", "Send another")}
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <div className="s2b-f"><label htmlFor="f1">{t("Nombre", "Name")}</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder={t("Cómo te llamás", "Your name")} /></div>
-                  <div className="s2b-f"><label htmlFor="f2">{t("Empresa", "Company")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
-                  <div className="s2b-f"><label htmlFor="f3">Email</label><input id="f3" type="email" value={form.email} onChange={set("email")} placeholder="tu@empresa.com" /></div>
-                  <div className="s2b-f"><label htmlFor="f4">{t("Teléfono", "Phone")}</label><input id="f4" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
-                  <div className="s2b-f">
-                    <label htmlFor="f5">{t("¿Qué tipo de aplicación necesitás?", "What kind of app do you need?")}</label>
-                    <select id="f5" value={form.tipo} onChange={set("tipo")}>
-                      <option value="">{t("Elegí una opción", "Choose an option")}</option>
-                      {TIPOS_APP.map((o) => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                  <div className="s2b-f"><label htmlFor="f6">{t("Contexto", "Context")}</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder={t("Qué problema querés resolver y en qué plazo", "What problem you need solved and by when")} /></div>
-                  {formErr && (
-                    <div className="s2b-formerr" role="alert">
-                      {formErr}{" "}
-                      <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">{t("Abrir WhatsApp", "Open WhatsApp")}</a>
+          <div className="s2b-quotes s2b-rv">
+            <div className="s2b-qtrack" style={{ transform: "translateX(-" + qi * 100 + "%)" }}>
+              {TESTIMONIOS.map((q) => {
+                const I = q.ic;
+                return (
+                  <div className="s2b-qslide" key={q.n}>
+                    <div className="s2b-qcard">
+                      <div className={"s2b-qphoto" + (q.logos.length > 1 ? " s2b-qphoto--dos" : "")}>
+                        {q.logos.map((l) => (
+                          <span key={l.src}>
+                            <img src={l.src} alt={l.alt} loading="lazy" />
+                            {l.pais && <em><Bandera c={l.bandera} /> {l.pais}</em>}
+                          </span>
+                        ))}
+                      </div>
+                      <div>
+                        <div className="s2b-qtag"><I size={14} /> {q.cat}</div>
+                        <p className="s2b-qtext">{q.q}</p>
+                        <div className="s2b-qfoot">
+                          <div><b>{q.n}</b>{q.r && <span>{q.r}</span>}</div>
+                          {q.e && <div className="s2b-qlogo">{q.e}</div>}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <button
-                    className="s2b-btn s2b-btn--chrome"
-                    style={{ width: "100%", justifyContent: "center", opacity: sending ? 0.7 : 1 }}
-                    onClick={send}
-                    disabled={sending}
-                  >
-                    {sending ? t("Enviando…", "Sending…") : t("Enviar mensaje", "Send message")} <ArrowUpRight size={16} />
-                  </button>
-                </div>
-              )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="s2b-wrap s2b-flow-volver s2b-rv" style={{ marginTop: 34 }}>
-            <button className="s2b-link" onClick={() => irA("home")}><ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}</button>
-            <button className="s2b-link" onClick={() => irA("preguntas")}>{t("Preguntas frecuentes", "FAQ")} <ArrowRight size={15} /></button>
+          <div className="s2b-qnav">
+            <button aria-label={t("Anterior", "Previous")} onClick={() => setQi((i) => (i - 1 + TESTIMONIOS.length) % TESTIMONIOS.length)}><ArrowLeft size={17} /></button>
+            <button aria-label={t("Siguiente", "Next")} onClick={() => setQi((i) => (i + 1) % TESTIMONIOS.length)}><ArrowRight size={17} /></button>
+            <div className="s2b-qdots">{TESTIMONIOS.map((_, i) => <i key={i} className={i === qi ? "on" : ""} />)}</div>
           </div>
-        </section>
+        </div>
+      </section>}
+
+        {bloqueContacto}
       </div>}
 
       {/* ============ PREGUNTAS FRECUENTES (pagina aparte) ============ */}
@@ -2995,8 +3554,40 @@ export default function StudioB2B() {
       </section>}
 
       {vista === "home" && <>
+      {/* ============ CÓMO PODEMOS AYUDARTE ============ */}
+      {/* Va pegada al hero a proposito: quien llega de una publicidad tiene que
+          reconocerse en una de las dos puertas antes de seguir bajando. */}
+      <section className="s2b-sec s2b-sec--sm" id="ayuda">
+        <div className="s2b-wrap">
+          <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
+            <div className="s2b-eyebrow">{t("Dos caminos", "Two paths")}</div>
+            <h2 className="s2b-h2" style={{ maxWidth: "16ch" }}>{t("¿Cómo podemos", "How can we")} <b>{t("ayudarte?", "help you?")}</b></h2>
+          </div>
+
+          <div className="s2b-puertas">
+            {AYUDA.map((a, i) => {
+              const I = a.ic;
+              return (
+                <article className="s2b-puerta s2b-rv" key={a.id} style={{ transitionDelay: i * 90 + "ms" }}>
+                  <div className="s2b-puerta-ico"><I size={23} /></div>
+                  <div className="s2b-puerta-rot">{a.rot}</div>
+                  <h3>{a.tt}</h3>
+                  <p>{a.d}</p>
+                  <div className="s2b-puerta-tags">
+                    {a.tags.map((c) => <span className="s2b-chip" key={c}>{c}</span>)}
+                  </div>
+                  <button className="s2b-btn s2b-btn--primary" onClick={() => goTo(a.to)}>
+                    {a.cta} <ArrowRight size={16} />
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ============ LOGOS CLIENTES ============ */}
-      <div className="s2b-band s2b-band--tint" id={celular ? "clientes" : undefined}>
+      <div className="s2b-band s2b-band--tint">
         <div className="s2b-logos">
           <div className="s2b-logos-t">{t("Empresas que confían en Studio B2B", "Companies that trust Studio B2B")}</div>
           <div className="s2b-marq">
@@ -3022,63 +3613,110 @@ export default function StudioB2B() {
         </div>
       </div>
 
-      {/* ============ SERVICIOS ============ */}
-      <section className="s2b-sec" id="servicios">
+      {/* ============ EL PROBLEMA DE UNA EMPRESA ============ */}
+      <section className="s2b-sec s2b-sec--sm" id="empresas">
+        <div className="s2b-wrap">
+          <div className="s2b-rv">
+            <div className="s2b-eyebrow">{t("Para empresas", "For businesses")}</div>
+            <h2 className="s2b-h2">{t("¿Tu empresa todavía depende de", "Is your business still running on")} <b>{t("Excel, WhatsApp y procesos manuales?", "spreadsheets, WhatsApp and manual work?")}</b></h2>
+            <p className="s2b-lead">
+              {t("Cuando la información está repartida entre distintas herramientas se pierde tiempo, se pierden clientes y se pierden oportunidades. Desarrollamos sistemas a medida para centralizar la operación de tu negocio.", "When your information is spread across different tools you lose time, you lose clients and you lose opportunities. We build custom systems to centralize how your business runs.")}
+            </p>
+          </div>
+
+          <div className="s2b-dolores s2b-rv">
+            {DOLORES.map((d) => {
+              const I = d.ic;
+              return <div className="s2b-dolor" key={d.t}><I size={17} /> {d.t}</div>;
+            })}
+          </div>
+
+          {/* de lo disperso a un solo sistema */}
+          <div className="s2b-embudo s2b-rv">
+            <div className="s2b-embudo-fila">
+              {DISPERSOS.map((x) => <span key={x}>{x}</span>)}
+            </div>
+            <ArrowDown className="s2b-embudo-flecha" size={22} aria-hidden="true" />
+            <div className="s2b-embudo-marca">
+              <img src="/logo.png" alt="" aria-hidden="true" style={{ width: 26, height: 26, objectFit: "contain" }} />
+              Studio B2B
+            </div>
+            <ArrowDown className="s2b-embudo-flecha" size={22} aria-hidden="true" />
+            <div className="s2b-embudo-fin">{t("Un solo sistema", "One single system")}</div>
+          </div>
+
+          <div style={{ marginTop: 32 }} className="s2b-rv">
+            <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
+              {t("Contanos cómo trabaja tu empresa hoy", "Tell us how your business runs today")} <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ TENGO UNA IDEA DE APP ============ */}
+      <div className="s2b-band s2b-band--dark" id="idea">
+        <section className="s2b-sec s2b-sec--sm">
+          <div className="s2b-wrap">
+            <div className="s2b-split" style={{ alignItems: "start" }}>
+              <div className="s2b-rv">
+                <div className="s2b-eyebrow"><Lightbulb size={13} /> {t("Tengo una idea", "I have an idea")}</div>
+                <h2 className="s2b-h2">{t("¿Tenés una idea", "Have an idea")} <b>{t("para una app?", "for an app?")}</b></h2>
+                <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+                  {t("Tu idea puede convertirse en un producto real. Ayudamos a emprendedores, profesionales y empresas a transformar ideas en aplicaciones que funcionan.", "Your idea can become a real product. We help entrepreneurs, professionals and companies turn ideas into applications that actually work.")}
+                </p>
+                <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
+                  {t("Contanos tu idea", "Tell us your idea")} <ArrowUpRight size={16} />
+                </button>
+              </div>
+
+              <div className="s2b-rv">
+                <p style={{ color: "#BDB4E4", fontSize: 15.5 }}>
+                  <b style={{ color: "#fff", fontWeight: 600 }}>{t("No necesitás tener todo definido.", "You don't need to have it all figured out.")}</b>{" "}
+                  {t("Podés venir con:", "You can come with:")}
+                </p>
+                <ul className="s2b-idea-traes">
+                  {IDEA_ENTRADAS.map((x) => <li key={x}><Check size={16} />{x}</li>)}
+                </ul>
+                <p style={{ color: "#9E97C4", fontSize: 14.5, marginTop: 18 }}>
+                  {t("Nosotros te ayudamos a definir el producto.", "We help you define the product from there.")}
+                </p>
+              </div>
+            </div>
+
+            {/* el recorrido de una idea, de punta a punta */}
+            <div className="s2b-ruta s2b-rv" aria-label={t("De la idea al producto", "From idea to product")}>
+              {IDEA_FLUJO.map((x, i) => (
+                <React.Fragment key={x}>
+                  {i > 0 && <i aria-hidden="true"><ArrowRight size={14} /></i>}
+                  <b>{x}</b>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* ============ QUÉ DESARROLLAMOS ============ */}
+      <section className="s2b-sec s2b-sec--sm" id="servicios">
         <div className="s2b-wrap">
           <div className="s2b-head s2b-rv">
             <div>
               <div className="s2b-eyebrow">{t("Soluciones", "Solutions")}</div>
-              <h2 className="s2b-h2">{t("Tu idea se convierte en", "Your idea becomes")} <b>{t("realidad", "real")}</b>{t(": app, web y sistemas a medida", ": apps, web and custom systems")}</h2>
+              <h2 className="s2b-h2">{t("Qué podemos", "What we")} <b>{t("desarrollar", "build")}</b></h2>
             </div>
             <p className="s2b-lead">
-              {t("Tres frentes y un mismo equipo. No tercerizamos: diseño, desarrollo e IA se sientan en la misma mesa, así que las decisiones no se pierden entre proveedores.", "Three fronts and one single team. We don't outsource: design, development and AI sit at the same table, so decisions don't get lost between vendors.")}
+              {t("Un mismo equipo para diseño, desarrollo e inteligencia artificial. No tercerizamos: las decisiones no se pierden entre proveedores.", "One team for design, development and artificial intelligence. We don't outsource: decisions don't get lost between vendors.")}
             </p>
           </div>
 
-          <div className="s2b-rows">
-            {SERVICIOS.map((s, i) => {
-              const I = s.icon;
+          <div className="s2b-cards">
+            {QUE_DESARROLLAMOS.map((c, i) => {
+              const I = c.ic;
               return (
-                <article className="s2b-row s2b-rv" key={s.t} style={{ transitionDelay: i * 90 + "ms" }}>
-                  <div className="s2b-row-txt">
-                    <div style={{ width: 46, height: 46, borderRadius: 14, display: "grid", placeItems: "center", marginBottom: 20, color: "#fff", background: "linear-gradient(150deg,#6D4AFF,#3B2296)" }}>
-                      <I size={22} />
-                    </div>
-                    <h3>{s.t}</h3>
-                    <p>{s.d}</p>
-                    <div className="s2b-chips">{s.chips.map((c) => <span className="s2b-chip" key={c}>{c}</span>)}</div>
-                    <button className="s2b-link" onClick={() => goTo(s.to)}>{s.cta} <ArrowRight size={15} /></button>
-                  </div>
-                  <div className="s2b-row-vis" style={{ background: s.bg }}>
-                    <div className="s2b-blob" style={{ width: 240, height: 240, top: -50, right: -40, background: s.blobs[0] }} />
-                    <div className="s2b-blob" style={{ width: 200, height: 200, bottom: -60, left: -30, background: s.blobs[1], opacity: .55 }} />
-                    {s.img ? (
-                      <>
-                        <div className="s2b-shot">
-                          <img src={s.img} alt={s.alt} loading="lazy" width={s.an} height={s.al} />
-                        </div>
-                        {s.logos && (
-                          <div className="s2b-vis-stack">
-                            <span className="s2b-vis-stack-t">{s.logosT}</span>
-                            <div className="s2b-vis-logos">
-                              {s.logos.map((l, k) => (
-                                <span className="s2b-vis-logo" key={l.title} title={l.title} style={{ transitionDelay: k * 40 + "ms" }}>
-                                  <svg viewBox="0 0 24 24" role="img" aria-label={l.title} fill={"#" + l.hex}>
-                                    <path d={l.path} fillRule={l.regla || "nonzero"} />
-                                  </svg>
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="s2b-glass">
-                        <div className="gl-bar w1" /><div className="gl-bar w2" /><div className="gl-bar w3" />
-                        <div className="gl-row"><div className="gl-tile" /><div className="gl-tile" /><div className="gl-tile" /></div>
-                      </div>
-                    )}
-                  </div>
+                <article className="s2b-card s2b-rv" key={c.t} style={{ transitionDelay: (i % 3) * 70 + "ms" }}>
+                  <div className="s2b-card-ico"><I size={19} /></div>
+                  <h3>{c.t}</h3>
+                  <p>{c.d}</p>
                 </article>
               );
             })}
@@ -3086,66 +3724,180 @@ export default function StudioB2B() {
         </div>
       </section>
 
-      {/* ============ MÉTODO ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="metodo" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
-        <div className="s2b-wrap">
-          <div className="s2b-head s2b-rv">
-            <div>
-              <div className="s2b-eyebrow">{t("Nuestro método", "Our method")}</div>
-              <h2 className="s2b-h2">{t("El", "The")} <b>{t("Método Studio", "Studio Method")}</b>{t(", la forma en que trabajamos", ", the way we work")}</h2>
-            </div>
-            <p className="s2b-lead">
-              {t("Cuatro etapas con entregables definidos. Sabés en qué punto está tu proyecto todas las semanas, sin tener que preguntarlo.", "Four stages with defined deliverables. You know where your project stands every week without having to ask.")}
-            </p>
-          </div>
-
-          <div className="s2b-method">
-            <div className="s2b-method-img s2b-rv">
-              <img
-                src="/metodo.jpg"
-                alt={t("El equipo de Studio B2B frente al tablero de tareas del día, repasando qué está por hacer, en proceso, en revisión y hecho", "The Studio B2B team at the daily task board, going over what is to do, in progress, in review and done")}
-                loading="lazy"
-                onError={(e) => { e.currentTarget.style.display = "none"; }}
-              />
-            </div>
+      {/* ============ MVP ============ */}
+      <div className="s2b-band s2b-band--dark">
+        <section className="s2b-sec s2b-sec--sm">
+          <div className="s2b-wrap s2b-mvp">
             <div className="s2b-rv">
-              <div className="s2b-stages">
-                {ETAPAS.map((e) => (
-                  <div className="s2b-stage-row" key={e.n}>
-                    <div className="n">{e.n}</div>
-                    <div><h4>{e.t}</h4><p>{e.d}</p></div>
-                  </div>
-                ))}
-              </div>
-              <button className="s2b-btn s2b-btn--primary" style={{ marginTop: 28 }} onClick={() => goTo("contacto")}>
-                {t("Empezar por el diagnóstico", "Start with discovery")} <ArrowRight size={16} />
+              <div className="s2b-eyebrow"><Rocket size={13} /> {t("Estrategia de producto", "Product strategy")}</div>
+              <h2 className="s2b-h2">{t("No necesitás", "You don't have to")} <b>{t("empezar con todo", "start with everything")}</b></h2>
+              <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+                {t("Podemos empezar por un MVP: una primera versión funcional de tu producto, con las funcionalidades que de verdad importan. No es una versión recortada, es la forma más inteligente de construir.", "We can start with an MVP: a first working version of your product, with the features that genuinely matter. It isn't a stripped-down version, it is the smarter way to build.")}
+              </p>
+              <button className="s2b-btn s2b-btn--chrome" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
+                {t("Quiero empezar por un MVP", "Start with an MVP")} <ArrowRight size={16} />
               </button>
             </div>
+            <ul className="s2b-mvp-lista s2b-rv">
+              {MVP_OBJETIVOS.map((o) => <li key={o}><Check size={16} />{o}</li>)}
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* ============ AGENTES IA ============ */}
+      {/* ============ INTELIGENCIA ARTIFICIAL ============ */}
       <div className="s2b-band s2b-band--dark" id="agentes">
         <section className="s2b-sec">
           <div className="s2b-wrap s2b-split">
             <div className="s2b-rv">
-              <div className="s2b-eyebrow"><Sparkles size={13} /> {t("Agentes en producción", "Agents in production")}</div>
-              <h2 className="s2b-h2">{t("Un agente sirve", "An agent is worth it")} <b>{t("cuando trabaja solo", "when it works on its own")}</b></h2>
+              <div className="s2b-eyebrow"><Sparkles size={13} /> {t("Inteligencia Artificial", "Artificial intelligence")}</div>
+              <h2 className="s2b-h2">{t("IA integrada", "AI that works")} <b>{t("a tu negocio", "inside your business")}</b></h2>
               <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                {t("Esto es un turno real de uno de nuestros agentes comerciales: entiende la consulta, revisa el stock, responde y agenda. La persona aparece solo cuando hace falta.", "This is a real shift from one of our sales agents: it understands the request, checks stock, replies and books the meeting. A person steps in only when needed.")}
+                {t("Integramos inteligencia artificial dentro de sistemas, CRM, aplicaciones y procesos que ya están funcionando. Esto de acá al lado es un turno real de uno de nuestros agentes: entiende la consulta, revisa el stock, responde y agenda.", "We build artificial intelligence into systems, CRMs, applications and processes that are already running. What you see here is a real shift from one of our agents: it understands the request, checks stock, replies and books the meeting.")}
               </p>
+              <div className="s2b-usos">
+                {IA_USOS.map((u) => <span className="s2b-uso" key={u}><i aria-hidden="true" />{u}</span>)}
+              </div>
               <ul className="s2b-ul">
                 {AGENT_PTS.map((p) => <li key={p}><Check size={17} />{p}</li>)}
               </ul>
               <button className="s2b-btn s2b-btn--chrome" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
-                {t("Quiero un agente así", "I want an agent like this")} <ArrowUpRight size={16} />
+                {t("Quiero IA en mi negocio", "I want AI in my business")} <ArrowUpRight size={16} />
               </button>
             </div>
             <div className="s2b-rv"><Terminal lineas={AGENT_LINES} /></div>
           </div>
         </section>
       </div>
+
+      {/* ============ TIPOS DE PRODUCTOS ============ */}
+      <section className="s2b-sec s2b-sec--sm">
+        <div className="s2b-wrap">
+          <div className="s2b-rv">
+            <div className="s2b-eyebrow">{t("Productos", "Products")}</div>
+            <h2 className="s2b-h2">{t("¿Qué podemos", "What can we")} <b>{t("crear?", "create?")}</b></h2>
+          </div>
+          <div className="s2b-prods s2b-rv">
+            {PRODUCTOS.map((p, i) => {
+              const I = p.ic;
+              return <div className="s2b-prod" key={p.t + i}><I size={19} />{p.t}</div>;
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PORTFOLIO ============ */}
+      <section className="s2b-sec s2b-sec--sm" id="clientes" style={{ background: "linear-gradient(180deg,#FFFFFF,var(--paper))" }}>
+        <div className="s2b-wrap">
+          <div className="s2b-head s2b-rv">
+            <div>
+              <div className="s2b-eyebrow">{t("Trabajos", "Our work")}</div>
+              <h2 className="s2b-h2">{t("Proyectos que ya están", "Projects already")} <b>{t("funcionando", "up and running")}</b></h2>
+            </div>
+            <p className="s2b-lead">
+              {t("Sistemas, apps y agentes que se usan todos los días. Cada caso cuenta qué había antes y qué construimos.", "Systems, apps and agents in daily use. Each case says what was there before and what we built.")}
+            </p>
+          </div>
+
+          <div className="s2b-casos">
+            {CASOS.map((c, i) => (
+              <article className="s2b-caso s2b-rv" key={c.id} style={{ transitionDelay: (i % 3) * 80 + "ms" }}>
+                <div className="s2b-caso-vis">
+                  {c.img ? (
+                    <div className="s2b-shot">
+                      <img src={c.img} alt={c.alt} loading="lazy" width={c.an} height={c.al} />
+                    </div>
+                  ) : (
+                    <div className="s2b-caso-marca">
+                      <img src={c.logo} alt={c.n} loading="lazy" style={c.esc ? { height: 56 * c.esc } : undefined} />
+                    </div>
+                  )}
+                </div>
+                <div className="s2b-caso-cuerpo">
+                  <div className="s2b-caso-top">
+                    <h3>{c.n}</h3>
+                    <span className="s2b-caso-pais"><Bandera c={c.bandera} /> {c.pais}</span>
+                  </div>
+                  <span className="s2b-caso-tipo">{c.tipo}</span>
+                  <div className="s2b-caso-dato">
+                    <b>{t("El problema", "The problem")}</b>
+                    <p>{c.problema}</p>
+                  </div>
+                  <div className="s2b-caso-dato">
+                    <b>{t("Lo que desarrollamos", "What we built")}</b>
+                    <p>{c.solucion}</p>
+                  </div>
+                  <div className="s2b-chips">{c.fn.map((f) => <span className="s2b-chip" key={f}>{f}</span>)}</div>
+                  <blockquote className="s2b-caso-frase">
+                    <Quote size={14} aria-hidden="true" />
+                    <p>{c.frase}<cite>{c.quien}</cite></p>
+                  </blockquote>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* ============ CÓMO DESARROLLAMOS ============ */}
+      <section className="s2b-sec s2b-sec--sm" id="metodo">
+        <div className="s2b-wrap">
+          <div className="s2b-head s2b-rv">
+            <div>
+              <div className="s2b-eyebrow">{t("Cómo trabajamos", "How we work")}</div>
+              <h2 className="s2b-h2">{t("De la primera charla", "From the first call")} <b>{t("al producto funcionando", "to a working product")}</b></h2>
+            </div>
+            <p className="s2b-lead">
+              {t("Siete etapas con entregables definidos. Sabés en qué punto está tu proyecto sin tener que preguntarlo.", "Seven stages with defined deliverables. You know where your project stands without having to ask.")}
+            </p>
+          </div>
+
+          <div className="s2b-pasos">
+            {PROCESO_RESUMEN.map((p, i) => {
+              const I = p.ic;
+              return (
+                <div className="s2b-paso-mini s2b-rv" key={p.n} style={{ transitionDelay: (i % 4) * 70 + "ms" }}>
+                  <div className="s2b-paso-mini-ico"><I size={17} /></div>
+                  <div>
+                    <div className="n">{p.n}</div>
+                    <h4>{p.t}</h4>
+                    <p>{p.d}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="s2b-flow-volver s2b-rv" style={{ marginTop: 30 }}>
+            <button className="s2b-link" onClick={() => irA("proceso")}>
+              {t("Ver el proceso completo, paso a paso", "See the full process, step by step")} <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ POR QUÉ STUDIO B2B ============ */}
+      <section className="s2b-sec s2b-sec--sm" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
+        <div className="s2b-wrap">
+          <div className="s2b-rv">
+            <div className="s2b-eyebrow">{t("El equipo", "The team")}</div>
+            <h2 className="s2b-h2">{t("¿Por qué", "Why")} <b>Studio B2B</b>{t("?", "?")}</h2>
+          </div>
+          <div className="s2b-cards">
+            {POR_QUE.map((c, i) => {
+              const I = c.ic;
+              return (
+                <article className="s2b-card s2b-rv" key={c.t} style={{ transitionDelay: (i % 3) * 70 + "ms" }}>
+                  <div className="s2b-card-ico"><I size={19} /></div>
+                  <h3>{c.t}</h3>
+                  <p>{c.d}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* ============ TECNOLOGÍAS ============ */}
       <section className="s2b-sec s2b-sec--sm" id="tecnologias">
@@ -3207,54 +3959,34 @@ export default function StudioB2B() {
         </div>
       </section>
 
-      {/* ============ TESTIMONIOS ============ */}
-      {/* en el celular no se muestran: ocupan mucho scroll y el cliente ya
-         quedo presentado arriba, en la tira de logos */}
-      {!celular && <section className="s2b-sec s2b-sec--sm" id="clientes">
-        <div className="s2b-wrap">
+      {/* ============ PREGUNTAS FRECUENTES (resumen) ============ */}
+      {/* Las mas frecuentes quedan a mano en el home; el listado completo sigue
+          viviendo en su propia pagina, /preguntas. */}
+      <section className="s2b-sec s2b-sec--sm">
+        <div className="s2b-wrap" style={{ maxWidth: 900 }}>
           <div className="s2b-rv">
-            <div className="s2b-eyebrow">{t("Resultados", "Results")}</div>
-            <h2 className="s2b-h2">{t("Lo que dicen", "What we hear from")} <b>{t("los que ya trabajaron con nosotros", "the people who already worked with us")}</b></h2>
+            <div className="s2b-eyebrow">{t("Preguntas", "Questions")}</div>
+            <h2 className="s2b-h2">{t("Lo que", "What")} <b>{t("suelen preguntarnos", "people usually ask us")}</b></h2>
           </div>
-
-          <div className="s2b-quotes s2b-rv">
-            <div className="s2b-qtrack" style={{ transform: "translateX(-" + qi * 100 + "%)" }}>
-              {TESTIMONIOS.map((q) => {
-                const I = q.ic;
-                return (
-                  <div className="s2b-qslide" key={q.n}>
-                    <div className="s2b-qcard">
-                      <div className={"s2b-qphoto" + (q.logos.length > 1 ? " s2b-qphoto--dos" : "")}>
-                        {q.logos.map((l) => (
-                          <span key={l.src}>
-                            <img src={l.src} alt={l.alt} loading="lazy" />
-                            {l.pais && <em><Bandera c={l.bandera} /> {l.pais}</em>}
-                          </span>
-                        ))}
-                      </div>
-                      <div>
-                        <div className="s2b-qtag"><I size={14} /> {q.cat}</div>
-                        <p className="s2b-qtext">{q.q}</p>
-                        <div className="s2b-qfoot">
-                          <div><b>{q.n}</b>{q.r && <span>{q.r}</span>}</div>
-                          {q.e && <div className="s2b-qlogo">{q.e}</div>}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="s2b-faq">
+            {FAQS.slice(0, 6).map((f, i) => (
+              <div className="s2b-fi s2b-rv" key={f.q}>
+                <button className="s2b-fq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
+                  {f.q}{faq === i ? <Minus size={19} /> : <Plus size={19} />}
+                </button>
+                <div className={"s2b-fa" + (faq === i ? " is-open" : "")}><p>{f.a}</p></div>
+              </div>
+            ))}
           </div>
-
-          <div className="s2b-qnav">
-            <button aria-label={t("Anterior", "Previous")} onClick={() => setQi((i) => (i - 1 + TESTIMONIOS.length) % TESTIMONIOS.length)}><ArrowLeft size={17} /></button>
-            <button aria-label={t("Siguiente", "Next")} onClick={() => setQi((i) => (i + 1) % TESTIMONIOS.length)}><ArrowRight size={17} /></button>
-            <div className="s2b-qdots">{TESTIMONIOS.map((_, i) => <i key={i} className={i === qi ? "on" : ""} />)}</div>
+          <div className="s2b-flow-volver s2b-rv" style={{ marginTop: 26 }}>
+            <button className="s2b-link" onClick={() => irA("preguntas")}>
+              {t("Ver todas las preguntas frecuentes", "See all frequently asked questions")} <ArrowRight size={15} />
+            </button>
           </div>
         </div>
-      </section>}
+      </section>
 
+      {bloqueContacto}
       </>}
 
       {/* ============ FOOTER ============ */}
