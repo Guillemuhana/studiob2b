@@ -1037,6 +1037,713 @@ const CSS = `
   .s2b *, .s2b *::before, .s2b *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
   .s2b-rv { opacity:1; transform:none; }
 }
+
+/* ==================================================================
+   COMPOSICION 2.0
+   El sitio dejo de ser una pila de tarjetas: cada seccion tiene su
+   propia forma -bento, split, recorrido, escalera, riel- y el fondo
+   se derrama de una a la otra en vez de cortarse con un borde.
+   Nada de esto cambia contenido: cambia la composicion.
+   ================================================================== */
+
+.s2b {
+  --r-btn: 13px;
+  --r-card: 20px;
+  --r-panel: 28px;
+  --ink-2: #12092B;
+  --paper-2: #EFEDF9;
+}
+
+/* ---------- ritmo: mas aire y menos cortes ---------- */
+.s2b-sec { padding: clamp(84px, 9vw, 132px) 0; }
+.s2b-sec--sm { padding: clamp(68px, 7vw, 104px) 0; }
+
+/* el contenido de una banda va por encima del resplandor de la costura */
+.s2b-band--dark > section,
+.s2b-band--dark > footer,
+.s2b-band--dark > div { position: relative; z-index: 1; }
+
+/* La costura: en lugar de un borde, un resplandor violeta centrado justo en
+   el limite entre dos secciones. El fondo se derrama de una a la otra. */
+.s2b-band--dark::before,
+.s2b-band--dark::after {
+  content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+  width: min(1240px, 96%); height: 300px; pointer-events: none; z-index: 0;
+  background: radial-gradient(58% 50% at 50% 50%, rgba(109,74,255,.30), transparent 72%);
+  filter: blur(30px);
+}
+.s2b-band--dark::before { top: -150px; }
+.s2b-band--dark::after  { bottom: -150px; }
+/* la primera banda -nav + hero- no necesita costura arriba */
+.s2b > .s2b-band--dark:first-of-type::before { display: none; }
+/* entre dos bandas oscuras seguidas -contacto y footer- no hay nada que coser */
+.s2b-band--dark + .s2b-band--dark::before { display: none; }
+
+/* las secciones claras tampoco son blanco plano: llevan su propio ambiente */
+.s2b-amb { position: relative; }
+.s2b-amb > * { position: relative; z-index: 1; }
+.s2b-amb::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(680px circle at 88% 4%, rgba(109,74,255,.07), transparent 62%),
+    radial-gradient(560px circle at 4% 92%, rgba(167,140,255,.09), transparent 60%);
+}
+/* la reticula finita: da textura sin ensuciar */
+.s2b-amb--grid::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: .5;
+  background-image:
+    linear-gradient(rgba(24,12,60,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24,12,60,.045) 1px, transparent 1px);
+  background-size: 76px 76px;
+  -webkit-mask-image: radial-gradient(78% 60% at 50% 46%, #000, transparent);
+          mask-image: radial-gradient(78% 60% at 50% 46%, #000, transparent);
+}
+/* superficie intermedia: ni blanco ni oscuro, para romper la seguidilla clara */
+.s2b-band--soft { background: linear-gradient(180deg, #FFFFFF 0%, var(--paper) 34%, var(--paper-2) 100%); }
+
+/* ---------- titulos: mas escala, mas jerarquia ---------- */
+.s2b-h2 { font-size: clamp(31px, 4.9vw, 56px); letter-spacing: -.035em; }
+
+/* ---------- botones: menos pastilla, mas SaaS ---------- */
+.s2b-btn { border-radius: var(--r-btn); padding: 13px 21px; font-size: 14.5px; letter-spacing: -.005em; }
+.s2b-btn--primary {
+  background: linear-gradient(180deg, #7E5EFF 0%, #6D4AFF 46%, #5432DE 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26), 0 12px 26px -14px rgba(109,74,255,.9);
+}
+.s2b-btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 18px 36px -14px rgba(109,74,255,1); }
+.s2b-btn--chrome { background: linear-gradient(180deg,#FFFFFF,#EDEFF6 58%,#C9CEDD); color: #0F0A22;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 12px 28px -16px rgba(24,12,60,.6); }
+/* el secundario: vidrio, no un borde suelto */
+.s2b-btn--glass {
+  color: #fff; background: rgba(255,255,255,.07); backdrop-filter: blur(10px);
+  border: 1px solid rgba(167,140,255,.28);
+  transition: background .25s, border-color .25s, transform .22s cubic-bezier(.2,.8,.2,1);
+}
+.s2b-btn--glass:hover { background: rgba(255,255,255,.13); border-color: rgba(167,140,255,.55); }
+.s2b-btn--line { border-radius: var(--r-btn); }
+
+/* ---------- nav flotante ---------- */
+/* Antes se iba con el hero. Ahora acompana todo el recorrido: una pastilla de
+   vidrio oscuro que se achica apenas al bajar. */
+.s2b-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 80; background: none; box-shadow: none;
+  transition: padding .35s cubic-bezier(.2,.7,.2,1); padding-top: 14px; }
+.s2b-nav.is-stuck { background: none; box-shadow: none; backdrop-filter: none; padding-top: 8px; }
+.s2b-nav-in { padding: 8px 10px; border-radius: 18px; border: 1px solid transparent;
+  transition: background .35s, border-color .35s, box-shadow .35s, padding .35s; }
+.s2b-nav.is-stuck .s2b-nav-in {
+  background: rgba(11,7,24,.72); backdrop-filter: blur(20px) saturate(160%);
+  border-color: rgba(167,140,255,.16);
+  box-shadow: 0 20px 46px -26px rgba(11,7,24,.95), inset 0 1px 0 rgba(255,255,255,.06);
+  padding: 6px 8px 6px 12px;
+}
+/* la marca se mantiene clara siempre: la pastilla ya es oscura */
+.s2b-nav.is-stuck .s2b-menu button.top { color: #D6D0F2; }
+.s2b-nav.is-stuck .s2b-menu button.top:hover { color: #fff; background: rgba(255,255,255,.1); }
+.s2b-nav.is-stuck .s2b-brand-txt { color: #fff; font-size: 18px; }
+.s2b-nav.is-stuck .s2b-brand-txt small { color: #9E97C4; }
+.s2b-nav.is-stuck .s2b-burger { color: #fff; }
+.s2b-nav .s2b-brand { --mark: 64px; }
+.s2b-nav.is-stuck .s2b-brand { --mark: 50px; }
+.s2b-nav.is-stuck .s2b-mark-halo::before { opacity: .28; }
+/* el hueco que deja el nav fijo */
+.s2b-navpad { height: 96px; }
+
+/* el menu desplegable ya no es una caja blanca suelta */
+.s2b-pop { background: rgba(16,10,38,.92); backdrop-filter: blur(20px) saturate(150%);
+  border-color: rgba(167,140,255,.18); border-radius: 18px;
+  box-shadow: 0 34px 80px -30px rgba(0,0,0,.8); }
+.s2b-pop a:hover { background: rgba(167,140,255,.1); }
+.s2b-pop b { color: #fff; }
+.s2b-pop span { color: #9E97C4; }
+
+/* ---------- hero ---------- */
+.s2b-hero { padding: 40px 0 104px; }
+.s2b-hero h1 { font-size: clamp(36px, 6.6vw, 88px); }
+
+/* El hero no lleva paneles flotantes: la red neuronal ya es la pieza de
+   producto de esta pantalla y cualquier cosa encima la tapa. Las barritas
+   quedan porque las reusa el bento. */
+.s2b-float-spark { display: flex; align-items: flex-end; gap: 3px; height: 32px; margin-top: 11px; }
+.s2b-float-spark i { flex: 1; border-radius: 2px 2px 0 0; background: linear-gradient(180deg, #A78CFF, rgba(109,74,255,.18)); }
+
+/* ==================================================================
+   PIEZAS DE INTERFAZ REUTILIZABLES
+   Un panel, un telefono y un diagrama de nodos, todos en CSS/SVG. Son
+   las que le dan a cada seccion cara de producto y no de tarjeta.
+   ================================================================== */
+
+/* --- panel tipo dashboard --- */
+.s2b-ui { border-radius: 16px; overflow: hidden; border: 1px solid rgba(167,140,255,.2);
+  background: linear-gradient(168deg, rgba(23,14,58,.94), rgba(11,7,24,.96));
+  box-shadow: 0 30px 64px -34px rgba(11,7,24,.9); }
+.s2b-ui--claro { border-color: rgba(24,12,60,.09); background: #fff;
+  box-shadow: 0 30px 64px -40px rgba(24,12,60,.5); }
+.s2b-ui-bar { display: flex; align-items: center; gap: 6px; padding: 11px 13px;
+  border-bottom: 1px solid rgba(167,140,255,.14); }
+.s2b-ui--claro .s2b-ui-bar { border-bottom-color: rgba(24,12,60,.07); background: #FBFAFF; }
+.s2b-ui-bar i { width: 8px; height: 8px; border-radius: 50%; background: rgba(167,140,255,.3); flex: none; }
+.s2b-ui--claro .s2b-ui-bar i:nth-child(1) { background: #FF6058; }
+.s2b-ui--claro .s2b-ui-bar i:nth-child(2) { background: #FFC02E; }
+.s2b-ui--claro .s2b-ui-bar i:nth-child(3) { background: #2ACB42; }
+.s2b-ui-bar b { margin-left: 8px; font-family: var(--mono); font-weight: 400; font-size: 10px;
+  letter-spacing: .1em; text-transform: uppercase; color: #8C85AE; }
+.s2b-ui--claro .s2b-ui-bar b { color: #9A93B8; }
+.s2b-ui-body { padding: 15px 14px; display: grid; gap: 11px; }
+.s2b-ui-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.s2b-ui-kpi { border-radius: 11px; padding: 10px 11px; background: rgba(167,140,255,.08);
+  border: 1px solid rgba(167,140,255,.14); }
+.s2b-ui--claro .s2b-ui-kpi { background: var(--paper); border-color: rgba(24,12,60,.06); }
+.s2b-ui-kpi em { display: block; font-style: normal; font-family: var(--mono); font-size: 8.5px;
+  letter-spacing: .13em; text-transform: uppercase; color: #8C85AE; }
+.s2b-ui-kpi b { display: block; font-family: var(--display); font-size: 17px; color: #fff; margin-top: 3px; letter-spacing: -.02em; }
+.s2b-ui--claro .s2b-ui-kpi b { color: var(--title); }
+.s2b-ui-chart { display: flex; align-items: flex-end; gap: 5px; height: 74px; padding: 0 1px; }
+.s2b-ui-chart i { flex: 1; border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #A78CFF, rgba(109,74,255,.16));
+  transform-origin: bottom; animation: s2b-grow .9s cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes s2b-grow { from { transform: scaleY(.06); opacity: 0; } }
+.s2b-ui-rows { display: grid; gap: 7px; }
+.s2b-ui-row { display: grid; grid-template-columns: 18px 1fr auto; gap: 9px; align-items: center;
+  padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.045);
+  border: 1px solid rgba(167,140,255,.1); font-size: 11.5px; color: #C9C2E6; }
+.s2b-ui--claro .s2b-ui-row { background: var(--paper); border-color: rgba(24,12,60,.05); color: var(--text); }
+.s2b-ui-row span:last-child { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: #7FE3A8; }
+.s2b-ui-row svg { color: #A78CFF; }
+
+/* --- telefono --- */
+.s2b-phone { position: relative; width: 234px; max-width: 100%; margin: 0 auto; border-radius: 34px; padding: 9px;
+  background: linear-gradient(160deg, #2A1C60, #100A26);
+  border: 1px solid rgba(167,140,255,.28);
+  box-shadow: 0 44px 84px -38px rgba(11,7,24,.95), inset 0 1px 0 rgba(255,255,255,.1); }
+.s2b-phone::before { content: ""; position: absolute; top: 17px; left: 50%; transform: translateX(-50%);
+  width: 64px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.16); z-index: 2; }
+.s2b-phone-scr { border-radius: 26px; overflow: hidden; background: #0C0720; padding: 30px 13px 15px;
+  display: grid; gap: 9px; min-height: 322px; align-content: start; }
+.s2b-phone-t { font-family: var(--display); font-size: 15.5px; color: #fff; letter-spacing: -.02em; }
+.s2b-phone-s { font-size: 10.5px; color: #8C85AE; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.s2b-phone-card { border-radius: 13px; padding: 11px 12px; background: rgba(255,255,255,.055);
+  border: 1px solid rgba(167,140,255,.16); display: grid; gap: 6px; }
+.s2b-phone-card b { font-family: var(--display); font-size: 12.5px; color: #EDE9FF; font-weight: 600; }
+.s2b-phone-card i { display: block; height: 5px; border-radius: 999px; background: rgba(167,140,255,.24); }
+.s2b-phone-card i.w2 { width: 64%; }
+.s2b-phone-cta { margin-top: 3px; border-radius: 11px; padding: 10px; text-align: center;
+  font-size: 12px; font-weight: 600; color: #fff;
+  background: linear-gradient(180deg,#7E5EFF,#5432DE); box-shadow: 0 12px 26px -14px rgba(109,74,255,.95); }
+
+/* --- diagrama de nodos --- */
+.s2b-nodes { width: 100%; height: auto; display: block; overflow: visible; }
+.s2b-nodes .lk { stroke: rgba(167,140,255,.42); stroke-width: 1.2; fill: none;
+  stroke-dasharray: 5 7; animation: s2b-dash 2.6s linear infinite; }
+@keyframes s2b-dash { to { stroke-dashoffset: -24; } }
+.s2b-nodes .hub { fill: url(#s2bHub); }
+.s2b-nodes .hub-ring { fill: none; stroke: rgba(167,140,255,.35); stroke-width: 1;
+  transform-origin: center; animation: s2b-ring 3.4s ease-out infinite; }
+@keyframes s2b-ring { 0% { transform: scale(.86); opacity: .8; } 70%,100% { transform: scale(1.34); opacity: 0; } }
+.s2b-nodes .sat { fill: rgba(23,14,58,.95); stroke: rgba(167,140,255,.3); stroke-width: 1; }
+.s2b-nodes .lbl { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 9px;
+  letter-spacing: .1em; text-transform: uppercase; fill: #BDB4E4; }
+.s2b-nodes .hub-lbl { font-family: "Space Grotesk", system-ui, sans-serif; font-size: 12px;
+  font-weight: 700; letter-spacing: .04em; fill: #fff; }
+
+
+/* ==================================================================
+   DOS PUERTAS: pantalla partida
+   Antes eran dos tarjetas iguales una al lado de la otra. Ahora es un
+   solo panel partido al medio: la mitad de la empresa es oscura y
+   tiene un tablero; la de la idea es clara y tiene un telefono.
+   ================================================================== */
+.s2b-doors { display: grid; margin-top: 48px; border-radius: var(--r-panel); overflow: hidden;
+  border: 1px solid var(--line); box-shadow: 0 40px 90px -50px rgba(24,12,60,.55); }
+.s2b-door { position: relative; display: grid; gap: 0; padding: clamp(26px,3.6vw,46px);
+  text-align: left; overflow: hidden; }
+/* el telefono adentro de la puerta va mas chico: la puerta no es el hero */
+.s2b-door .s2b-phone { width: 202px; }
+.s2b-door .s2b-phone-scr { min-height: 254px; }
+.s2b-door-in { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; }
+/* el resplandor que se enciende al pasar por encima */
+.s2b-door::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0;
+  transition: opacity .5s; }
+.s2b-door:hover::after { opacity: 1; }
+
+.s2b-door--emp { background: linear-gradient(158deg, #1B1049 0%, #0B0718 72%);
+  --title: #fff; --text: #C9C2E6; --muted: #9E97C4; color: var(--text); }
+.s2b-door--emp::after { background: radial-gradient(70% 60% at 30% 12%, rgba(109,74,255,.4), transparent 68%); }
+.s2b-door--emp .s2b-door-rot { color: var(--lilac); }
+.s2b-door--emp .s2b-chip { background: rgba(255,255,255,.06); border-color: rgba(167,140,255,.22); color: #BDB4E4; }
+
+.s2b-door--idea { background: linear-gradient(158deg, #FFFFFF 0%, var(--paper) 70%, #EDE9FC 100%); }
+.s2b-door--idea::after { background: radial-gradient(70% 60% at 70% 12%, rgba(167,140,255,.24), transparent 68%); }
+.s2b-door--idea .s2b-door-rot { color: var(--violet); }
+
+.s2b-door-rot { display: inline-flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: .19em; text-transform: uppercase; margin-bottom: 16px; }
+.s2b-door-rot::before { content: ""; width: 22px; height: 1px; background: currentColor; opacity: .5; }
+.s2b-door h3 { font-size: clamp(21px,2.5vw,30px); line-height: 1.16; margin-bottom: 13px; max-width: 17ch; }
+.s2b-door > .s2b-door-in > p { color: var(--muted); font-size: 15.3px; max-width: 42ch; }
+.s2b-door-tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 20px 0 26px; }
+/* la pieza de interfaz que le pone cara a cada camino */
+.s2b-door-vis { margin: 26px 0 28px; position: relative; }
+.s2b-door-vis::before { content: ""; position: absolute; inset: -12% -6%; z-index: 0; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(109,74,255,.22), transparent 70%); filter: blur(24px); }
+.s2b-door-vis > * { position: relative; z-index: 1;
+  transition: transform .55s cubic-bezier(.2,.8,.2,1); }
+.s2b-door:hover .s2b-door-vis > * { transform: translateY(-7px); }
+.s2b-door .s2b-btn { align-self: flex-start; margin-top: auto; }
+
+/* ==================================================================
+   DEL CAOS A UN SOLO SISTEMA
+   Las herramientas sueltas flotan desordenadas de un lado; del otro,
+   la operacion ordenada. En el medio, la marca. Es el mismo mensaje
+   que antes estaba en ocho tarjetas iguales.
+   ================================================================== */
+.s2b-caos-grid { display: grid; gap: 22px; margin-top: 52px; align-items: center; }
+.s2b-lado { position: relative; border-radius: var(--r-panel); padding: 26px 20px;
+  min-height: 300px; display: grid; align-content: center; }
+.s2b-lado-rot { position: absolute; top: 18px; left: 22px; font-family: var(--mono); font-size: 10px;
+  letter-spacing: .2em; text-transform: uppercase; }
+
+/* el lado desordenado */
+.s2b-lado--caos { border: 1px dashed rgba(24,12,60,.16); background:
+  radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,.9), var(--paper)); }
+.s2b-lado--caos .s2b-lado-rot { color: #B0A8CC; }
+.s2b-nube { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; padding-top: 18px; }
+.s2b-nube span { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 12px;
+  background: #fff; border: 1px solid var(--line); font-size: 13px; color: var(--text); white-space: nowrap;
+  box-shadow: 0 10px 22px -18px rgba(24,12,60,.7);
+  animation: s2b-flota 6s ease-in-out infinite alternate; }
+.s2b-nube span svg { color: #B0A8CC; flex: none; }
+/* cada etiqueta se mueve un poco distinto: eso es lo que lee como desorden */
+.s2b-nube span:nth-child(6n+1) { transform: rotate(-2.2deg); animation-duration: 6.4s; }
+.s2b-nube span:nth-child(6n+2) { transform: rotate(1.6deg);  animation-duration: 7.2s; animation-delay: -1.1s; }
+.s2b-nube span:nth-child(6n+3) { transform: rotate(-1deg);   animation-duration: 5.8s; animation-delay: -2.3s; }
+.s2b-nube span:nth-child(6n+4) { transform: rotate(2.4deg);  animation-duration: 7.8s; animation-delay: -.6s; }
+.s2b-nube span:nth-child(6n+5) { transform: rotate(-1.8deg); animation-duration: 6.9s; animation-delay: -3.1s; }
+.s2b-nube span:nth-child(6n+6) { transform: rotate(1.1deg);  animation-duration: 8.2s; animation-delay: -1.8s; }
+@keyframes s2b-flota { to { translate: 0 -8px; } }
+
+/* el paso del medio */
+.s2b-puente { display: grid; justify-items: center; gap: 12px; padding: 8px 0; }
+.s2b-puente-flecha { color: var(--violet); opacity: .55; }
+.s2b-puente-marca { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 15px;
+  font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: -.01em; color: #fff;
+  background: linear-gradient(180deg, #7E5EFF, #4B2FD6);
+  box-shadow: 0 20px 44px -18px rgba(109,74,255,.95), inset 0 1px 0 rgba(255,255,255,.28); }
+.s2b-puente-marca img { width: 24px; height: 24px; object-fit: contain; }
+
+/* el lado ordenado */
+.s2b-lado--orden { border: 1px solid rgba(167,140,255,.22);
+  background: linear-gradient(158deg, #1B1049 0%, #0B0718 76%);
+  box-shadow: 0 40px 90px -50px rgba(11,7,24,.95); }
+.s2b-lado--orden .s2b-lado-rot { color: var(--lilac); }
+.s2b-orden-lista { display: grid; gap: 8px; padding: 16px 0 0; margin: 0; list-style: none; }
+.s2b-orden-lista li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+  padding: 11px 14px; border-radius: 12px; font-size: 13.5px; color: #C9C2E6;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(167,140,255,.14); }
+.s2b-orden-lista em { display: inline-flex; align-items: center; gap: 6px; font-style: normal;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #7FE3A8; }
+.s2b-orden-fin { margin-top: 16px; font-family: var(--display); font-weight: 600; font-size: clamp(19px,2.2vw,25px);
+  letter-spacing: -.025em; color: #fff; }
+
+/* ==================================================================
+   EL RECORRIDO DE UNA IDEA
+   Un riel con nodos y una linea que se dibuja sola al entrar en
+   pantalla. En el celular el mismo riel se pone de pie.
+   ================================================================== */
+.s2b-journey { position: relative; margin-top: 56px; }
+.s2b-journey-track { position: relative; display: grid; gap: 16px; }
+/* el riel de fondo y el que se pinta */
+.s2b-journey::before, .s2b-journey::after { content: ""; position: absolute; pointer-events: none; }
+.s2b-jstep { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 15px; align-items: center; }
+.s2b-jnodo { position: relative; z-index: 2; width: 40px; height: 40px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; font-family: var(--mono); font-size: 11px;
+  color: #C9B6FF; background: rgba(11,7,24,.94); border: 1px solid rgba(167,140,255,.3);
+  transition: color .5s, background .5s, border-color .5s, box-shadow .5s; }
+.s2b-jstep.is-in .s2b-jnodo { color: #fff; border-color: rgba(201,182,255,.75);
+  background: linear-gradient(160deg,#7E5EFF,#3B2296);
+  box-shadow: 0 0 0 5px rgba(109,74,255,.14), 0 14px 30px -14px rgba(109,74,255,.95); }
+.s2b-jlbl { font-family: var(--display); font-weight: 600; font-size: 15.5px; color: #fff; letter-spacing: -.02em; }
+/* el tramo vertical hacia el paso siguiente (celular) */
+.s2b-jstep::before { content: ""; position: absolute; left: 20px; top: 40px; width: 2px; height: 16px;
+  background: linear-gradient(180deg, rgba(167,140,255,.6), rgba(167,140,255,.14));
+  transform: scaleY(0); transform-origin: top; transition: transform .6s cubic-bezier(.2,.7,.2,1) .1s; }
+.s2b-jstep.is-in::before { transform: scaleY(1); }
+.s2b-jstep:last-child::before { display: none; }
+
+@media (min-width: 900px) {
+  .s2b-journey-track { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; }
+  .s2b-jstep { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 14px; }
+  .s2b-jlbl { font-size: 13.5px; max-width: 14ch; }
+  /* ahora la linea es horizontal y cruza por detras de los nodos */
+  .s2b-jstep::before { left: 50%; top: 20px; width: 100%; height: 2px; transform: scaleX(0);
+    transform-origin: left center; transition: transform .7s cubic-bezier(.2,.7,.2,1) .1s;
+    background: linear-gradient(90deg, rgba(167,140,255,.55), rgba(167,140,255,.18)); }
+  .s2b-jstep.is-in::before { transform: scaleX(1); }
+}
+
+/* la idea, en dos columnas: el argumento y el telefono */
+.s2b-idea-grid { display: grid; gap: 40px; align-items: center; }
+@media (min-width: 900px) { .s2b-idea-grid { grid-template-columns: 1.08fr .92fr; gap: 56px; } }
+
+/* ==================================================================
+   MVP: la escalera del producto
+   v0.1 -> lo importante -> feedback -> v0.2 -> escala. Cada peldano
+   sube un poco, para que se lea como evolucion y no como lista.
+   ================================================================== */
+.s2b-ladder { display: grid; gap: 10px; margin-top: 8px; }
+.s2b-rung { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center;
+  padding: 14px 17px; border-radius: 15px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(167,140,255,.18);
+  transition: background .3s, border-color .3s, transform .3s cubic-bezier(.2,.8,.2,1); }
+.s2b-rung:hover { background: rgba(255,255,255,.09); border-color: rgba(167,140,255,.42); }
+.s2b-rung-v { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: #C9B6FF; background: rgba(109,74,255,.2); border: 1px solid rgba(167,140,255,.26);
+  padding: 6px 9px; border-radius: 9px; white-space: nowrap; }
+.s2b-rung p { font-size: 14.5px; color: #C9C2E6; }
+/* el ultimo peldano es el que llega arriba: se marca distinto */
+.s2b-rung--top { background: linear-gradient(120deg, rgba(109,74,255,.26), rgba(167,140,255,.1));
+  border-color: rgba(167,140,255,.5); }
+.s2b-rung--top .s2b-rung-v { color: #fff; background: linear-gradient(150deg,#7E5EFF,#3B2296); border-color: transparent; }
+.s2b-rung--top p { color: #fff; font-weight: 600; }
+@media (min-width: 700px) {
+  /* el escaloncito: cada peldano arranca un poco mas a la derecha */
+  .s2b-rung { margin-left: calc(var(--i, 0) * 10px); }
+}
+
+
+/* ==================================================================
+   QUE DESARROLLAMOS: bento
+   Catorce capacidades que antes eran catorce tarjetas del mismo
+   tamano. Ahora hay piezas grandes con interfaz adentro, medianas y
+   chicas: el ojo tiene por donde entrar.
+   ================================================================== */
+.s2b-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 48px;
+  grid-auto-flow: dense; }
+
+/* la tira de flujo que va adentro de una pieza del bento */
+.s2b-flujo { display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; overflow: hidden; }
+.s2b-flujo span { flex: none; white-space: nowrap; padding: 8px 12px; border-radius: 10px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--violet); background: rgba(109,74,255,.08); border: 1px solid rgba(109,74,255,.16); }
+.s2b-flujo i { flex: none; display: grid; place-items: center; color: rgba(109,74,255,.45); }
+.s2b-bt--dark .s2b-flujo span { color: #D8CDFF; background: rgba(255,255,255,.06); border-color: rgba(167,140,255,.24); }
+.s2b-bt--dark .s2b-flujo i { color: rgba(167,140,255,.5); }
+.s2b-bt { position: relative; overflow: hidden; display: flex; flex-direction: column;
+  padding: 20px; border-radius: var(--r-card); background: #fff; border: 1px solid var(--line);
+  box-shadow: 0 20px 46px -40px rgba(24,12,60,.5);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s; }
+.s2b-bt:hover { transform: translateY(-4px); border-color: rgba(109,74,255,.3);
+  box-shadow: 0 30px 62px -38px rgba(24,12,60,.6); }
+.s2b-bt-ico { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px;
+  color: var(--violet); background: rgba(109,74,255,.09); border: 1px solid rgba(109,74,255,.13);
+  transition: background .3s, color .3s, border-color .3s; flex: none; }
+.s2b-bt:hover .s2b-bt-ico { color: #fff; background: linear-gradient(160deg,#7E5EFF,#3B2296); border-color: transparent; }
+.s2b-bt h3 { font-size: 16.5px; letter-spacing: -.025em; margin-bottom: 7px; }
+.s2b-bt p { font-size: 13.6px; color: var(--muted); line-height: 1.55; }
+/* la pieza de interfaz vive abajo del texto y se recorta contra el borde */
+.s2b-bt-vis { margin: 18px -20px -20px; padding: 0 20px; position: relative; flex: 1;
+  display: flex; align-items: flex-end; min-height: 108px; }
+.s2b-bt-vis > * { width: 100%; transform: translateY(14px);
+  transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.s2b-bt:hover .s2b-bt-vis > * { transform: translateY(6px); }
+
+/* las destacadas: fondo con profundidad y mas aire */
+.s2b-bt--feat { padding: 26px; background:
+  radial-gradient(120% 110% at 12% 0%, #FFFFFF, #F7F5FF 46%, #EFEAFF 100%); }
+.s2b-bt--feat h3 { font-size: clamp(19px, 2.1vw, 24px); margin-bottom: 9px; }
+.s2b-bt--feat p { font-size: 14.6px; max-width: 46ch; }
+.s2b-bt--feat .s2b-bt-vis { margin: 22px -26px -26px; padding: 0 26px; min-height: 132px; }
+/* las oscuras: rompen el bloque claro desde adentro */
+.s2b-bt--dark { background: linear-gradient(158deg, #1B1049 0%, #0B0718 78%);
+  border-color: rgba(167,140,255,.2); }
+.s2b-bt--dark h3 { color: #fff; }
+.s2b-bt--dark p { color: #A79EC8; }
+.s2b-bt--dark .s2b-bt-ico { color: #D8CDFF; background: rgba(109,74,255,.24); border-color: rgba(167,140,255,.26); }
+.s2b-bt--dark:hover { border-color: rgba(167,140,255,.5); }
+.s2b-bt--dark:hover .s2b-bt-ico { background: linear-gradient(160deg,#8B6BFF,#4B2FD6); }
+
+@media (min-width: 760px) { .s2b-bento { grid-template-columns: repeat(4, 1fr); gap: 14px; } }
+@media (min-width: 1060px) {
+  .s2b-bento { grid-template-columns: repeat(6, 1fr); }
+  .s2b-bt.w3 { grid-column: span 3; }
+  .s2b-bt.w2 { grid-column: span 2; }
+  .s2b-bt.w1 { grid-column: span 1; }
+  .s2b-bt.h2 { grid-row: span 2; }
+}
+@media (min-width: 760px) and (max-width: 1059px) {
+  .s2b-bt.w3 { grid-column: span 4; }
+  .s2b-bt.w2 { grid-column: span 2; }
+  .s2b-bt.w1 { grid-column: span 2; }
+}
+@media (max-width: 759px) {
+  .s2b-bt.w3, .s2b-bt.w2 { grid-column: span 2; }
+  .s2b-bt.w1 { grid-column: span 1; }
+  .s2b-bt.w1 p { display: none; }
+  .s2b-bt.w1 { padding: 16px; }
+  .s2b-bt.w1 h3 { font-size: 14.5px; }
+}
+
+/* ==================================================================
+   IA: el nucleo y lo que toca
+   ================================================================== */
+.s2b-ia-col { display: grid; gap: 20px; align-content: start; }
+.s2b-ia-nodos { position: relative; border-radius: var(--r-card); padding: 22px 18px 16px;
+  background: radial-gradient(120% 100% at 50% 0%, rgba(109,74,255,.24), transparent 68%), rgba(9,6,20,.5);
+  border: 1px solid rgba(167,140,255,.18); }
+.s2b-ia-nodos-t { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: #8C85AE; margin-bottom: 10px; text-align: center; }
+/* el diagrama se ajusta al alto que le doy, no al ancho de la columna */
+.s2b-ia-nodos .s2b-nodes { height: 212px; }
+.s2b-bt-vis .s2b-nodes { height: 166px; }
+.s2b-bt .s2b-phone { width: 168px; }
+.s2b-bt .s2b-phone-scr { min-height: 186px; padding-top: 26px; }
+
+/* ==================================================================
+   QUE PODEMOS CREAR: dos tiras que corren
+   Dieciseis productos que eran dieciseis cuadraditos. Ahora pasan,
+   como el logo de un cliente: ocupan poco y se leen de un vistazo.
+   ================================================================== */
+.s2b-tiras { display: grid; gap: 12px; margin-top: 44px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
+.s2b-tira { display: flex; gap: 12px; width: max-content; }
+.s2b-tira--a { animation: s2b-tira-izq 52s linear infinite; }
+.s2b-tira--b { animation: s2b-tira-der 58s linear infinite; }
+.s2b-tiras:hover .s2b-tira { animation-play-state: paused; }
+@keyframes s2b-tira-izq { to { transform: translateX(-50%); } }
+@keyframes s2b-tira-der { from { transform: translateX(-50%); } to { transform: none; } }
+.s2b-tira span { display: inline-flex; align-items: center; gap: 10px; flex: none; white-space: nowrap;
+  padding: 13px 19px; border-radius: 14px; background: #fff; border: 1px solid var(--line);
+  font-family: var(--display); font-weight: 600; font-size: 14.5px; letter-spacing: -.015em; color: var(--title);
+  box-shadow: 0 14px 30px -26px rgba(24,12,60,.6);
+  transition: border-color .25s, color .25s, box-shadow .25s; }
+.s2b-tira span svg { color: var(--violet); flex: none; }
+.s2b-tira span:hover { border-color: rgba(109,74,255,.4); box-shadow: 0 18px 36px -22px rgba(109,74,255,.6); }
+
+/* ==================================================================
+   PORTFOLIO: cada trabajo, un caso
+   Filas grandes que alternan lado. La captura entra en su ventana de
+   navegador y el texto respira al costado.
+   ================================================================== */
+.s2b-cases { display: grid; gap: clamp(52px, 6vw, 88px); margin-top: 56px; }
+.s2b-case { display: grid; gap: 32px; align-items: center; }
+.s2b-case-vis { position: relative; }
+.s2b-case-vis::before { content: ""; position: absolute; inset: 4% -4%; z-index: 0; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(109,74,255,.2), transparent 70%); filter: blur(28px); }
+.s2b-case-vis .s2b-shot { width: 100%; z-index: 1; }
+.s2b-case-n { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--violet); }
+.s2b-case-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 12px 0 6px; }
+.s2b-case h3 { font-size: clamp(24px, 3vw, 36px); letter-spacing: -.035em; }
+.s2b-case-pais { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.s2b-case-tipo { display: inline-flex; align-self: flex-start; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--violet);
+  background: rgba(109,74,255,.08); border: 1px solid rgba(109,74,255,.16); padding: 6px 12px; border-radius: 999px; }
+/* antes / despues, uno debajo del otro, con la linea del medio */
+.s2b-case-datos { display: grid; gap: 0; margin: 22px 0 18px; }
+.s2b-case-dato { display: grid; gap: 5px; padding: 16px 0; border-top: 1px solid var(--line); }
+.s2b-case-dato:last-child { border-bottom: 1px solid var(--line); }
+.s2b-case-dato b { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted); font-weight: 400; }
+.s2b-case-dato p { font-size: 15px; color: var(--text); line-height: 1.6; max-width: 52ch; }
+.s2b-case-frase { display: flex; gap: 11px; margin-top: 20px; }
+.s2b-case-frase svg { flex: none; margin-top: 4px; color: var(--lilac); }
+.s2b-case-frase p { font-family: var(--display); font-size: 16.5px; line-height: 1.45; letter-spacing: -.02em;
+  color: var(--title); }
+.s2b-case-frase cite { display: block; margin-top: 8px; font-style: normal; font-family: var(--mono);
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+@media (min-width: 940px) {
+  .s2b-case { grid-template-columns: 1.06fr .94fr; gap: clamp(40px, 5vw, 72px); }
+  /* la segunda, la cuarta... cambian de lado */
+  .s2b-case:nth-child(even) .s2b-case-vis { order: 2; }
+}
+/* los trabajos que no tienen captura: una fila mas tranquila, con el logo */
+.s2b-mas { display: grid; gap: 14px; margin-top: clamp(52px, 6vw, 80px); }
+.s2b-mas-t { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 4px; }
+.s2b-mini { display: grid; gap: 14px; padding: 22px; border-radius: var(--r-card);
+  background: #fff; border: 1px solid var(--line); align-content: start;
+  box-shadow: 0 20px 46px -42px rgba(24,12,60,.5);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s; }
+.s2b-mini:hover { transform: translateY(-4px); border-color: rgba(109,74,255,.28); }
+.s2b-mini-logo { height: 48px; display: flex; align-items: center; }
+.s2b-mini-logo img { max-height: 100%; width: auto; max-width: 165px; object-fit: contain; }
+.s2b-mas-grid { display: grid; gap: 14px; }
+.s2b-mini h4 { font-size: 17px; letter-spacing: -.025em; }
+.s2b-mini p { font-size: 13.8px; color: var(--muted); line-height: 1.55; }
+.s2b-mini-pie { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+@media (min-width: 760px) { .s2b-mas-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; } }
+
+/* ==================================================================
+   METODO: el riel de siete etapas
+   ================================================================== */
+.s2b-riel { display: grid; gap: 14px; margin-top: 52px; }
+.s2b-etapa { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 16px; align-items: start; }
+.s2b-etapa-nodo { position: relative; z-index: 2; width: 44px; height: 44px; border-radius: 14px; flex: none;
+  display: grid; place-items: center; color: var(--violet);
+  background: #fff; border: 1px solid var(--line);
+  box-shadow: 0 12px 26px -20px rgba(24,12,60,.6);
+  transition: color .5s, background .5s, border-color .5s, box-shadow .5s; }
+.s2b-etapa.is-in .s2b-etapa-nodo { color: #fff; border-color: transparent;
+  background: linear-gradient(160deg,#7E5EFF,#4B2FD6);
+  box-shadow: 0 0 0 5px rgba(109,74,255,.1), 0 16px 32px -16px rgba(109,74,255,.85); }
+.s2b-etapa .n { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; color: var(--violet); }
+.s2b-etapa h4 { font-size: 16.5px; margin: 4px 0 6px; letter-spacing: -.025em; }
+.s2b-etapa p { font-size: 13.8px; color: var(--muted); line-height: 1.55; max-width: 38ch; }
+/* el tramo que une una etapa con la siguiente */
+.s2b-etapa::before { content: ""; position: absolute; left: 22px; top: 44px; width: 2px; bottom: -14px;
+  background: linear-gradient(180deg, rgba(109,74,255,.45), rgba(109,74,255,.12));
+  transform: scaleY(0); transform-origin: top; transition: transform .7s cubic-bezier(.2,.7,.2,1) .1s; }
+.s2b-etapa.is-in::before { transform: scaleY(1); }
+.s2b-etapa:last-child::before { display: none; }
+@media (min-width: 1000px) {
+  .s2b-riel { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 20px; }
+  .s2b-etapa { grid-template-columns: 1fr; gap: 14px; }
+  .s2b-etapa::before { left: 22px; top: 21px; width: calc(100% + 20px); height: 2px; bottom: auto;
+    transform: scaleX(0); transform-origin: left center;
+    background: linear-gradient(90deg, rgba(109,74,255,.42), rgba(109,74,255,.1)); }
+  .s2b-etapa.is-in::before { transform: scaleX(1); }
+  .s2b-etapa p { font-size: 13px; max-width: none; }
+}
+
+/* ==================================================================
+   POR QUE STUDIO B2B: editorial, no tarjetas
+   El titulo se queda quieto de un lado mientras del otro pasan las
+   seis razones, separadas por un filete y nada mas.
+   ================================================================== */
+.s2b-porque { display: grid; gap: 40px; margin-top: 8px; }
+.s2b-porque-lista { display: grid; }
+.s2b-razon { display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start;
+  padding: 22px 0; border-top: 1px solid var(--line); transition: padding-left .32s cubic-bezier(.2,.8,.2,1); }
+.s2b-razon:last-child { border-bottom: 1px solid var(--line); }
+.s2b-razon:hover { padding-left: 10px; }
+.s2b-razon-ico { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; flex: none;
+  color: var(--violet); background: rgba(109,74,255,.08); border: 1px solid rgba(109,74,255,.12);
+  transition: color .3s, background .3s, border-color .3s; }
+.s2b-razon:hover .s2b-razon-ico { color: #fff; background: linear-gradient(160deg,#7E5EFF,#3B2296); border-color: transparent; }
+.s2b-razon h3 { font-size: 18px; letter-spacing: -.025em; margin-bottom: 6px; }
+.s2b-razon p { font-size: 14.6px; color: var(--muted); line-height: 1.6; max-width: 54ch; }
+@media (min-width: 940px) {
+  .s2b-porque { grid-template-columns: .82fr 1.18fr; gap: 64px; align-items: start; }
+  .s2b-porque-head { position: sticky; top: 128px; }
+}
+
+/* ==================================================================
+   AJUSTES POR ANCHO
+   ================================================================== */
+@media (min-width: 900px) {
+  .s2b-doors { grid-template-columns: 1fr 1fr; }
+  .s2b-caos-grid { grid-template-columns: 1fr auto 1fr; gap: 26px; }
+  .s2b-puente { padding: 0 4px; }
+  /* de costado el recorrido va de izquierda a derecha, no hacia abajo */
+  .s2b-puente-flecha { transform: rotate(-90deg); }
+}
+@media (max-width: 899px) {
+  /* el puente se acuesta: caos arriba, marca en el medio, orden abajo */
+  .s2b-puente { padding: 4px 0; }
+  .s2b-doors { border-radius: var(--r-card); }
+}
+@media (max-width: 640px) {
+  .s2b-hero { padding-top: 12px; padding-bottom: 60px; }
+  .s2b-nav { padding-top: 10px; }
+  .s2b-lado { min-height: 0; padding: 44px 16px 22px; }
+  .s2b-nube span { font-size: 12.2px; padding: 8px 11px; gap: 7px; }
+  .s2b-orden-lista li { font-size: 12.6px; padding: 10px 12px; }
+  .s2b-tira span { font-size: 13px; padding: 11px 15px; }
+  .s2b-case-dato p { font-size: 14.2px; }
+  .s2b-case-frase p { font-size: 15px; }
+  .s2b-door { padding: 24px 20px; }
+  .s2b-phone { width: 208px; }
+  .s2b-phone-scr { min-height: 292px; }
+}
+@media (max-width: 820px) {
+  .s2b-navpad { height: 78px; }
+}
+
+/* nada de esto se mueve si el visitante pidio menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .s2b-nube span, .s2b-tira, .s2b-nodes .lk, .s2b-nodes .hub-ring { animation: none !important; }
+  .s2b-jstep::before, .s2b-etapa::before { transform: none !important; }
+}
+
+
+/* ==================================================================
+   ARREGLO DE FONDO: el reset le estaba ganando a los botones
+   Arriba de todo vive .s2b button { background:none; color:inherit;
+   border:none }. Esa regla pesa mas -una clase y un tipo- que
+   cualquier clase suelta como .s2b-btn--chrome, asi que el navegador
+   le hacia caso al reset y no a la clase: los botones principales
+   salian transparentes, con el color del texto de al lado y sin borde.
+   Lo unico que se veia era la sombra, que el reset no toca, y por eso
+   parecian contornos vacios.
+   Se arregla subiendoles el peso -".s2b" adelante- a las clases que
+   de verdad pintan. Mismo diseno, ahora aplicado.
+   ================================================================== */
+.s2b .s2b-btn--primary {
+  color: #fff;
+  background: linear-gradient(180deg, #7E5EFF 0%, #6D4AFF 46%, #5432DE 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26), 0 12px 26px -14px rgba(109,74,255,.9);
+}
+.s2b .s2b-btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 18px 36px -14px rgba(109,74,255,1); }
+
+.s2b .s2b-btn--chrome {
+  color: #0F0A22;
+  background: linear-gradient(180deg, #FFFFFF, #EDEFF6 58%, #C9CEDD);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 12px 28px -16px rgba(24,12,60,.6);
+}
+
+.s2b .s2b-btn--glass {
+  color: #fff; background: rgba(255,255,255,.07); backdrop-filter: blur(10px);
+  border: 1px solid rgba(167,140,255,.28);
+}
+.s2b .s2b-btn--glass:hover { background: rgba(255,255,255,.13); border-color: rgba(167,140,255,.55); }
+
+.s2b .s2b-btn--line { border: 1px solid var(--line); color: var(--title); background: var(--surface); }
+.s2b .s2b-btn--line:hover { border-color: var(--violet); }
+
+/* los links con flecha volvieron a ser violetas -y lilas sobre oscuro- */
+.s2b .s2b-link { color: var(--violet); }
+.s2b .s2b-band--dark .s2b-link,
+.s2b .s2b-tech-panel .s2b-link { color: var(--lilac); }
+
+/* la pregunta de una FAQ es un titulo, no texto corrido */
+.s2b .s2b-fq { color: var(--title); }
+
+/* las pestanas del stack: la apagada tambien tiene fondo y borde */
+.s2b .s2b-tab {
+  color: #C4BCE4; background: rgba(255,255,255,.055); border: 1px solid rgba(167,140,255,.26);
+}
+.s2b .s2b-tab:hover { color: #EDE9FF; border-color: rgba(167,140,255,.4); }
+.s2b .s2b-tab.is-on {
+  color: #fff; background: linear-gradient(120deg, var(--violet), #4B2FD6);
+  border-color: transparent; box-shadow: 0 16px 34px -18px rgba(109,74,255,.95);
+}
+
+/* la burbuja de WhatsApp estaba saliendo hueca: solo se veia el anillo */
+.s2b .s2b-wa-fab {
+  color: #fff; background: linear-gradient(150deg, #4AE083, #1FA855 62%, #128C7E);
+  box-shadow: 0 14px 34px -10px rgba(18,140,126,.75), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.s2b .s2b-wa-fab:hover {
+  box-shadow: 0 20px 44px -12px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.s2b .s2b-wa-cta { color: #fff; background: linear-gradient(140deg, #1FA855, #128C7E); }
+.s2b .s2b-wa-x { color: rgba(255,255,255,.85); }
+.s2b .s2b-wa-x:hover { color: #fff; background: rgba(255,255,255,.2); }
+
+/* el boton de menu del celular, blanco sobre el hero */
+.s2b .s2b-burger { color: #fff; }
+.s2b .s2b-nav.is-stuck .s2b-burger { color: #fff; }
+
+/* ==================================================================
+   Y el ultimo detalle del hero: al achicar el aire de arriba, la
+   pastilla se le subia encima al rotulo de la red. Le devolvemos el
+   lugar justo -ni el hueco de antes, ni el choque-.
+   ================================================================== */
+.s2b-hero { padding-top: 78px; }
+@media (max-width: 820px) { .s2b-hero { padding-top: 30px; } }
+@media (max-width: 640px) { .s2b-hero { padding-top: 14px; } }
+
 `;
 
 /* ================= idioma =================
@@ -1130,6 +1837,10 @@ const ideaFlujo = (t) => [
   t("Desarrollo", "Development"), t("Lanzamiento", "Launch"), t("Evolución", "Growth"),
 ];
 
+/* Las etiquetas de la escalera del MVP. No son texto: son el numero de version
+   que le pone forma de evolucion a la lista de abajo. */
+const MVP_VERSIONES = ["v0.1", "v0.2", "v0.3", "v0.4", "v0.5", "v1.0"];
+
 const mvpObjetivos = (t) => [
   t("Validar la idea con usuarios reales.", "Validate the idea with real users."),
   t("Salir al mercado más rápido.", "Get to market faster."),
@@ -1139,23 +1850,25 @@ const mvpObjetivos = (t) => [
   t("Crecer por etapas, sin frenar.", "Grow in stages, without stopping."),
 ];
 
-/* Todo lo que sabemos construir. Es una grilla y no un parrafo: alguien que
-   llega de Instagram tiene que encontrar lo suyo de un vistazo. */
+/* Todo lo que sabemos construir. Ya no son catorce tarjetas del mismo tamano:
+   el orden y el "w" de cada una arman el bento. Las grandes llevan una pieza
+   de interfaz adentro -"vis"- y dos van en oscuro para que el bloque claro no
+   se lea plano. El contenido es exactamente el mismo de antes. */
 const queDesarrollamos = (t) => [
-  { ic: Code2, t: t("Software a medida", "Custom software"), d: t("Sistemas diseñados alrededor de los procesos reales de cada empresa.", "Systems designed around each company's real processes.") },
-  { ic: Smartphone, t: t("Aplicaciones móviles", "Mobile apps"), d: t("Apps para clientes, empleados o para un producto nuevo, en iOS y Android.", "Apps for clients, staff or a brand new product, on iOS and Android.") },
-  { ic: Globe, t: t("Aplicaciones web", "Web apps"), d: t("Plataformas rápidas, modernas y preparadas para crecer.", "Fast, modern platforms built to scale.") },
-  { ic: Users, t: t("CRM personalizado", "Custom CRM"), d: t("Clientes, oportunidades, ventas y seguimiento en un solo lugar.", "Clients, leads, sales and follow-up in one place.") },
-  { ic: Building2, t: t("Sistemas empresariales", "Business systems"), d: t("Plataformas internas para ordenar las distintas áreas de una empresa.", "Internal platforms that bring a company's different areas together.") },
-  { ic: Workflow, t: t("Automatización", "Automation"), d: t("Las tareas repetitivas dejan de ocupar horas de tu equipo.", "Repetitive tasks stop eating your team's hours.") },
-  { ic: Sparkles, t: t("Inteligencia Artificial", "Artificial intelligence"), d: t("IA integrada dentro de procesos y sistemas que ya están funcionando.", "AI built into processes and systems that are already running.") },
-  { ic: Bot, t: t("Agentes de IA", "AI agents"), d: t("Asistentes que atienden, califican y resuelven en ventas y operaciones.", "Assistants that answer, qualify and resolve across sales and operations.") },
-  { ic: CreditCard, t: "SaaS", d: t("Productos digitales por suscripción, con su panel y su facturación.", "Subscription products, with their own dashboard and billing.") },
-  { ic: Store, t: "Marketplaces", d: t("Plataformas que conectan clientes, vendedores o proveedores.", "Platforms that connect clients, sellers or suppliers.") },
-  { ic: LayoutDashboard, t: "Dashboards", d: t("La información del negocio ordenada en paneles que se entienden.", "Your business data organized into panels that actually read clearly.") },
-  { ic: Plug, t: t("Integraciones", "Integrations"), d: t("APIs, WhatsApp, email, pagos, CRM y las herramientas que ya usás.", "APIs, WhatsApp, email, payments, CRM and the tools you already use.") },
-  { ic: Rocket, t: "MVP", d: t("La primera versión funcional de una idea, lista para salir.", "The first working version of an idea, ready to ship.") },
-  { ic: KeyRound, t: t("Portales para clientes", "Client portals"), d: t("Accesos privados para clientes, empleados o proveedores.", "Private access for clients, staff or suppliers.") },
+  { ic: Code2, w: "w3 h2", tono: "feat", vis: "panel", t: t("Software a medida", "Custom software"), d: t("Sistemas diseñados alrededor de los procesos reales de cada empresa.", "Systems designed around each company's real processes.") },
+  { ic: Bot, w: "w3", tono: "dark", vis: "nodos", t: t("Agentes de IA", "AI agents"), d: t("Asistentes que atienden, califican y resuelven en ventas y operaciones.", "Assistants that answer, qualify and resolve across sales and operations.") },
+  { ic: Smartphone, w: "w2 h2", tono: "feat", vis: "phone", t: t("Aplicaciones móviles", "Mobile apps"), d: t("Apps para clientes, empleados o para un producto nuevo, en iOS y Android.", "Apps for clients, staff or a brand new product, on iOS and Android.") },
+  { ic: Globe, w: "w1", t: t("Aplicaciones web", "Web apps"), d: t("Plataformas rápidas, modernas y preparadas para crecer.", "Fast, modern platforms built to scale.") },
+  { ic: Users, w: "w2", vis: "filas", t: t("CRM personalizado", "Custom CRM"), d: t("Clientes, oportunidades, ventas y seguimiento en un solo lugar.", "Clients, leads, sales and follow-up in one place.") },
+  { ic: Building2, w: "w1", t: t("Sistemas empresariales", "Business systems"), d: t("Plataformas internas para ordenar las distintas áreas de una empresa.", "Internal platforms that bring a company's different areas together.") },
+  { ic: LayoutDashboard, w: "w1", t: "Dashboards", d: t("La información del negocio ordenada en paneles que se entienden.", "Your business data organized into panels that actually read clearly.") },
+  { ic: Workflow, w: "w3", tono: "feat", vis: "flujo", t: t("Automatización", "Automation"), d: t("Las tareas repetitivas dejan de ocupar horas de tu equipo.", "Repetitive tasks stop eating your team's hours.") },
+  { ic: Sparkles, w: "w3", tono: "dark", vis: "chart", t: t("Inteligencia Artificial", "Artificial intelligence"), d: t("IA integrada dentro de procesos y sistemas que ya están funcionando.", "AI built into processes and systems that are already running.") },
+  { ic: CreditCard, w: "w2", t: "SaaS", d: t("Productos digitales por suscripción, con su panel y su facturación.", "Subscription products, with their own dashboard and billing.") },
+  { ic: Store, w: "w2", t: "Marketplaces", d: t("Plataformas que conectan clientes, vendedores o proveedores.", "Platforms that connect clients, sellers or suppliers.") },
+  { ic: Plug, w: "w2", t: t("Integraciones", "Integrations"), d: t("APIs, WhatsApp, email, pagos, CRM y las herramientas que ya usás.", "APIs, WhatsApp, email, payments, CRM and the tools you already use.") },
+  { ic: Rocket, w: "w3", t: "MVP", d: t("La primera versión funcional de una idea, lista para salir.", "The first working version of an idea, ready to ship.") },
+  { ic: KeyRound, w: "w3", t: t("Portales para clientes", "Client portals"), d: t("Accesos privados para clientes, empleados o proveedores.", "Private access for clients, staff or suppliers.") },
 ];
 
 /* Donde la IA entra de verdad en un negocio. La lista existe para sacarse de
@@ -3037,6 +3750,106 @@ function WhatsAppBubble({ t, chips }) {
 
 /* Que vista pide la direccion. El proceso y las preguntas tienen su propia URL
    para que el home no sea eterno, y para poder mandarle el link a alguien. */
+/* ================= piezas de interfaz =================
+   Un panel, un telefono, un diagrama de nodos y una tira de flujo. Son de
+   mentira a proposito -no hay dato de nadie adentro- pero se ven como lo que
+   construimos, que es mejor argumento que una foto de programadores. Todas
+   son CSS y SVG: no pesan ni un kilobyte de imagen. */
+
+function UiPanel({ claro, titulo, kpis = [], barras = [], filas = [] }) {
+  return (
+    <div className={"s2b-ui" + (claro ? " s2b-ui--claro" : "")} aria-hidden="true">
+      <div className="s2b-ui-bar"><i /><i /><i />{titulo && <b>{titulo}</b>}</div>
+      <div className="s2b-ui-body">
+        {kpis.length > 0 && (
+          <div className="s2b-ui-kpis">
+            {kpis.map((k) => <div className="s2b-ui-kpi" key={k.k}><em>{k.k}</em><b>{k.v}</b></div>)}
+          </div>
+        )}
+        {barras.length > 0 && (
+          <div className="s2b-ui-chart">
+            {barras.map((h, i) => (
+              <i key={i} style={{ height: h + "%", animationDelay: i * 55 + "ms" }} />
+            ))}
+          </div>
+        )}
+        {filas.length > 0 && (
+          <div className="s2b-ui-rows">
+            {filas.map((f) => (
+              <div className="s2b-ui-row" key={f.t}>
+                <Check size={13} /><span>{f.t}</span><span>{f.e}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UiTelefono({ titulo, sub, cards = [], cta }) {
+  return (
+    <div className="s2b-phone" aria-hidden="true">
+      <div className="s2b-phone-scr">
+        {sub && <div className="s2b-phone-s">{sub}</div>}
+        {titulo && <div className="s2b-phone-t">{titulo}</div>}
+        {cards.map((c) => (
+          <div className="s2b-phone-card" key={c}>
+            <b>{c}</b><i /><i className="w2" />
+          </div>
+        ))}
+        {cta && <div className="s2b-phone-cta">{cta}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* El nucleo y lo que toca. Las lineas van punteadas y se mueven: se lee que
+   algo circula, sin ponerle particulas a toda la pantalla. */
+function UiNodos({ id = "n", centro = "AI CORE", satelites = [] }) {
+  const filas = [31, 100, 169];
+  const puestos = satelites.slice(0, 6).map((s, i) => ({
+    s, x: i < 3 ? 49 : 271, rx: i < 3 ? 6 : 228, y: filas[i % 3],
+  }));
+  return (
+    <svg className="s2b-nodes" viewBox="0 0 320 200" role="img" aria-label={centro}>
+      <defs>
+        <radialGradient id={"s2bHub-" + id} cx="35%" cy="26%">
+          <stop offset="0%" stopColor="#A78CFF" />
+          <stop offset="60%" stopColor="#6D4AFF" />
+          <stop offset="100%" stopColor="#3B2296" />
+        </radialGradient>
+      </defs>
+      {puestos.map((p, i) => (
+        <line className="lk" key={"l" + i} x1="160" y1="100" x2={p.x} y2={p.y}
+          style={{ animationDelay: i * -0.4 + "s" }} />
+      ))}
+      <circle className="hub-ring" cx="160" cy="100" r="34" />
+      <circle className="hub" cx="160" cy="100" r="34" />
+      <text className="hub-lbl" x="160" y="104" textAnchor="middle">{centro}</text>
+      {puestos.map((p, i) => (
+        <g key={"g" + i}>
+          <rect className="sat" x={p.rx} y={p.y - 13} width="86" height="26" rx="8" />
+          <text className="lbl" x={p.x} y={p.y + 3} textAnchor="middle">{p.s}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function UiFlujo({ pasos = [] }) {
+  return (
+    <div className="s2b-flujo" aria-hidden="true">
+      {pasos.map((p, i) => (
+        <React.Fragment key={p}>
+          {i > 0 && <i><ArrowRight size={13} /></i>}
+          <span>{p}</span>
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 const RUTAS = { proceso: "/proceso", preguntas: "/preguntas" };
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
@@ -3176,14 +3989,41 @@ export default function StudioB2B() {
       "Custom software, mobile apps, CRM systems and AI solutions for businesses and entrepreneurs. Built from Córdoba, Argentina."));
   }, [vista, t]);
 
+  /* Los bloques que aparecen al bajar.
+     Antes esto lo hacia un IntersectionObserver, y tenia dos agujeros: el
+     observador solo avisa cuando un elemento CRUZA el borde de la pantalla
+     -si alguien pega un scrollazo, o si una imagen que carga tarde empuja la
+     pagina, un bloque salta de "abajo de todo" a "arriba de todo" sin cruzar
+     nada- y ademas se quedaba con la lista de elementos del primer pintado,
+     asi que cualquier bloque que React volviera a crear ya nunca se revelaba.
+     Como los bloques arrancan en opacity 0, el resultado era contenido
+     invisible para siempre: pasaba en el recorrido de la idea, en la tira de
+     productos y en los primeros casos del portfolio.
+     Ahora es al reves y mas simple: no se recuerda nada. Cada vez que hace
+     falta se vuelve a preguntar al DOM quien sigue sin mostrarse, y se muestra
+     todo lo que ya quedo por arriba del pie de pantalla. */
+  const revelar = useCallback(() => {
+    const pie = window.innerHeight - 60;
+    document.querySelectorAll(".s2b-rv:not(.is-in)").forEach((el) => {
+      if (el.getBoundingClientRect().top < pie) el.classList.add("is-in");
+    });
+  }, []);
+
   useEffect(() => {
-    const io = new IntersectionObserver(
-      (en) => en.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }),
-      { threshold: .1, rootMargin: "0px 0px -60px 0px" }
-    );
-    document.querySelectorAll(".s2b-rv").forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [vista]);
+    let raf = 0;
+    const alMover = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; revelar(); }); };
+    window.addEventListener("scroll", alMover, { passive: true });
+    window.addEventListener("resize", alMover, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", alMover);
+      window.removeEventListener("resize", alMover);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [revelar]);
+
+  /* sin lista de dependencias a proposito: corre despues de cada pintado, que
+     es justo cuando React pudo haber reemplazado un bloque */
+  useEffect(revelar);
 
   const goTo = useCallback((id) => {
     setDrawer(false); setPop(false);
@@ -3258,7 +4098,7 @@ export default function StudioB2B() {
           {sent ? (
             <div>
               <div className="s2b-sent"><Check size={20} /> {t("Mensaje enviado. Te respondemos a", "Message sent. We'll reply to")} {form.email}.</div>
-              <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => { setSent(false); setForm(FORM_VACIO); }}>
+              <button className="s2b-btn s2b-btn--glass" onClick={() => { setSent(false); setForm(FORM_VACIO); }}>
                 {t("Enviar otro", "Send another")}
               </button>
             </div>
@@ -3358,6 +4198,9 @@ export default function StudioB2B() {
             <button className="s2b-burger" aria-label={t("Abrir menú", "Open menu")} onClick={() => setDrawer(true)}><Menu size={24} /></button>
           </div>
         </header>
+        {/* el nav quedo fijo -acompana todo el recorrido, no solo el hero-, asi
+            que hace falta reservarle el lugar que ya no ocupa en el flujo */}
+        <div className="s2b-navpad" aria-hidden="true" />
 
         {drawer && (
           <div className="s2b-drawer">
@@ -3411,7 +4254,7 @@ export default function StudioB2B() {
               </div>
               <div className="s2b-hero-cta">
                 <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell Us About Your Project")} <ArrowRight size={16} /></button>
-                <button className="s2b-btn" style={{ border: "1px solid rgba(167,140,255,.35)", color: "#fff" }} onClick={() => goTo("idea")}>
+                <button className="s2b-btn s2b-btn--glass" onClick={() => goTo("idea")}>
                   <Lightbulb size={15} /> {t("Tengo una idea de app", "I Have an App Idea")}
                 </button>
               </div>
@@ -3557,28 +4400,55 @@ export default function StudioB2B() {
       {/* ============ CÓMO PODEMOS AYUDARTE ============ */}
       {/* Va pegada al hero a proposito: quien llega de una publicidad tiene que
           reconocerse en una de las dos puertas antes de seguir bajando. */}
-      <section className="s2b-sec s2b-sec--sm" id="ayuda">
+      <section className="s2b-sec s2b-sec--sm s2b-amb" id="ayuda">
         <div className="s2b-wrap">
           <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
             <div className="s2b-eyebrow">{t("Dos caminos", "Two paths")}</div>
             <h2 className="s2b-h2" style={{ maxWidth: "16ch" }}>{t("¿Cómo podemos", "How can we")} <b>{t("ayudarte?", "help you?")}</b></h2>
           </div>
 
-          <div className="s2b-puertas">
-            {AYUDA.map((a, i) => {
+          {/* Pantalla partida en vez de dos tarjetas iguales: la mitad de la
+              empresa es oscura y muestra un panel; la de la idea es clara y
+              muestra un telefono. Se reconoce cual es cual sin leer. */}
+          <div className="s2b-doors s2b-rv">
+            {AYUDA.map((a) => {
               const I = a.ic;
+              const esEmpresa = a.id === "empresas";
               return (
-                <article className="s2b-puerta s2b-rv" key={a.id} style={{ transitionDelay: i * 90 + "ms" }}>
-                  <div className="s2b-puerta-ico"><I size={23} /></div>
-                  <div className="s2b-puerta-rot">{a.rot}</div>
-                  <h3>{a.tt}</h3>
-                  <p>{a.d}</p>
-                  <div className="s2b-puerta-tags">
-                    {a.tags.map((c) => <span className="s2b-chip" key={c}>{c}</span>)}
+                <article className={"s2b-door " + (esEmpresa ? "s2b-door--emp" : "s2b-door--idea")} key={a.id}>
+                  <div className="s2b-door-in">
+                    <div className="s2b-door-rot"><I size={13} /> {a.rot}</div>
+                    <h3>{a.tt}</h3>
+                    <p>{a.d}</p>
+
+                    <div className="s2b-door-vis">
+                      {esEmpresa ? (
+                        <UiPanel
+                          titulo={t("Tu operación", "Your operations")}
+                          barras={[44, 66, 52, 78, 60, 90, 72]}
+                          filas={[
+                            { t: t("Presupuestos", "Quotes"), e: "OK" },
+                            { t: "CRM", e: "OK" },
+                            { t: t("Inventario", "Inventory"), e: "OK" },
+                          ]}
+                        />
+                      ) : (
+                        <UiTelefono
+                          sub="MVP · v0.1"
+                          titulo={t("Tu producto", "Your product")}
+                          cards={[t("Registro", "Sign up"), t("Panel", "Dashboard")]}
+                          cta={t("Empezar", "Get started")}
+                        />
+                      )}
+                    </div>
+
+                    <div className="s2b-door-tags">
+                      {a.tags.map((c) => <span className="s2b-chip" key={c}>{c}</span>)}
+                    </div>
+                    <button className={"s2b-btn " + (esEmpresa ? "s2b-btn--chrome" : "s2b-btn--primary")} onClick={() => goTo(a.to)}>
+                      {a.cta} <ArrowRight size={16} />
+                    </button>
                   </div>
-                  <button className="s2b-btn s2b-btn--primary" onClick={() => goTo(a.to)}>
-                    {a.cta} <ArrowRight size={16} />
-                  </button>
                 </article>
               );
             })}
@@ -3614,7 +4484,7 @@ export default function StudioB2B() {
       </div>
 
       {/* ============ EL PROBLEMA DE UNA EMPRESA ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="empresas">
+      <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="empresas">
         <div className="s2b-wrap">
           <div className="s2b-rv">
             <div className="s2b-eyebrow">{t("Para empresas", "For businesses")}</div>
@@ -3624,25 +4494,38 @@ export default function StudioB2B() {
             </p>
           </div>
 
-          <div className="s2b-dolores s2b-rv">
-            {DOLORES.map((d) => {
-              const I = d.ic;
-              return <div className="s2b-dolor" key={d.t}><I size={17} /> {d.t}</div>;
-            })}
-          </div>
+          {/* Del caos a un solo sistema, contado como una imagen y no como ocho
+              tarjetas iguales: los sintomas flotan sueltos de un lado, la
+              operacion ordenada del otro, y en el medio la marca. */}
+          <div className="s2b-caos-grid s2b-rv">
+            <div className="s2b-lado s2b-lado--caos">
+              <div className="s2b-lado-rot">{t("Hoy", "Today")}</div>
+              <div className="s2b-nube">
+                {DOLORES.map((d) => {
+                  const I = d.ic;
+                  return <span key={d.t}><I size={15} />{d.t}</span>;
+                })}
+              </div>
+            </div>
 
-          {/* de lo disperso a un solo sistema */}
-          <div className="s2b-embudo s2b-rv">
-            <div className="s2b-embudo-fila">
-              {DISPERSOS.map((x) => <span key={x}>{x}</span>)}
+            <div className="s2b-puente" aria-hidden="true">
+              <ArrowDown className="s2b-puente-flecha" size={22} />
+              <div className="s2b-puente-marca">
+                <img src="/logo.png" alt="" aria-hidden="true" />
+                Studio B2B
+              </div>
+              <ArrowDown className="s2b-puente-flecha" size={22} />
             </div>
-            <ArrowDown className="s2b-embudo-flecha" size={22} aria-hidden="true" />
-            <div className="s2b-embudo-marca">
-              <img src="/logo.png" alt="" aria-hidden="true" style={{ width: 26, height: 26, objectFit: "contain" }} />
-              Studio B2B
+
+            <div className="s2b-lado s2b-lado--orden">
+              <div className="s2b-lado-rot">{t("Con Studio B2B", "With Studio B2B")}</div>
+              <ul className="s2b-orden-lista">
+                {DISPERSOS.map((x) => (
+                  <li key={x}>{x}<em><Check size={12} /> {t("integrado", "connected")}</em></li>
+                ))}
+              </ul>
+              <div className="s2b-orden-fin">{t("Un solo sistema", "One single system")}</div>
             </div>
-            <ArrowDown className="s2b-embudo-flecha" size={22} aria-hidden="true" />
-            <div className="s2b-embudo-fin">{t("Un solo sistema", "One single system")}</div>
           </div>
 
           <div style={{ marginTop: 32 }} className="s2b-rv">
@@ -3657,20 +4540,14 @@ export default function StudioB2B() {
       <div className="s2b-band s2b-band--dark" id="idea">
         <section className="s2b-sec s2b-sec--sm">
           <div className="s2b-wrap">
-            <div className="s2b-split" style={{ alignItems: "start" }}>
+            <div className="s2b-idea-grid">
               <div className="s2b-rv">
                 <div className="s2b-eyebrow"><Lightbulb size={13} /> {t("Tengo una idea", "I have an idea")}</div>
                 <h2 className="s2b-h2">{t("¿Tenés una idea", "Have an idea")} <b>{t("para una app?", "for an app?")}</b></h2>
                 <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
                   {t("Tu idea puede convertirse en un producto real. Ayudamos a emprendedores, profesionales y empresas a transformar ideas en aplicaciones que funcionan.", "Your idea can become a real product. We help entrepreneurs, professionals and companies turn ideas into applications that actually work.")}
                 </p>
-                <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
-                  {t("Contanos tu idea", "Tell us your idea")} <ArrowUpRight size={16} />
-                </button>
-              </div>
-
-              <div className="s2b-rv">
-                <p style={{ color: "#BDB4E4", fontSize: 15.5 }}>
+                <p style={{ color: "#BDB4E4", fontSize: 15.5, marginTop: 26 }}>
                   <b style={{ color: "#fff", fontWeight: 600 }}>{t("No necesitás tener todo definido.", "You don't need to have it all figured out.")}</b>{" "}
                   {t("Podés venir con:", "You can come with:")}
                 </p>
@@ -3680,52 +4557,40 @@ export default function StudioB2B() {
                 <p style={{ color: "#9E97C4", fontSize: 14.5, marginTop: 18 }}>
                   {t("Nosotros te ayudamos a definir el producto.", "We help you define the product from there.")}
                 </p>
+                <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
+                  {t("Contanos tu idea", "Tell us your idea")} <ArrowUpRight size={16} />
+                </button>
+              </div>
+
+              <div className="s2b-rv">
+                <UiTelefono
+                  sub={t("Tu app", "Your app")}
+                  titulo={t("De la idea al producto", "From idea to product")}
+                  cards={[t("Pantalla principal", "Home screen"), t("Perfil", "Profile"), t("Pagos", "Payments")]}
+                  cta={t("Publicar", "Publish")}
+                />
               </div>
             </div>
 
-            {/* el recorrido de una idea, de punta a punta */}
-            <div className="s2b-ruta s2b-rv" aria-label={t("De la idea al producto", "From idea to product")}>
-              {IDEA_FLUJO.map((x, i) => (
-                <React.Fragment key={x}>
-                  {i > 0 && <i aria-hidden="true"><ArrowRight size={14} /></i>}
-                  <b>{x}</b>
-                </React.Fragment>
-              ))}
+            {/* El recorrido de una idea. En la compu es un riel horizontal cuya
+                linea se dibuja sola al entrar en pantalla; en el celular el
+                mismo riel se pone de pie. Antes era una tira de pastillas. */}
+            <div className="s2b-journey" aria-label={t("De la idea al producto", "From idea to product")}>
+              <div className="s2b-journey-track">
+                {IDEA_FLUJO.map((x, i) => (
+                  <div className="s2b-jstep s2b-rv" key={x} style={{ transitionDelay: i * 70 + "ms" }}>
+                    <div className="s2b-jnodo">{String(i + 1).padStart(2, "0")}</div>
+                    <div className="s2b-jlbl">{x}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
-      </div>
 
-      {/* ============ QUÉ DESARROLLAMOS ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="servicios">
-        <div className="s2b-wrap">
-          <div className="s2b-head s2b-rv">
-            <div>
-              <div className="s2b-eyebrow">{t("Soluciones", "Solutions")}</div>
-              <h2 className="s2b-h2">{t("Qué podemos", "What we")} <b>{t("desarrollar", "build")}</b></h2>
-            </div>
-            <p className="s2b-lead">
-              {t("Un mismo equipo para diseño, desarrollo e inteligencia artificial. No tercerizamos: las decisiones no se pierden entre proveedores.", "One team for design, development and artificial intelligence. We don't outsource: decisions don't get lost between vendors.")}
-            </p>
-          </div>
-
-          <div className="s2b-cards">
-            {QUE_DESARROLLAMOS.map((c, i) => {
-              const I = c.ic;
-              return (
-                <article className="s2b-card s2b-rv" key={c.t} style={{ transitionDelay: (i % 3) * 70 + "ms" }}>
-                  <div className="s2b-card-ico"><I size={19} /></div>
-                  <h3>{c.t}</h3>
-                  <p>{c.d}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ============ MVP ============ */}
-      <div className="s2b-band s2b-band--dark">
+        {/* ============ MVP ============ */}
+        {/* Vive en la misma banda que la idea: es la continuacion natural de
+            "tengo una idea", y de paso el fondo no se corta al medio. */}
         <section className="s2b-sec s2b-sec--sm">
           <div className="s2b-wrap s2b-mvp">
             <div className="s2b-rv">
@@ -3738,12 +4603,103 @@ export default function StudioB2B() {
                 {t("Quiero empezar por un MVP", "Start with an MVP")} <ArrowRight size={16} />
               </button>
             </div>
-            <ul className="s2b-mvp-lista s2b-rv">
-              {MVP_OBJETIVOS.map((o) => <li key={o}><Check size={16} />{o}</li>)}
-            </ul>
+
+            {/* la escalera del producto: cada peldano sube un poco, para que se
+                lea como una evolucion y no como una lista de seis puntos */}
+            <div className="s2b-ladder s2b-rv">
+              {MVP_OBJETIVOS.map((o, i) => (
+                <div
+                  className={"s2b-rung" + (i === MVP_OBJETIVOS.length - 1 ? " s2b-rung--top" : "")}
+                  key={o}
+                  style={{ "--i": i }}
+                >
+                  <span className="s2b-rung-v">{MVP_VERSIONES[i] || "v1.0"}</span>
+                  <p>{o}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </div>
+
+      {/* ============ QUÉ DESARROLLAMOS ============ */}
+      {/* El bento. Catorce capacidades que antes eran catorce tarjetas del
+          mismo tamano: ahora hay piezas grandes con interfaz adentro, dos en
+          oscuro y chicas para lo que se lee de una palabra. */}
+      <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="servicios">
+        <div className="s2b-wrap">
+          <div className="s2b-head s2b-rv">
+            <div>
+              <div className="s2b-eyebrow">{t("Soluciones", "Solutions")}</div>
+              <h2 className="s2b-h2">{t("Qué podemos", "What we")} <b>{t("desarrollar", "build")}</b></h2>
+            </div>
+            <p className="s2b-lead">
+              {t("Un mismo equipo para diseño, desarrollo e inteligencia artificial. No tercerizamos: las decisiones no se pierden entre proveedores.", "One team for design, development and artificial intelligence. We don't outsource: decisions don't get lost between vendors.")}
+            </p>
+          </div>
+
+          <div className="s2b-bento">
+            {QUE_DESARROLLAMOS.map((c, i) => {
+              const I = c.ic;
+              const tono = c.tono === "dark" ? " s2b-bt--dark" : c.tono === "feat" ? " s2b-bt--feat" : "";
+              return (
+                <article className={"s2b-bt s2b-rv " + c.w + tono} key={c.t} style={{ transitionDelay: (i % 4) * 60 + "ms" }}>
+                  <div className="s2b-bt-ico"><I size={18} /></div>
+                  <h3>{c.t}</h3>
+                  <p>{c.d}</p>
+                  {c.vis && (
+                    <div className="s2b-bt-vis" aria-hidden="true">
+                      {c.vis === "panel" && (
+                        <UiPanel
+                          claro
+                          titulo={t("Sistema a medida", "Custom system")}
+                          filas={[
+                            { t: t("Clientes", "Clients"), e: "OK" },
+                            { t: t("Presupuestos", "Quotes"), e: "OK" },
+                            { t: t("Reportes", "Reports"), e: "OK" },
+                          ]}
+                        />
+                      )}
+                      {c.vis === "nodos" && (
+                        <UiNodos
+                          id="bt"
+                          centro="AI"
+                          satelites={["CRM", "WhatsApp", "Email", t("Leads", "Leads"), t("Ventas", "Sales"), t("Datos", "Data")]}
+                        />
+                      )}
+                      {c.vis === "phone" && (
+                        <UiTelefono
+                          sub="iOS · Android"
+                          titulo={t("Tu app", "Your app")}
+                          cards={[t("Inicio", "Home")]}
+                        />
+                      )}
+                      {c.vis === "filas" && (
+                        <UiPanel
+                          claro
+                          titulo="CRM"
+                          filas={[
+                            { t: t("Oportunidades", "Leads"), e: "OK" },
+                            { t: t("Seguimiento", "Follow-up"), e: "OK" },
+                          ]}
+                        />
+                      )}
+                      {c.vis === "flujo" && (
+                        <UiFlujo pasos={[t("Entrada", "Trigger"), t("Regla", "Rule"), t("Acción", "Action"), "CRM"]} />
+                      )}
+                      {c.vis === "chart" && (
+                        <div className="s2b-float-spark" style={{ height: 62 }}>
+                          {[34, 52, 40, 66, 48, 78, 58, 90, 70, 100].map((h, k) => <i key={k} style={{ height: h + "%" }} />)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* ============ INTELIGENCIA ARTIFICIAL ============ */}
       <div className="s2b-band s2b-band--dark" id="agentes">
@@ -3765,29 +4721,53 @@ export default function StudioB2B() {
                 {t("Quiero IA en mi negocio", "I want AI in my business")} <ArrowUpRight size={16} />
               </button>
             </div>
-            <div className="s2b-rv"><Terminal lineas={AGENT_LINES} /></div>
+            {/* El nucleo y lo que toca, arriba; el turno real de un agente,
+                abajo. Es la seccion visualmente mas fuerte del recorrido. */}
+            <div className="s2b-rv s2b-ia-col">
+              <div className="s2b-ia-nodos">
+                <div className="s2b-ia-nodos-t">{t("La IA, adentro de tus herramientas", "AI, inside your own tools")}</div>
+                <UiNodos
+                  id="ia"
+                  centro="AI CORE"
+                  satelites={["CRM", "WhatsApp", "Email", t("Leads", "Leads"), t("Ventas", "Sales"), t("Documentos", "Documents")]}
+                />
+              </div>
+              <Terminal lineas={AGENT_LINES} />
+            </div>
           </div>
         </section>
       </div>
 
       {/* ============ TIPOS DE PRODUCTOS ============ */}
-      <section className="s2b-sec s2b-sec--sm">
+      <section className="s2b-sec s2b-sec--sm s2b-amb">
         <div className="s2b-wrap">
           <div className="s2b-rv">
             <div className="s2b-eyebrow">{t("Productos", "Products")}</div>
             <h2 className="s2b-h2">{t("¿Qué podemos", "What can we")} <b>{t("crear?", "create?")}</b></h2>
           </div>
-          <div className="s2b-prods s2b-rv">
-            {PRODUCTOS.map((p, i) => {
-              const I = p.ic;
-              return <div className="s2b-prod" key={p.t + i}><I size={19} />{p.t}</div>;
-            })}
+          {/* Dieciseis productos que eran dieciseis cuadraditos. Ahora pasan en
+              dos tiras que corren en sentidos opuestos: ocupan mucho menos
+              lugar, se leen de un vistazo y le dan movimiento al scroll. */}
+          <div className="s2b-tiras s2b-rv" aria-label={t("Productos que podemos crear", "Products we can create")}>
+            {[PRODUCTOS.slice(0, 8), PRODUCTOS.slice(8)].map((mitad, fila) => (
+              <div className={"s2b-tira " + (fila === 0 ? "s2b-tira--a" : "s2b-tira--b")} key={fila}>
+                {/* la segunda mitad es la copia que hace el bucle: no se lee */}
+                {[...mitad, ...mitad].map((p, i) => {
+                  const I = p.ic;
+                  return (
+                    <span key={p.t + i} aria-hidden={i >= mitad.length ? "true" : undefined}>
+                      <I size={17} />{p.t}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ============ PORTFOLIO ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="clientes" style={{ background: "linear-gradient(180deg,#FFFFFF,var(--paper))" }}>
+      <section className="s2b-sec s2b-sec--sm s2b-amb" id="clientes" style={{ background: "linear-gradient(180deg,#FFFFFF,var(--paper))" }}>
         <div className="s2b-wrap">
           <div className="s2b-head s2b-rv">
             <div>
@@ -3799,49 +4779,70 @@ export default function StudioB2B() {
             </p>
           </div>
 
-          <div className="s2b-casos">
-            {CASOS.map((c, i) => (
-              <article className="s2b-caso s2b-rv" key={c.id} style={{ transitionDelay: (i % 3) * 80 + "ms" }}>
-                <div className="s2b-caso-vis">
-                  {c.img ? (
-                    <div className="s2b-shot">
-                      <img src={c.img} alt={c.alt} loading="lazy" width={c.an} height={c.al} />
-                    </div>
-                  ) : (
-                    <div className="s2b-caso-marca">
-                      <img src={c.logo} alt={c.n} loading="lazy" style={c.esc ? { height: 56 * c.esc } : undefined} />
-                    </div>
-                  )}
+          {/* Los trabajos con captura se cuentan en grande y alternando lado,
+              como un case study. Los que todavia no tienen captura van abajo,
+              en una fila mas tranquila, sin fingir una pantalla que no hay. */}
+          <div className="s2b-cases">
+            {CASOS.filter((c) => c.img).map((c, i) => (
+              <article className="s2b-case s2b-rv" key={c.id}>
+                <div className="s2b-case-vis">
+                  <div className="s2b-shot">
+                    <img src={c.img} alt={c.alt} loading="lazy" width={c.an} height={c.al} />
+                  </div>
                 </div>
-                <div className="s2b-caso-cuerpo">
-                  <div className="s2b-caso-top">
+                <div>
+                  <div className="s2b-case-n">{t("CASO", "CASE")} {String(i + 1).padStart(2, "0")}</div>
+                  <div className="s2b-case-top">
                     <h3>{c.n}</h3>
-                    <span className="s2b-caso-pais"><Bandera c={c.bandera} /> {c.pais}</span>
+                    <span className="s2b-case-pais"><Bandera c={c.bandera} /> {c.pais}</span>
                   </div>
-                  <span className="s2b-caso-tipo">{c.tipo}</span>
-                  <div className="s2b-caso-dato">
-                    <b>{t("El problema", "The problem")}</b>
-                    <p>{c.problema}</p>
-                  </div>
-                  <div className="s2b-caso-dato">
-                    <b>{t("Lo que desarrollamos", "What we built")}</b>
-                    <p>{c.solucion}</p>
+                  <span className="s2b-case-tipo">{c.tipo}</span>
+                  <div className="s2b-case-datos">
+                    <div className="s2b-case-dato">
+                      <b>{t("El problema", "The problem")}</b>
+                      <p>{c.problema}</p>
+                    </div>
+                    <div className="s2b-case-dato">
+                      <b>{t("Lo que desarrollamos", "What we built")}</b>
+                      <p>{c.solucion}</p>
+                    </div>
                   </div>
                   <div className="s2b-chips">{c.fn.map((f) => <span className="s2b-chip" key={f}>{f}</span>)}</div>
-                  <blockquote className="s2b-caso-frase">
-                    <Quote size={14} aria-hidden="true" />
+                  <blockquote className="s2b-case-frase">
+                    <Quote size={16} aria-hidden="true" />
                     <p>{c.frase}<cite>{c.quien}</cite></p>
                   </blockquote>
                 </div>
               </article>
             ))}
           </div>
+
+          <div className="s2b-mas s2b-rv">
+            <div className="s2b-mas-t">{t("También construimos para", "We also build for")}</div>
+            <div className="s2b-mas-grid">
+              {CASOS.filter((c) => !c.img).map((c) => (
+                <article className="s2b-mini" key={c.id}>
+                  <div className="s2b-mini-logo">
+                    <img src={c.logo} alt={c.n} loading="lazy" />
+                  </div>
+                  <div>
+                    <h4>{c.n}</h4>
+                    <span className="s2b-case-tipo" style={{ marginTop: 8 }}>{c.tipo}</span>
+                  </div>
+                  <p>{c.solucion}</p>
+                  <div className="s2b-mini-pie">
+                    <span className="s2b-case-pais"><Bandera c={c.bandera} /> {c.pais}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
 
       {/* ============ CÓMO DESARROLLAMOS ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="metodo">
+      <section className="s2b-sec s2b-sec--sm s2b-amb s2b-band--soft" id="metodo">
         <div className="s2b-wrap">
           <div className="s2b-head s2b-rv">
             <div>
@@ -3853,12 +4854,15 @@ export default function StudioB2B() {
             </p>
           </div>
 
-          <div className="s2b-pasos">
+          {/* Un riel: siete nodos unidos por una linea que se dibuja sola al
+              bajar. De costado en la compu, de pie en el celular. Antes eran
+              siete cajas iguales en una grilla de cuatro columnas. */}
+          <div className="s2b-riel">
             {PROCESO_RESUMEN.map((p, i) => {
               const I = p.ic;
               return (
-                <div className="s2b-paso-mini s2b-rv" key={p.n} style={{ transitionDelay: (i % 4) * 70 + "ms" }}>
-                  <div className="s2b-paso-mini-ico"><I size={17} /></div>
+                <div className="s2b-etapa s2b-rv" key={p.n} style={{ transitionDelay: i * 60 + "ms" }}>
+                  <div className="s2b-etapa-nodo"><I size={18} /></div>
                   <div>
                     <div className="n">{p.n}</div>
                     <h4>{p.t}</h4>
@@ -3878,20 +4882,24 @@ export default function StudioB2B() {
       </section>
 
       {/* ============ POR QUÉ STUDIO B2B ============ */}
-      <section className="s2b-sec s2b-sec--sm" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
-        <div className="s2b-wrap">
-          <div className="s2b-rv">
+      {/* Editorial, no tarjetas: el titulo se queda quieto de un lado mientras
+          del otro pasan las seis razones, separadas por un filete y nada mas. */}
+      <section className="s2b-sec s2b-sec--sm s2b-amb" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
+        <div className="s2b-wrap s2b-porque">
+          <div className="s2b-porque-head s2b-rv">
             <div className="s2b-eyebrow">{t("El equipo", "The team")}</div>
             <h2 className="s2b-h2">{t("¿Por qué", "Why")} <b>Studio B2B</b>{t("?", "?")}</h2>
           </div>
-          <div className="s2b-cards">
+          <div className="s2b-porque-lista">
             {POR_QUE.map((c, i) => {
               const I = c.ic;
               return (
-                <article className="s2b-card s2b-rv" key={c.t} style={{ transitionDelay: (i % 3) * 70 + "ms" }}>
-                  <div className="s2b-card-ico"><I size={19} /></div>
-                  <h3>{c.t}</h3>
-                  <p>{c.d}</p>
+                <article className="s2b-razon s2b-rv" key={c.t} style={{ transitionDelay: Math.min(i, 4) * 60 + "ms" }}>
+                  <div className="s2b-razon-ico"><I size={18} /></div>
+                  <div>
+                    <h3>{c.t}</h3>
+                    <p>{c.d}</p>
+                  </div>
                 </article>
               );
             })}
@@ -3986,7 +4994,13 @@ export default function StudioB2B() {
         </div>
       </section>
 
-      {bloqueContacto}
+      {/* En el home el formulario estaba quedando sobre fondo claro, con los
+          campos oscuros y el texto en lila: la misma banda que usa /proceso lo
+          devuelve a su lugar y de paso el cierre entra en el mismo oscuro que
+          el footer, sin corte al medio. */}
+      <div className="s2b-band s2b-band--dark">
+        {bloqueContacto}
+      </div>
       </>}
 
       {/* ============ FOOTER ============ */}
