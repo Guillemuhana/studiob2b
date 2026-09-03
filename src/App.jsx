@@ -1413,46 +1413,54 @@ const CSS = `
 
 /* ==================================================================
    QUE DESARROLLAMOS: bento
-   Catorce capacidades que antes eran catorce tarjetas del mismo
-   tamano. Ahora hay piezas grandes con interfaz adentro, medianas y
-   chicas: el ojo tiene por donde entrar.
+   Antes cada pieza de interfaz se "sangraba" contra el borde de abajo
+   de su tarjeta: quedaba recortada al medio -el panel cortado en una
+   fila, el telefono partido, la tira de pasos empujada afuera- y arriba
+   sobraba un hueco enorme, porque la tarjeta se estiraba para igualar a
+   su vecina y el grafico se iba al pie.
+   Ahora: el grafico entra entero adentro de su caja, y las tarjetas
+   anchas se abren en dos columnas -texto de un lado, grafico del otro-,
+   que es lo que hace que la tarjeta mida lo que mide el grafico y no
+   quede aire en el medio.
    ================================================================== */
 .s2b-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 48px;
   grid-auto-flow: dense; }
 
-/* la tira de flujo que va adentro de una pieza del bento */
-.s2b-flujo { display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; overflow: hidden; }
-.s2b-flujo span { flex: none; white-space: nowrap; padding: 8px 12px; border-radius: 10px;
-  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--violet); background: rgba(109,74,255,.08); border: 1px solid rgba(109,74,255,.16); }
-.s2b-flujo i { flex: none; display: grid; place-items: center; color: rgba(109,74,255,.45); }
-.s2b-bt--dark .s2b-flujo span { color: #D8CDFF; background: rgba(255,255,255,.06); border-color: rgba(167,140,255,.24); }
-.s2b-bt--dark .s2b-flujo i { color: rgba(167,140,255,.5); }
 .s2b-bt { position: relative; overflow: hidden; display: flex; flex-direction: column;
-  padding: 20px; border-radius: var(--r-card); background: #fff; border: 1px solid var(--line);
+  padding: 22px; border-radius: var(--r-card); background: #fff; border: 1px solid var(--line);
   box-shadow: 0 20px 46px -40px rgba(24,12,60,.5);
   transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s; }
 .s2b-bt:hover { transform: translateY(-4px); border-color: rgba(109,74,255,.3);
   box-shadow: 0 30px 62px -38px rgba(24,12,60,.6); }
+.s2b-bt-txt { flex: none; }
 .s2b-bt-ico { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px;
   color: var(--violet); background: rgba(109,74,255,.09); border: 1px solid rgba(109,74,255,.13);
-  transition: background .3s, color .3s, border-color .3s; flex: none; }
+  transition: background .3s, color .3s, border-color .3s; }
 .s2b-bt:hover .s2b-bt-ico { color: #fff; background: linear-gradient(160deg,#7E5EFF,#3B2296); border-color: transparent; }
 .s2b-bt h3 { font-size: 16.5px; letter-spacing: -.025em; margin-bottom: 7px; }
 .s2b-bt p { font-size: 13.6px; color: var(--muted); line-height: 1.55; }
-/* la pieza de interfaz vive abajo del texto y se recorta contra el borde */
-.s2b-bt-vis { margin: 18px -20px -20px; padding: 0 20px; position: relative; flex: 1;
-  display: flex; align-items: flex-end; min-height: 108px; }
-.s2b-bt-vis > * { width: 100%; transform: translateY(14px);
-  transition: transform .5s cubic-bezier(.2,.8,.2,1); }
-.s2b-bt:hover .s2b-bt-vis > * { transform: translateY(6px); }
 
-/* las destacadas: fondo con profundidad y mas aire */
+/* la pieza de interfaz: entera, centrada y adentro de la tarjeta */
+.s2b-bt-vis { margin-top: 18px; flex: 1 1 auto; min-height: 0;
+  display: flex; align-items: center; justify-content: center; }
+.s2b-bt-vis .s2b-ui,
+.s2b-bt-vis .s2b-flujo { width: 100%; }
+.s2b-bt-vis .s2b-nodes { width: 100%; height: 152px; }
+.s2b-bt-vis .s2b-phone { width: 178px; margin: 0; }
+.s2b-bt-vis .s2b-phone-scr { min-height: 0; padding: 26px 11px 13px; gap: 8px; }
+.s2b-bt-vis .s2b-float-spark { width: 100%; height: 104px; margin: 0; gap: 5px; }
+
+/* las que se abren en dos columnas */
+@media (min-width: 900px) {
+  .s2b-bt--parte { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px,3vw,42px); align-items: center; }
+  .s2b-bt--parte .s2b-bt-vis { margin-top: 0; }
+}
+
+/* las destacadas: fondo con profundidad y un poco mas de aire */
 .s2b-bt--feat { padding: 26px; background:
   radial-gradient(120% 110% at 12% 0%, #FFFFFF, #F7F5FF 46%, #EFEAFF 100%); }
-.s2b-bt--feat h3 { font-size: clamp(19px, 2.1vw, 24px); margin-bottom: 9px; }
-.s2b-bt--feat p { font-size: 14.6px; max-width: 46ch; }
-.s2b-bt--feat .s2b-bt-vis { margin: 22px -26px -26px; padding: 0 26px; min-height: 132px; }
+.s2b-bt--feat h3 { font-size: clamp(18px, 1.9vw, 23px); margin-bottom: 9px; }
+.s2b-bt--feat p { font-size: 14.4px; max-width: 42ch; }
 /* las oscuras: rompen el bloque claro desde adentro */
 .s2b-bt--dark { background: linear-gradient(158deg, #1B1049 0%, #0B0718 78%);
   border-color: rgba(167,140,255,.2); }
@@ -1462,25 +1470,48 @@ const CSS = `
 .s2b-bt--dark:hover { border-color: rgba(167,140,255,.5); }
 .s2b-bt--dark:hover .s2b-bt-ico { background: linear-gradient(160deg,#8B6BFF,#4B2FD6); }
 
-@media (min-width: 760px) { .s2b-bento { grid-template-columns: repeat(4, 1fr); gap: 14px; } }
+/* --- la automatizacion, paso por paso --- */
+.s2b-flujo { display: grid; gap: 0; }
+.s2b-flujo-paso { position: relative; display: grid; grid-template-columns: 30px 1fr; gap: 12px;
+  align-items: center; padding: 9px 0; }
+.s2b-flujo-paso i { position: relative; z-index: 1; width: 30px; height: 30px; border-radius: 10px;
+  display: grid; place-items: center; font-family: var(--mono); font-size: 10px; font-style: normal;
+  color: var(--violet); background: #fff; border: 1px solid rgba(109,74,255,.2); }
+.s2b-flujo-paso span { font-size: 13px; color: var(--text); line-height: 1.35; }
+/* el tramo que une un paso con el siguiente */
+.s2b-flujo-paso::before { content: ""; position: absolute; left: 15px; top: 50%; bottom: -50%; width: 2px;
+  background: linear-gradient(180deg, rgba(109,74,255,.35), rgba(109,74,255,.12)); }
+.s2b-flujo-paso:last-child::before { display: none; }
+.s2b-flujo-paso:last-child i { color: #fff; border-color: transparent;
+  background: linear-gradient(160deg,#7E5EFF,#4B2FD6); }
+.s2b-bt--dark .s2b-flujo-paso i { color: #D8CDFF; background: rgba(255,255,255,.06); border-color: rgba(167,140,255,.24); }
+.s2b-bt--dark .s2b-flujo-paso span { color: #C9C2E6; }
+.s2b-bt--dark .s2b-flujo-paso::before { background: linear-gradient(180deg, rgba(167,140,255,.4), rgba(167,140,255,.12)); }
+
+/* --- anchos --- */
 @media (min-width: 1060px) {
   .s2b-bento { grid-template-columns: repeat(6, 1fr); }
+  .s2b-bt.w4 { grid-column: span 4; }
   .s2b-bt.w3 { grid-column: span 3; }
   .s2b-bt.w2 { grid-column: span 2; }
-  .s2b-bt.w1 { grid-column: span 1; }
-  .s2b-bt.h2 { grid-row: span 2; }
 }
 @media (min-width: 760px) and (max-width: 1059px) {
-  .s2b-bt.w3 { grid-column: span 4; }
-  .s2b-bt.w2 { grid-column: span 2; }
-  .s2b-bt.w1 { grid-column: span 2; }
+  .s2b-bento { grid-template-columns: repeat(4, 1fr); }
+  .s2b-bt.w4 { grid-column: span 4; }
+  .s2b-bt.w3, .s2b-bt.w2 { grid-column: span 2; }
 }
 @media (max-width: 759px) {
-  .s2b-bt.w3, .s2b-bt.w2 { grid-column: span 2; }
-  .s2b-bt.w1 { grid-column: span 1; }
-  .s2b-bt.w1 p { display: none; }
-  .s2b-bt.w1 { padding: 16px; }
-  .s2b-bt.w1 h3 { font-size: 14.5px; }
+  /* en el celular las que llevan grafico ocupan el ancho entero -si no, el
+     grafico no se lee- y las de texto van de a dos */
+  .s2b-bt.w4, .s2b-bt.w3 { grid-column: span 2; }
+  .s2b-bt.w2 { grid-column: span 1; }
+  /* va despues y con el mismo peso que la regla de arriba, si no le gana
+     ".s2b-bt.w2" y el grafico queda espachurrado en media columna */
+  .s2b-bt.s2b-bt--convis { grid-column: span 2; }
+  .s2b-bt { padding: 17px; }
+  .s2b-bt h3 { font-size: 15px; }
+  .s2b-bt p { font-size: 12.8px; }
+  .s2b-bt-ico { width: 34px; height: 34px; border-radius: 10px; margin-bottom: 11px; }
 }
 
 /* ==================================================================
@@ -1950,20 +1981,24 @@ const mvpObjetivos = (t) => [
   t("Crecer por etapas, sin frenar.", "Grow in stages, without stopping."),
 ];
 
-/* Todo lo que sabemos construir. Ya no son catorce tarjetas del mismo tamano:
-   el orden y el "w" de cada una arman el bento. Las grandes llevan una pieza
-   de interfaz adentro -"vis"- y dos van en oscuro para que el bloque claro no
-   se lea plano. El contenido es exactamente el mismo de antes. */
+/* Todo lo que sabemos construir, en un bento con ritmo.
+   Cada fila mezcla un tamano con otro y ninguna se repite seguida: ancha +
+   angosta, angosta + ancha, tres iguales, ancha + angosta, tres iguales, dos
+   medianas. Las cuatro que llevan una pieza de interfaz -"vis"- son las que
+   marcan el pulso; el resto son tarjetas cortas.
+   "parte" es la que se abre en dos columnas -texto de un lado, interfaz del
+   otro-: puesta al lado y no abajo, la tarjeta mide lo que mide el grafico y
+   se termina el hueco vertical que quedaba antes. El contenido es el mismo. */
 const queDesarrollamos = (t) => [
-  { ic: Code2, w: "w3 h2", tono: "feat", vis: "panel", t: t("Software a medida", "Custom software"), d: t("Sistemas diseñados alrededor de los procesos reales de cada empresa.", "Systems designed around each company's real processes.") },
-  { ic: Bot, w: "w3", tono: "dark", vis: "nodos", t: t("Agentes de IA", "AI agents"), d: t("Asistentes que atienden, califican y resuelven en ventas y operaciones.", "Assistants that answer, qualify and resolve across sales and operations.") },
-  { ic: Smartphone, w: "w2 h2", tono: "feat", vis: "phone", t: t("Aplicaciones móviles", "Mobile apps"), d: t("Apps para clientes, empleados o para un producto nuevo, en iOS y Android.", "Apps for clients, staff or a brand new product, on iOS and Android.") },
-  { ic: Globe, w: "w1", t: t("Aplicaciones web", "Web apps"), d: t("Plataformas rápidas, modernas y preparadas para crecer.", "Fast, modern platforms built to scale.") },
-  { ic: Users, w: "w2", vis: "filas", t: t("CRM personalizado", "Custom CRM"), d: t("Clientes, oportunidades, ventas y seguimiento en un solo lugar.", "Clients, leads, sales and follow-up in one place.") },
-  { ic: Building2, w: "w1", t: t("Sistemas empresariales", "Business systems"), d: t("Plataformas internas para ordenar las distintas áreas de una empresa.", "Internal platforms that bring a company's different areas together.") },
-  { ic: LayoutDashboard, w: "w1", t: "Dashboards", d: t("La información del negocio ordenada en paneles que se entienden.", "Your business data organized into panels that actually read clearly.") },
-  { ic: Workflow, w: "w3", tono: "feat", vis: "flujo", t: t("Automatización", "Automation"), d: t("Las tareas repetitivas dejan de ocupar horas de tu equipo.", "Repetitive tasks stop eating your team's hours.") },
-  { ic: Sparkles, w: "w3", tono: "dark", vis: "chart", t: t("Inteligencia Artificial", "Artificial intelligence"), d: t("IA integrada dentro de procesos y sistemas que ya están funcionando.", "AI built into processes and systems that are already running.") },
+  { ic: Code2, w: "w4", tono: "feat", parte: true, vis: "panel", t: t("Software a medida", "Custom software"), d: t("Sistemas diseñados alrededor de los procesos reales de cada empresa.", "Systems designed around each company's real processes.") },
+  { ic: Bot, w: "w2", tono: "dark", vis: "nodos", t: t("Agentes de IA", "AI agents"), d: t("Asistentes que atienden, califican y resuelven en ventas y operaciones.", "Assistants that answer, qualify and resolve across sales and operations.") },
+  { ic: Smartphone, w: "w2", tono: "feat", vis: "phone", t: t("Aplicaciones móviles", "Mobile apps"), d: t("Apps para clientes, empleados o para un producto nuevo, en iOS y Android.", "Apps for clients, staff or a brand new product, on iOS and Android.") },
+  { ic: Workflow, w: "w4", tono: "feat", parte: true, vis: "flujo", t: t("Automatización", "Automation"), d: t("Las tareas repetitivas dejan de ocupar horas de tu equipo.", "Repetitive tasks stop eating your team's hours.") },
+  { ic: Globe, w: "w2", t: t("Aplicaciones web", "Web apps"), d: t("Plataformas rápidas, modernas y preparadas para crecer.", "Fast, modern platforms built to scale.") },
+  { ic: Building2, w: "w2", t: t("Sistemas empresariales", "Business systems"), d: t("Plataformas internas para ordenar las distintas áreas de una empresa.", "Internal platforms that bring a company's different areas together.") },
+  { ic: Users, w: "w2", t: t("CRM personalizado", "Custom CRM"), d: t("Clientes, oportunidades, ventas y seguimiento en un solo lugar.", "Clients, leads, sales and follow-up in one place.") },
+  { ic: Sparkles, w: "w4", tono: "dark", parte: true, vis: "chart", t: t("Inteligencia Artificial", "Artificial intelligence"), d: t("IA integrada dentro de procesos y sistemas que ya están funcionando.", "AI built into processes and systems that are already running.") },
+  { ic: LayoutDashboard, w: "w2", t: "Dashboards", d: t("La información del negocio ordenada en paneles que se entienden.", "Your business data organized into panels that actually read clearly.") },
   { ic: CreditCard, w: "w2", t: "SaaS", d: t("Productos digitales por suscripción, con su panel y su facturación.", "Subscription products, with their own dashboard and billing.") },
   { ic: Store, w: "w2", t: "Marketplaces", d: t("Plataformas que conectan clientes, vendedores o proveedores.", "Platforms that connect clients, sellers or suppliers.") },
   { ic: Plug, w: "w2", t: t("Integraciones", "Integrations"), d: t("APIs, WhatsApp, email, pagos, CRM y las herramientas que ya usás.", "APIs, WhatsApp, email, payments, CRM and the tools you already use.") },
@@ -3939,14 +3974,16 @@ function UiNodos({ id = "n", centro = "AI CORE", satelites = [] }) {
   );
 }
 
+/* La automatizacion, dibujada como se dibuja de verdad: los pasos uno abajo
+   del otro, unidos por una linea. En horizontal no entraba sin recortarse. */
 function UiFlujo({ pasos = [] }) {
   return (
     <div className="s2b-flujo" aria-hidden="true">
       {pasos.map((p, i) => (
-        <React.Fragment key={p}>
-          {i > 0 && <i><ArrowRight size={13} /></i>}
+        <div className="s2b-flujo-paso" key={p}>
+          <i>{String(i + 1).padStart(2, "0")}</i>
           <span>{p}</span>
-        </React.Fragment>
+        </div>
       ))}
     </div>
   );
@@ -4801,11 +4838,14 @@ export default function StudioB2B() {
             {QUE_DESARROLLAMOS.map((c, i) => {
               const I = c.ic;
               const tono = c.tono === "dark" ? " s2b-bt--dark" : c.tono === "feat" ? " s2b-bt--feat" : "";
+              const forma = (c.parte ? " s2b-bt--parte" : "") + (c.vis ? " s2b-bt--convis" : "");
               return (
-                <article className={"s2b-bt s2b-rv " + c.w + tono} key={c.t} style={{ transitionDelay: (i % 4) * 60 + "ms" }}>
-                  <div className="s2b-bt-ico"><I size={18} /></div>
-                  <h3>{c.t}</h3>
-                  <p>{c.d}</p>
+                <article className={"s2b-bt s2b-rv " + c.w + tono + forma} key={c.t} style={{ transitionDelay: (i % 3) * 60 + "ms" }}>
+                  <div className="s2b-bt-txt">
+                    <div className="s2b-bt-ico"><I size={18} /></div>
+                    <h3>{c.t}</h3>
+                    <p>{c.d}</p>
+                  </div>
                   {c.vis && (
                     <div className="s2b-bt-vis" aria-hidden="true">
                       {c.vis === "panel" && (
@@ -4831,23 +4871,14 @@ export default function StudioB2B() {
                           sub="iOS · Android"
                           titulo={t("Tu app", "Your app")}
                           cards={[t("Inicio", "Home")]}
-                        />
-                      )}
-                      {c.vis === "filas" && (
-                        <UiPanel
-                          claro
-                          titulo="CRM"
-                          filas={[
-                            { t: t("Oportunidades", "Leads"), e: "OK" },
-                            { t: t("Seguimiento", "Follow-up"), e: "OK" },
-                          ]}
+                          cta={t("Entrar", "Open")}
                         />
                       )}
                       {c.vis === "flujo" && (
-                        <UiFlujo pasos={[t("Entrada", "Trigger"), t("Regla", "Rule"), t("Acción", "Action"), "CRM"]} />
+                        <UiFlujo pasos={[t("Llega una consulta", "A request comes in"), t("Se aplica la regla", "The rule runs"), t("Se hace la acción", "The action fires"), t("Queda en el CRM", "It lands in the CRM")]} />
                       )}
                       {c.vis === "chart" && (
-                        <div className="s2b-float-spark" style={{ height: 62 }}>
+                        <div className="s2b-float-spark">
                           {[34, 52, 40, 66, 48, 78, 58, 90, 70, 100].map((h, k) => <i key={k} style={{ height: h + "%" }} />)}
                         </div>
                       )}
