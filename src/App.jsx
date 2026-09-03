@@ -1744,6 +1744,106 @@ const CSS = `
 @media (max-width: 820px) { .s2b-hero { padding-top: 30px; } }
 @media (max-width: 640px) { .s2b-hero { padding-top: 14px; } }
 
+
+/* ==================================================================
+   /PROCESO COMO PAGINA DE PUBLICIDAD
+   Es el link que va en el anuncio: quien llega tiene que entender de
+   que se trata y poder escribirnos sin leerse los siete pasos.
+   ================================================================== */
+
+/* el paso siguiente, arriba de todo */
+.s2b-arranque {
+  display: grid; gap: 22px; align-items: center; margin-top: 38px;
+  padding: 24px 26px; border-radius: var(--r-panel);
+  background: rgba(255,255,255,.05); border: 1px solid rgba(167,140,255,.2);
+  backdrop-filter: blur(10px);
+}
+.s2b-arranque .s2b-btn { justify-self: start; }
+.s2b-promesas { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.s2b-promesas li { display: flex; align-items: flex-start; gap: 9px; font-size: 14.2px; color: #C9C2E6; line-height: 1.45; }
+.s2b-promesas svg { flex: none; margin-top: 3px; color: #8FF0B8; }
+@media (min-width: 860px) {
+  .s2b-arranque { grid-template-columns: auto 1fr; gap: 34px; padding: 26px 30px; }
+  .s2b-promesas { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .s2b-promesas li { font-size: 13.4px; }
+}
+@media (max-width: 640px) {
+  .s2b-arranque { padding: 20px; gap: 18px; margin-top: 30px; }
+  .s2b-arranque .s2b-btn { justify-self: stretch; justify-content: center; }
+}
+
+/* la barra de abajo: solo en el celular, donde el formulario queda lejos */
+.s2b-barra {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 91; display: none;
+  align-items: center; justify-content: space-between; gap: 14px;
+  padding: 11px 14px calc(11px + env(safe-area-inset-bottom, 0px));
+  background: rgba(11,7,24,.9); backdrop-filter: blur(18px) saturate(160%);
+  border-top: 1px solid rgba(167,140,255,.18);
+  box-shadow: 0 -18px 40px -24px rgba(0,0,0,.9);
+  transform: translateY(110%); transition: transform .38s cubic-bezier(.2,.8,.2,1);
+}
+.s2b-barra.is-shown { transform: none; }
+.s2b-barra-txt { display: grid; gap: 2px; min-width: 0; }
+.s2b-barra-txt b { font-family: var(--display); font-size: 14.5px; color: #fff; letter-spacing: -.02em; }
+.s2b-barra-txt span { font-size: 11.5px; color: #9E97C4; }
+.s2b-barra .s2b-btn { flex: none; padding: 11px 16px; font-size: 13.5px; }
+@media (max-width: 820px) { .s2b-barra { display: flex; } }
+/* mientras la barra esta puesta, la burbuja de WhatsApp se corre para arriba */
+.s2b-wa--alto { bottom: 88px; }
+/* y el cambio de idioma, que en el celular vive abajo a la izquierda */
+@media (max-width: 820px) { .s2b-lang--alto { bottom: 98px; } }
+
+/* ==================================================================
+   FORMULARIO: menos campos a la vista
+   ================================================================== */
+.s2b-mas-datos {
+  display: inline-flex; align-items: center; gap: 9px; margin: 2px 0 16px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: #C9B6FF; padding: 10px 14px; border-radius: 11px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(167,140,255,.22);
+  transition: background .25s, border-color .25s, color .25s;
+}
+.s2b-mas-datos:hover { color: #fff; background: rgba(167,140,255,.14); border-color: rgba(167,140,255,.45); }
+.s2b-detalle { animation: s2b-detalle-in .32s cubic-bezier(.2,.8,.2,1); }
+@keyframes s2b-detalle-in { from { opacity: 0; transform: translateY(-6px); } }
+
+/* ==================================================================
+   LOS TRABAJOS SIN CAPTURA: el logo manda
+   Venian con el logo a 48px, perdido arriba de un bloque de texto.
+   Ahora tiene su propio panel, con luz propia y tamano de verdad.
+   ================================================================== */
+.s2b-mini { display: grid; gap: 0; padding: 0; overflow: hidden; align-content: start; }
+.s2b-mini-logo {
+  display: grid; place-items: center; padding: 30px 24px; min-height: 158px; height: auto;
+  background: radial-gradient(130% 105% at 50% 0%, #FFFFFF 0%, #F5F2FF 52%, #E9E3FF 100%);
+  border-bottom: 1px solid var(--line);
+}
+.s2b-mini-logo img {
+  max-height: 84px; width: auto; max-width: min(215px, 100%); object-fit: contain;
+  transition: transform .45s cubic-bezier(.2,.8,.2,1);
+}
+.s2b-mini:hover .s2b-mini-logo img { transform: scale(1.055); }
+.s2b-mini-cuerpo { display: grid; gap: 11px; padding: 22px 22px 24px; align-content: start; }
+.s2b-mini-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.s2b-mini h4 { font-size: 18px; letter-spacing: -.028em; }
+.s2b-mini p { font-size: 13.8px; color: var(--muted); line-height: 1.55; }
+.s2b-mini-frase { display: flex; gap: 9px; margin: 3px 0 0; padding: 13px 14px; border-radius: 13px;
+  background: var(--paper); border: 1px solid var(--line); }
+.s2b-mini-frase svg { flex: none; margin-top: 3px; color: var(--lilac); }
+.s2b-mini-frase p { font-size: 13.2px; line-height: 1.5; color: var(--title); font-style: italic; }
+.s2b-mini-frase cite { display: block; margin-top: 6px; font-style: normal; font-family: var(--mono);
+  font-size: 9.5px; letter-spacing: .11em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 640px) {
+  .s2b-mini-logo { min-height: 132px; padding: 24px 20px; }
+  .s2b-mini-logo img { max-height: 70px; }
+  .s2b-mini-cuerpo { padding: 20px 18px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s2b-barra { transition: none !important; }
+  .s2b-detalle { animation: none !important; }
+}
+
 `;
 
 /* ================= idioma =================
@@ -1908,8 +2008,10 @@ const productos = (t) => [
   { ic: ShieldCheck, t: t("App institucional", "Institutional app") },
 ];
 
-/* Como se desarrolla un producto, de la primera charla al crecimiento. Es el
-   resumen del ciclo; el recorrido comercial completo vive en /proceso. */
+/* Las siete etapas tecnicas de un desarrollo. Hoy no se muestran en ninguna
+   pagina: estaban en el home, que se estaba haciendo largo, y /proceso -que es
+   la pagina de la publicidad- tiene que llevar al formulario sin desvios. El
+   texto queda aca por si mas adelante encuentra su lugar. */
 const procesoResumen = (t) => [
   { n: "01", ic: Search, t: t("Descubrimiento", "Discovery"), d: t("Entendemos tu idea, tu empresa, el problema y el objetivo.", "We get to know your idea, your company, the problem and the goal.") },
   { n: "02", ic: Target, t: t("Estrategia", "Strategy"), d: t("Definimos la mejor solución y las funcionalidades necesarias.", "We define the right solution and the features it needs.") },
@@ -3684,7 +3786,7 @@ function WhatsappGlyph() {
   );
 }
 
-function WhatsAppBubble({ t, chips }) {
+function WhatsAppBubble({ t, chips, subida }) {
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(false);
   const box = useRef(null);
@@ -3713,7 +3815,7 @@ function WhatsAppBubble({ t, chips }) {
   };
 
   return (
-    <div className={"s2b-wa" + (shown ? " is-shown" : "")} ref={box}>
+    <div className={"s2b-wa" + (shown ? " is-shown" : "") + (subida ? " s2b-wa--alto" : "")} ref={box}>
       {open && (
         <div className="s2b-wa-panel" role="dialog" aria-label={t("Escribinos por WhatsApp", "Message us on WhatsApp")}>
           <div className="s2b-wa-top">
@@ -3898,6 +4000,7 @@ export default function StudioB2B() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [formErr, setFormErr] = useState("");
+  const [detalle, setDetalle] = useState(false);
   const [form, setForm] = useState(FORM_VACIO);
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
@@ -3921,7 +4024,6 @@ export default function StudioB2B() {
   const QUE_DESARROLLAMOS = useMemo(() => queDesarrollamos(t), [t]);
   const IA_USOS = useMemo(() => iaUsos(t), [t]);
   const PRODUCTOS = useMemo(() => productos(t), [t]);
-  const PROCESO_RESUMEN = useMemo(() => procesoResumen(t), [t]);
   const POR_QUE = useMemo(() => porQue(t), [t]);
   const CASOS = useMemo(() => casos(t), [t]);
   const NECESIDADES = useMemo(() => necesidades(t), [t]);
@@ -3974,6 +4076,28 @@ export default function StudioB2B() {
     window.addEventListener("scroll", s, { passive: true });
     return () => window.removeEventListener("scroll", s);
   }, []);
+
+  /* La barra de abajo, solo en /proceso y solo en el celular: es la pagina que
+     va en la publicidad, y con siete pasos de por medio el formulario queda
+     lejos. Aparece despues del primer scroll y se esconde sola cuando el
+     formulario ya esta a la vista, para no pisar lo que la persona vino a
+     completar. */
+  const [barra, setBarra] = useState(false);
+  useEffect(() => {
+    if (vista !== "proceso") { setBarra(false); return; }
+    const ver = () => {
+      const f = document.getElementById("contacto");
+      const lejos = !f || f.getBoundingClientRect().top > window.innerHeight - 140;
+      setBarra(window.scrollY > 400 && lejos);
+    };
+    ver();
+    window.addEventListener("scroll", ver, { passive: true });
+    window.addEventListener("resize", ver, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", ver);
+      window.removeEventListener("resize", ver);
+    };
+  }, [vista]);
 
   /* El titulo de la pestana sigue a la vista y al idioma. El del index.html es
      el que ve Google en el home; este es el que ve la persona mientras navega. */
@@ -4118,24 +4242,43 @@ export default function StudioB2B() {
                 </select>
               </div>
               <div className="s2b-f"><label htmlFor="f1">{t("Nombre", "Name")}</label><input id="f1" value={form.nombre} onChange={set("nombre")} placeholder={t("Cómo te llamás", "Your name")} /></div>
-              <div className="s2b-f"><label htmlFor="f2">{t("Empresa (opcional)", "Company (optional)")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
               <div className="s2b-f"><label htmlFor="f3">Email</label><input id="f3" type="email" inputMode="email" autoComplete="email" value={form.email} onChange={set("email")} placeholder="tu@empresa.com" /></div>
               <div className="s2b-f"><label htmlFor="f4">{t("WhatsApp / Teléfono", "WhatsApp / Phone")}</label><input id="f4" type="tel" inputMode="tel" autoComplete="tel" value={form.tel} onChange={set("tel")} placeholder="+54 9 ..." /></div>
-              <div className="s2b-f">
-                <label htmlFor="f7">{t("¿En qué etapa estás?", "What stage are you at?")}</label>
-                <select id="f7" value={form.etapa} onChange={set("etapa")}>
-                  <option value="">{t("Elegí una opción", "Choose an option")}</option>
-                  {ETAPAS_PROY.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="s2b-f">
-                <label htmlFor="f8">{t("Presupuesto estimado (opcional)", "Estimated budget (optional)")}</label>
-                <select id="f8" value={form.presupuesto} onChange={set("presupuesto")}>
-                  <option value="">{t("Prefiero no decirlo todavía", "I'd rather not say yet")}</option>
-                  {PRESUPUESTOS.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </div>
               <div className="s2b-f"><label htmlFor="f6">{t("Contanos brevemente qué necesitás", "Tell us briefly what you need")}</label><textarea id="f6" value={form.msg} onChange={set("msg")} placeholder={t("Qué problema querés resolver y en qué plazo", "What problem you need solved and by when")} /></div>
+
+              {/* Empresa, etapa y presupuesto son opcionales y ninguna de las
+                  tres decide si contestamos. Puestas a la vista, ocho campos
+                  parecen un tramite; plegadas, el formulario se ve corto y el
+                  que quiere dar contexto lo da igual. No se saco ningun campo:
+                  todos siguen viajando en el mismo mensaje. */}
+              <button
+                type="button"
+                className="s2b-mas-datos"
+                aria-expanded={detalle}
+                onClick={() => setDetalle((d) => !d)}
+              >
+                {detalle ? <Minus size={15} /> : <Plus size={15} />}
+                {t("Agregar más datos (opcional)", "Add more details (optional)")}
+              </button>
+              {detalle && (
+                <div className="s2b-detalle">
+                  <div className="s2b-f"><label htmlFor="f2">{t("Empresa", "Company")}</label><input id="f2" value={form.empresa} onChange={set("empresa")} placeholder={t("Dónde trabajás", "Where you work")} /></div>
+                  <div className="s2b-f">
+                    <label htmlFor="f7">{t("¿En qué etapa estás?", "What stage are you at?")}</label>
+                    <select id="f7" value={form.etapa} onChange={set("etapa")}>
+                      <option value="">{t("Elegí una opción", "Choose an option")}</option>
+                      {ETAPAS_PROY.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="s2b-f">
+                    <label htmlFor="f8">{t("Presupuesto estimado", "Estimated budget")}</label>
+                    <select id="f8" value={form.presupuesto} onChange={set("presupuesto")}>
+                      <option value="">{t("Prefiero no decirlo todavía", "I'd rather not say yet")}</option>
+                      {PRESUPUESTOS.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
               {formErr && (
                 <div className="s2b-formerr" role="alert">
                   {formErr}{" "}
@@ -4282,6 +4425,21 @@ export default function StudioB2B() {
               </p>
             </div>
 
+            {/* Esta es la pagina que se pone en la publicidad. Quien llega no
+                tiene por que leerse los siete pasos antes de poder escribirnos:
+                el boton al formulario esta arriba de todo, y al lado las tres
+                cosas que despejan la duda de "cuanto me cuesta preguntar". */}
+            <div className="s2b-arranque s2b-rv">
+              <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>
+                {t("Contanos tu proyecto", "Tell us about your project")} <ArrowRight size={16} />
+              </button>
+              <ul className="s2b-promesas">
+                <li><Check size={14} /> {t("La primera llamada no se cobra", "The first call is free")}</li>
+                <li><Check size={14} /> {t("Respondemos en menos de 24 h hábiles", "We reply within 24 business hours")}</li>
+                <li><Check size={14} /> {t("Firmamos confidencialidad antes de empezar", "We sign an NDA before we start")}</li>
+              </ul>
+            </div>
+
             <div className="s2b-flow">
               {PROCESO.map((p, i) => {
                 const I = p.ic;
@@ -4303,13 +4461,14 @@ export default function StudioB2B() {
               })}
             </div>
 
+            {/* /proceso es la pagina que se pone en la publicidad: cada cosa
+                que se agrega aca aleja el formulario. Por eso el cierre es un
+                parrafo y nada mas -antes tenia un boton a una seccion que ya
+                no existe- y de aca se va derecho al formulario. */}
             <div className="s2b-flow-cierre s2b-rv">
               <span>
                 {t("Del paso 7 en adelante entra el", "From step 7 onward the")} <b>{t("Método Studio", "Studio Method")}</b>{t(": diagnóstico, prototipo, entregas cada dos semanas y operación. El código y la infraestructura son tuyos desde el día uno.", " takes over: discovery, prototype, releases every two weeks and operations. The code and the infrastructure are yours from day one.")}
               </span>
-              <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("metodo")}>
-                {t("Ver el método", "See the method")} <ArrowRight size={16} />
-              </button>
             </div>
 
             <div className="s2b-flow-volver s2b-rv">
@@ -4823,15 +4982,24 @@ export default function StudioB2B() {
               {CASOS.filter((c) => !c.img).map((c) => (
                 <article className="s2b-mini" key={c.id}>
                   <div className="s2b-mini-logo">
-                    <img src={c.logo} alt={c.n} loading="lazy" />
+                    <img
+                      src={c.logo}
+                      alt={c.n}
+                      loading="lazy"
+                      style={c.esc ? { maxHeight: Math.round(84 * c.esc) } : undefined}
+                    />
                   </div>
-                  <div>
-                    <h4>{c.n}</h4>
-                    <span className="s2b-case-tipo" style={{ marginTop: 8 }}>{c.tipo}</span>
-                  </div>
-                  <p>{c.solucion}</p>
-                  <div className="s2b-mini-pie">
-                    <span className="s2b-case-pais"><Bandera c={c.bandera} /> {c.pais}</span>
+                  <div className="s2b-mini-cuerpo">
+                    <div className="s2b-mini-top">
+                      <h4>{c.n}</h4>
+                      <span className="s2b-case-pais"><Bandera c={c.bandera} /> {c.pais}</span>
+                    </div>
+                    <span className="s2b-case-tipo">{c.tipo}</span>
+                    <p>{c.solucion}</p>
+                    <blockquote className="s2b-mini-frase">
+                      <Quote size={13} aria-hidden="true" />
+                      <p>{c.frase}<cite>{c.quien}</cite></p>
+                    </blockquote>
                   </div>
                 </article>
               ))}
@@ -4841,45 +5009,10 @@ export default function StudioB2B() {
       </section>
 
 
-      {/* ============ CÓMO DESARROLLAMOS ============ */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb s2b-band--soft" id="metodo">
-        <div className="s2b-wrap">
-          <div className="s2b-head s2b-rv">
-            <div>
-              <div className="s2b-eyebrow">{t("Cómo trabajamos", "How we work")}</div>
-              <h2 className="s2b-h2">{t("De la primera charla", "From the first call")} <b>{t("al producto funcionando", "to a working product")}</b></h2>
-            </div>
-            <p className="s2b-lead">
-              {t("Siete etapas con entregables definidos. Sabés en qué punto está tu proyecto sin tener que preguntarlo.", "Seven stages with defined deliverables. You know where your project stands without having to ask.")}
-            </p>
-          </div>
-
-          {/* Un riel: siete nodos unidos por una linea que se dibuja sola al
-              bajar. De costado en la compu, de pie en el celular. Antes eran
-              siete cajas iguales en una grilla de cuatro columnas. */}
-          <div className="s2b-riel">
-            {PROCESO_RESUMEN.map((p, i) => {
-              const I = p.ic;
-              return (
-                <div className="s2b-etapa s2b-rv" key={p.n} style={{ transitionDelay: i * 60 + "ms" }}>
-                  <div className="s2b-etapa-nodo"><I size={18} /></div>
-                  <div>
-                    <div className="n">{p.n}</div>
-                    <h4>{p.t}</h4>
-                    <p>{p.d}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="s2b-flow-volver s2b-rv" style={{ marginTop: 30 }}>
-            <button className="s2b-link" onClick={() => irA("proceso")}>
-              {t("Ver el proceso completo, paso a paso", "See the full process, step by step")} <ArrowRight size={15} />
-            </button>
-          </div>
-        </div>
-      </section>
+      {/* Las siete etapas tecnicas -"De la primera charla al producto
+          funcionando"- se fueron de aca: el home se estaba haciendo largo y ese
+          recorrido es el complemento natural del proceso comercial. Ahora vive
+          en /proceso, abajo del paso 7, que es justo donde se lo nombra. */}
 
       {/* ============ POR QUÉ STUDIO B2B ============ */}
       {/* Editorial, no tarjetas: el titulo se queda quieto de un lado mientras
@@ -5024,7 +5157,7 @@ export default function StudioB2B() {
                 <h5>{t("Soluciones", "Solutions")}</h5>
                 <ul>
                   {SOLUCIONES.map((s) => <li key={s.id}><a href={"#servicios"} onClick={(e) => { e.preventDefault(); goTo("servicios"); }}>{s.t}</a></li>)}
-                  <li><a href="#metodo" onClick={(e) => { e.preventDefault(); goTo("metodo"); }}>{t("Método Studio", "Studio Method")}</a></li>
+                  <li><a href="/proceso" onClick={(e) => { e.preventDefault(); irA("proceso"); }}>{t("Cómo trabajamos", "How we work")}</a></li>
                 </ul>
               </div>
               <div>
@@ -5050,13 +5183,27 @@ export default function StudioB2B() {
         </footer>
       </div>
 
-      <div className="s2b-lang" role="group" aria-label={t("Idioma", "Language")}>
+      <div className={"s2b-lang" + (barra ? " s2b-lang--alto" : "")} role="group" aria-label={t("Idioma", "Language")}>
         {IDIOMAS.map((i) => (
           <button key={i} className={idioma === i ? "is-on" : ""} aria-pressed={idioma === i} onClick={() => setIdioma(i)}>{i.toUpperCase()}</button>
         ))}
       </div>
 
-      <WhatsAppBubble t={t} chips={WA_CHIPS} />
+      {/* la barra de "empezamos" en el celular de /proceso; la burbuja de
+          WhatsApp se corre para arriba mientras esta puesta */}
+      {vista === "proceso" && (
+        <div className={"s2b-barra" + (barra ? " is-shown" : "")}>
+          <div className="s2b-barra-txt">
+            <b>{t("¿Empezamos?", "Shall we start?")}</b>
+            <span>{t("La primera llamada no se cobra", "The first call is free")}</span>
+          </div>
+          <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
+            {t("Contanos tu proyecto", "Tell us")} <ArrowRight size={15} />
+          </button>
+        </div>
+      )}
+
+      <WhatsAppBubble t={t} chips={WA_CHIPS} subida={barra} />
       {/* el schema de preguntas va solo en la pagina donde las preguntas se ven:
           Google lo pide asi para el resultado enriquecido */}
       {vista === "preguntas" && <script
