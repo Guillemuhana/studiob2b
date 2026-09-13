@@ -205,23 +205,41 @@ export function grillaDe(premio) {
   return grilla;
 }
 
-export const TIRA_LARGO = 28;
-/* Dos celdas de sobra DESPUES de las que se ven. Un rodillo de verdad se pasa
-   de largo y vuelve, y para poder pasarse tiene que haber algo abajo: sin
-   este colchon el rebote mostraria el fondo vacio. */
-const COLCHON = 2;
+/* ================= el tambor =================
+   Los rodillos son cilindros de verdad, no tiras que se deslizan: doce caras
+   repartidas alrededor de un eje, cada una girada 30 grados mas que la
+   anterior y empujada hacia afuera por el radio.
 
-/* La tira de un rodillo: relleno al azar, las tres celdas que quedan a la
-   vista, y el colchon del rebote. */
-export function armarTira(columna) {
-  const tira = [];
-  for (let i = 0; i < TIRA_LARGO - FILAS - COLCHON; i++) tira.push(unoDe(SIMBOLOS));
-  const fin = tira.concat(columna);
-  for (let i = 0; i < COLCHON; i++) fin.push(unoDe(SIMBOLOS));
-  return fin;
+   Los numeros no son al azar, salen de la geometria. Para que las caras se
+   toquen sin huecos, el radio tiene que ser R = h / (2 tan(pi/12)), o sea
+   1,866 veces el alto de una cara. Y para que la cara del frente se vea
+   midiendo exactamente un tercio de la ventana -que es donde esta dibujada la
+   linea de pago- la perspectiva tiene que ser p = R / (1 - 3f), con f = 0,25.
+   Con eso la cara del frente proyecta 33,33% y las de los costados se van
+   curvando hacia atras solas.
+
+   Ventaja de que el cilindro sea cerrado: el rebote del frenazo ya no necesita
+   celdas de colchon, porque pasarse de largo siempre encuentra otra cara. */
+export const CARAS = 12;
+export const PASO = 360 / CARAS;
+/* la cara que queda al frente cuando el tambor esta en su angulo de parada */
+export const CARA_FRENTE = 6;
+
+/* Las doce caras de un rodillo: relleno al azar salvo las tres que van a
+   quedar a la vista, que son la columna que mando el servidor. */
+export function armarTambor(columna) {
+  const caras = Array.from({ length: CARAS }, () => unoDe(SIMBOLOS));
+  caras[CARA_FRENTE - 1] = columna[0];
+  caras[CARA_FRENTE] = columna[1];
+  caras[CARA_FRENTE + 1] = columna[2];
+  return caras;
 }
 
-export const PARADA = TIRA_LARGO - FILAS - COLCHON;
+/* El angulo al que tiene que frenar: vueltas enteras mas el offset que deja
+   la cara del frente mirando al jugador. */
+export function anguloDeParada(vueltas) {
+  return -(360 * vueltas + CARA_FRENTE * PASO);
+}
 
 /* El arranque escalonado: los rodillos de una maquina no salen los cinco
    juntos, sale uno detras de otro. Se le descuenta al tiempo de giro para que

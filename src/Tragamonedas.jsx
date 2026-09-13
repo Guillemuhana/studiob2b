@@ -9,8 +9,8 @@ import {
 import { siWhatsapp, siTelegram, siX } from "simple-icons";
 
 import {
-  PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO, LINEAS, SALIDA,
-  grillaDe, armarTira,
+  PREMIOS, CON_PREMIO, RODILLOS, LINEAS, SALIDA, CARAS, PASO, CARA_FRENTE,
+  grillaDe, armarTambor, anguloDeParada,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
 
@@ -437,9 +437,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
       : [["lingote", "diamante", "logo"], ["estrella", "moneda", "diamante"],
          ["rayo", "logo", "moneda"], ["moneda", "lingote", "chip"],
          ["diamante", "estrella", "rayo"]];
-    return base.map((col) => armarTira(col));
+    return base.map((col) => armarTambor(col));
   });
-  const [pos, setPos] = useState(() => Array(RODILLOS).fill(PARADA));
+  /* el angulo de cada tambor; siempre baja, nunca vuelve para atras */
+  const [angulos, setAngulos] = useState(() => Array(RODILLOS).fill(anguloDeParada(0)));
   const [anim, setAnim] = useState(false);
   const [rodando, setRodando] = useState(() => Array(RODILLOS).fill(false));
   /* los tiempos de esta jugada: cambian si hay anticipacion */
@@ -502,8 +503,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
         if (ultima) {
           const premio = premioDe(ultima.premio);
           setResultado({ premio, codigo: ultima.codigo });
-          setTiras(grillaDe(premio).map((col) => armarTira(col)));
-          setPos(Array(RODILLOS).fill(PARADA));
+          setTiras(grillaDe(premio).map((col) => armarTambor(col)));
+          setAngulos(Array(RODILLOS).fill(anguloDeParada(0)));
           guardarJugada(premio, ultima.codigo);
         }
         setFase("listo");
@@ -591,11 +592,11 @@ export default function Tragamonedas({ t, waLink, irA }) {
       : premio.id === "giro"
         ? LINEAS.find((l) => l.filas.every((f, i) => grilla[i][f] === grilla[0][l.filas[0]]) && l.id !== "centro")
         : null;
-    const nuevas = grilla.map((col) => armarTira(col));
+    const nuevas = grilla.map((col) => armarTambor(col));
 
     setTiras(nuevas);
     setAnim(false);
-    setPos(Array(RODILLOS).fill(0));
+    setAngulos(Array(RODILLOS).fill(0));
     setRodando(Array(RODILLOS).fill(true));
     setAnsia(false);
     if (cortarSonido.current) cortarSonido.current();
@@ -617,7 +618,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (!montado.current) return;
       setAnim(true);
-      setPos(Array(RODILLOS).fill(PARADA));
+      /* mas vueltas en cada rodillo sucesivo, para que no parezcan atados */
+      setAngulos(Array.from({ length: RODILLOS }, (_, i) => anguloDeParada(3 + i)));
     }));
 
     /* el desenfoque se apaga ANTES de la frenada, no despues: un rodillo se
@@ -862,32 +864,35 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         ))}
                         {tiras.map((tira, i) => (
                           <div
-                            className={"s2b-tm-ventana" + (ansia && i === RODILLOS - 1 ? " is-ansia" : "")}
+                            className={"s2b-tm-ventana"
+                              + (rodando[i] ? " is-rodando" : "")
+                              + (ansia && i === RODILLOS - 1 ? " is-ansia" : "")}
                             key={i}
                           >
-                            <div
-                              className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
-                              style={{
-                                /* porcentaje del alto de la propia tira, no px:
-                                   asi la maquina escala con la pantalla sin que
-                                   haya que recalcular nada */
-                                transform: `translateY(-${(pos[i] / TIRA_LARGO) * 100}%)`,
-                                /* la curva se pasa del 1 y vuelve: es el rebote
-                                 del rodillo contra su tope. El retraso de
-                                 salida se le descuenta al giro para que la
-                                 frenada caiga igual donde tiene que caer. */
-                              transition: anim
-                                  ? `transform ${(reducido ? 120 : frenos[i] - SALIDA[i]) / 1000}s cubic-bezier(.13,.74,.26,1.11) ${(reducido ? 0 : SALIDA[i]) / 1000}s`
-                                  : "none",
-                              }}
-                            >
-                              {tira.map((sim, k) => (
-                                <div
-                                  className={"s2b-tm-celda" +
-                                    (lineaGana && fase !== "girando" && k === PARADA + lineaGana.filas[i] ? " is-premiada" : "")}
-                                  key={k}
-                                ><Simbolo id={sim} /></div>
-                              ))}
+                            <div className="s2b-tm-persp">
+                              <div
+                                className="s2b-tm-tambor"
+                                style={{
+                                  transform: `rotateX(${angulos[i]}deg)`,
+                                  /* la curva se pasa del 1 y vuelve: es el rebote
+                                     del rodillo contra su tope. El retraso de
+                                     salida se le descuenta al giro para que la
+                                     frenada caiga igual donde tiene que caer. */
+                                  transition: anim
+                                      ? `transform ${(reducido ? 120 : frenos[i] - SALIDA[i]) / 1000}s cubic-bezier(.13,.74,.26,1.11) ${(reducido ? 0 : SALIDA[i]) / 1000}s`
+                                      : "none",
+                                }}
+                              >
+                                {tira.map((sim, k) => (
+                                  <div
+                                    className={"s2b-tm-cara" +
+                                      (lineaGana && fase !== "girando" && k === CARA_FRENTE - 1 + lineaGana.filas[i] ? " is-premiada" : "")}
+                                    data-cara={k}
+                                    style={{ transform: `rotateX(${k * PASO}deg) translateZ(46.65cqh)` }}
+                                    key={k}
+                                  ><Simbolo id={sim} /></div>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -1313,8 +1318,15 @@ const CSS_TM = `
   background:linear-gradient(180deg, var(--oro1), var(--oro3) 46%, var(--oro4) 52%, var(--oro2) 100%);
   box-shadow:0 0 6px rgba(0,0,0,.8); }
 /* tres celdas a la vista: el alto de la ventana es tres veces el de una celda */
+/* La ventana es un contenedor de consulta: eso deja que las caras del tambor
+   midan en cqh -porcentaje del alto de la ventana- y con eso el cilindro
+   escala solo, sin un solo numero en px. */
 .s2b-tm-ventana { position:relative; aspect-ratio:1 / 2.79; overflow:hidden;
-  background:linear-gradient(180deg,#3A0811,#1B0309 50%,#3A0811); }
+  container-type:size;
+  background:linear-gradient(180deg,#3A0811,#1B0309 50%,#3A0811);
+  filter:blur(0); transition:filter .45s ease-out; }
+.s2b-tm-ventana.is-rodando { filter:blur(1.4px); transition:filter .12s ease-in; }
+.s2b-tm-persp { position:absolute; inset:0; perspective:186.6cqh; perspective-origin:50% 50%; }
 /* la curva del tambor: un rodillo es un cilindro, y lo que se va para atras
    recibe menos luz. Sin esto los tres simbolos se ven planos, pegados en una
    pared. */
@@ -1323,19 +1335,31 @@ const CSS_TM = `
     rgba(0,0,0,.72) 0%, rgba(0,0,0,.34) 12%, rgba(0,0,0,0) 34%,
     rgba(255,240,210,.05) 50%,
     rgba(0,0,0,0) 66%, rgba(0,0,0,.34) 88%, rgba(0,0,0,.72) 100%); }
-.s2b-tm-tira { display:block; will-change:transform; filter:blur(0); transition:filter .45s ease-out; }
-.s2b-tm-tira.is-rodando { filter:blur(1.7px); transition:filter .12s ease-in; }
+/* ---------- el tambor ----------
+   Doce caras alrededor de un eje. Los numeros salen de la geometria y van
+   juntos: para que las caras se toquen sin huecos el radio tiene que ser
+   R = h / (2 tan(pi/12)) = 1,866 h, y para que la cara del frente se proyecte
+   midiendo justo un tercio de la ventana -donde esta dibujada la linea de
+   pago- la perspectiva tiene que ser 186,6cqh. Si se toca uno hay que
+   recalcular los otros dos. */
+/* Nada de filter ni de will-change ACA. Un filter -aunque sea blur(0)- obliga
+   al elemento a transform-style: flat, y eso aplana el cilindro entero: las
+   caras quedan pegadas en un plano y la perspectiva deja de agrandar la del
+   frente. Se veia como una tira de siempre. El desenfoque se aplica en la
+   ventana, que esta fuera del espacio 3D. */
+.s2b-tm-tambor { position:absolute; inset:0; transform-style:preserve-3d; }
+.s2b-tm-cara { position:absolute; left:0; right:0; top:50%; height:25cqh; margin-top:-12.5cqh;
+  display:grid; place-items:center; backface-visibility:hidden; }
+/* la sombra propia del cilindro: cada cara se apaga segun cuanto se fue para
+   atras, y eso es lo que da el volumen que una tira plana no puede dar */
+.s2b-tm-cara::before { content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(184,33,59,.42), rgba(30,4,11,.5)); }
 
-/* el simbolo manda: la placa de atras queda apenas insinuada */
-.s2b-tm-celda { position:relative; aspect-ratio:1 / .93; display:grid; place-items:center; }
-.s2b-tm-celda::before { content:''; position:absolute; inset:4px; border-radius:6px;
-  background:linear-gradient(180deg, rgba(184,33,59,.4), rgba(30,4,11,.5));
-  box-shadow:inset 0 0 0 1px rgba(249,216,88,.12); }
-.s2b-tm-celda .s2b-tm-sim { position:relative; z-index:1; width:74%; aspect-ratio:1; height:auto; }
+.s2b-tm-cara .s2b-tm-sim { position:relative; z-index:1; width:66%; aspect-ratio:1; height:auto; }
 /* el simbolo que pago late despues de la frenada */
-.s2b-tm-celda.is-premiada::before { background:linear-gradient(180deg, rgba(249,216,88,.42), rgba(208,154,28,.22));
+.s2b-tm-cara.is-premiada::before { background:linear-gradient(180deg, rgba(249,216,88,.42), rgba(208,154,28,.22));
   box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }
-.s2b-tm-celda.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
+.s2b-tm-cara.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
 @keyframes s2b-tm-latido { 50% { transform:scale(1.12); filter:drop-shadow(0 0 10px rgba(255,236,170,.9)); } }
 
 /* ---------- la ronda de bonus ----------
@@ -1662,9 +1686,8 @@ const CSS_TM = `
      El alto de la ventana TIENE que ser tres veces el de la celda -1,15 x 3 =
      3,45-; si se toca uno solo, la linea de pago deja de caer sobre la fila
      del medio. */
-  .s2b-tm-celda { aspect-ratio:1 / 1.15; }
   .s2b-tm-ventana { aspect-ratio:1 / 3.45; }
-  .s2b-tm-celda .s2b-tm-sim { width:80%; }
+  .s2b-tm-cara .s2b-tm-sim { width:72%; }
   .s2b-tm-escena { margin-left:-14px; margin-right:-14px; }
   /* la marquesina es informacion secundaria en el celular: la maquina es lo
      que importa, y estas cinco tarjetas se comian media pantalla */
@@ -1703,7 +1726,7 @@ const CSS_TM = `
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
-  .s2b-tm-celda.is-premiada .s2b-tm-sim,
+  .s2b-tm-cara.is-premiada .s2b-tm-sim,
   .s2b-tm-nivel.is-fin,
   .s2b-tm-ventana.is-ansia,
   .s2b-tm-mueble.is-golpe .s2b-tm-cuerpo { animation:none !important; }
