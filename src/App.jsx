@@ -112,6 +112,40 @@ const CSS = `
 .s2b-h2 { font-size: clamp(30px, 4.6vw, 50px); max-width: 20ch; }
 .s2b-h2 b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .s2b-lead { color: var(--muted); font-size: clamp(15px,1.5vw,17px); max-width: 58ch; margin-top: 18px; }
+
+/* ---------- justificado ----------
+   Los bloques de texto largo van con los dos margenes parejos. Va SIEMPRE con
+   hyphens: auto, que no es un adorno: justificar sin cortar palabras en una
+   columna angosta -el celular son unos 35 caracteres por linea- abre rios de
+   espacio blanco entre palabras y queda peor que alineado a la izquierda. El
+   idioma del corte sale del <html lang>, que ya cambia con el selector ES/EN.
+
+   text-wrap: pretty evita ademas que quede una palabra sola en el ultimo
+   renglon, que es donde el justificado se ve mas feo. */
+.s2b-lead,
+.s2b-fa p,
+.s2b-hero-pie,
+.s2b-paso-txt p,
+.s2b-jstep p {
+  text-align: justify;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  /* por defecto el navegador solo corta palabras largas, y en una columna de
+     35 caracteres eso deja lineas con huecos enormes entre palabras. Bajando
+     el minimo a 5 letras (2 antes del guion, 2 despues) corta mas seguido y
+     el renglon queda parejo. */
+  hyphenate-limit-chars: 5 2 2;
+  text-wrap: pretty;
+}
+/* lo que esta centrado a proposito sigue centrado: justificar un parrafo de
+   dos renglones en el medio de la pantalla lo desarma */
+.s2b-hero-in .s2b-lead,
+.s2b-cierre .s2b-lead,
+[style*="text-align: center"] .s2b-lead,
+[style*="text-align:center"] .s2b-lead {
+  text-align: center;
+  hyphens: manual;
+}
 .s2b-head { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: end; }
 
 .s2b-chrome { background: linear-gradient(176deg,#FFFFFF 4%,#F4F6FB 22%,#7C8095 46%,#FFFFFF 58%,#C3C8D8 76%,#8D91A8 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }

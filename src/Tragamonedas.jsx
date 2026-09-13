@@ -833,40 +833,6 @@ export default function Tragamonedas({ t, waLink, irA }) {
               ))}
             </div>
 
-
-            {/* lo que ya se gano, para que no haya que buscarlo en el chat */}
-            {ganados.length > 0 && (
-              <div className="s2b-tm-billetera">
-                <h3><Sparkles size={15} /> {t("Tus códigos", "Your codes")}</h3>
-                {ganados.length > 1 && (
-                  <p className="s2b-tm-solouno">
-                    <Layers size={14} />
-                    {t("No son acumulables: elegí uno. Al canjearlo, los otros quedan anulados.",
-                       "They don't stack: pick one. Redeeming it voids the others.")}
-                  </p>
-                )}
-                <ul>
-                  {ganados.map((g) => {
-                    const p = premioDe(g.premio);
-                    return (
-                      <li key={g.codigo}>
-                        <Simbolo id={p.simbolo} />
-                        <span className="s2b-tm-billetera-txt">
-                          <b>{t(p.es, p.en)}</b>
-                          <code>{g.codigo}</code>
-                        </span>
-                        {g.canjeado
-                          ? <span className="s2b-tm-usado">{t("canjeado", "redeemed")}</span>
-                          : <a className="s2b-tm-pedir" href={waLink(`Hola Studio B2B, gané ${p.es} y mi código es ${g.codigo}.`)} target="_blank" rel="noopener noreferrer">
-                              {t("Reclamar", "Claim")} <ArrowRight size={14} />
-                            </a>}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
             {/* la tabla, a la vista y no escondida en un pie de pagina */}
             <div className="s2b-tm-abajo">
               <div className="s2b-tm-tabla">
@@ -1034,7 +1000,9 @@ const CSS_TM = `
 }
 .s2b-tm-top { position:relative; text-align:center; display:grid; justify-items:center; }
 .s2b-tm-h2 { max-width:22ch; }
-.s2b-tm-lead { margin-left:auto; margin-right:auto; }
+/* el encabezado del casino esta centrado a proposito: ahi el justificado
+   desarma el bloque en vez de ordenarlo */
+.s2b-tm-lead { margin-left:auto; margin-right:auto; text-align:center; }
 
 /* ---------- simbolos ----------
    Las medidas van en px o en calc() sobre --celda, nunca en porcentaje: un
@@ -1261,11 +1229,21 @@ const CSS_TM = `
 .s2b-tm-zocalo { position:relative; flex:none; margin-left:auto;
   width:clamp(80px,20vw,146px); aspect-ratio:1; border-radius:50%;
   padding:clamp(6px,1.1vw,10px);
-  background:linear-gradient(160deg, var(--oro1) 0%, var(--oro2) 16%, var(--oro4) 42%, var(--oro2) 62%, var(--oro3) 78%, var(--oro1) 100%);
+  /* Oro TORNEADO, no una rampa. Un aro de metal refleja por bandas segun el
+     angulo de cada punto del anillo, y eso es un degrade conico, no uno
+     lineal. Con el lineal el aro parecia plastico amarillo pintado. */
+  background:
+    conic-gradient(from 210deg,
+      var(--oro4) 0deg, var(--oro2) 26deg, var(--oro1) 44deg, var(--oro3) 68deg,
+      var(--oro4) 96deg, var(--oro2) 128deg, var(--oro1) 152deg, var(--oro3) 178deg,
+      var(--oro4) 208deg, var(--oro1) 236deg, var(--oro2) 262deg, var(--oro3) 292deg,
+      var(--oro4) 318deg, var(--oro1) 340deg, var(--oro4) 360deg);
   box-shadow:
     0 0 0 1px rgba(92,58,4,.95),
     0 3px 0 rgba(92,58,4,.7),
     0 16px 30px -12px rgba(0,0,0,.95); }
+/* el filo de luz del borde de afuera, donde el metal se dobla */
+.s2b-tm-zocalo::before, .s2b-tm-zocalo::after { pointer-events:none; }
 /* el pozo: sombra hacia adentro para que la tapa parezca metida */
 .s2b-tm-zocalo::before { content:''; position:absolute; inset:clamp(5px,.9vw,8px); border-radius:50%;
   background:radial-gradient(circle at 50% 40%, #2A1806, #0B0602 78%);
@@ -1279,12 +1257,21 @@ const CSS_TM = `
     /* la cupula */
     radial-gradient(circle at 50% 16%, #D3FFE0 0%, #82EEA9 18%, #3FCB77 46%, #17924A 74%, #0A5A2B 100%);
   box-shadow:
+    /* el canto del plastico: un anillo oscuro pegado al borde */
+    inset 0 0 0 2px rgba(4,52,24,.45),
+    /* la sombra que el aro le tira encima por arriba */
+    inset 0 6px 9px -4px rgba(0,0,0,.55),
     inset 0 -12px 18px rgba(0,0,0,.42),
     inset 0 3px 4px rgba(255,255,255,.55),
     0 7px 0 -1px #073F1E,
     0 12px 20px -6px rgba(0,0,0,.85),
     0 0 30px -6px rgba(90,230,140,.55);
   transition:transform .1s ease-out, box-shadow .1s ease-out, filter .2s; }
+/* la luz de adentro: estos botones van iluminados por atras, y el brillo sale
+   del centro hacia el borde, no de una lampara puesta arriba */
+.s2b .s2b-tm-spin::after { content:''; position:absolute; inset:12%; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle at 50% 58%, rgba(190,255,214,.5), rgba(120,240,170,.14) 55%, transparent 74%);
+  mix-blend-mode:screen; }
 .s2b .s2b-tm-spin b { position:relative; z-index:3; font-family:var(--display);
   font-size:clamp(11px,2.4vw,18px); font-weight:700; letter-spacing:.1em;
   /* grabado: sombra arriba, luz abajo */
@@ -1345,19 +1332,6 @@ const CSS_TM = `
 .s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
   color:#FFD9D9; background:rgba(255,60,60,.18); border:1px solid rgba(255,120,120,.45); }
 
-/* ---------- los codigos ganados ---------- */
-.s2b-tm-billetera { position:relative; margin-top:26px; padding:18px 20px; border-radius:20px;
-  border:1px solid rgba(249,216,88,.35); background:linear-gradient(160deg, rgba(184,33,59,.26), rgba(0,0,0,.3)); }
-.s2b .s2b-tm-billetera h3 { display:flex; align-items:center; gap:9px; margin:0 0 14px; font-family:var(--mono);
-  font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; }
-.s2b-tm-billetera h3 svg { color:var(--oro2); }
-.s2b-tm-billetera ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
-.s2b-tm-billetera li { display:flex; align-items:center; gap:13px; padding:11px 14px; border-radius:14px;
-  border:1px solid rgba(249,216,88,.22); background:rgba(0,0,0,.34); flex-wrap:wrap; }
-.s2b-tm-billetera li .s2b-tm-sim { width:34px; height:34px; }
-.s2b-tm-billetera-txt { display:grid; gap:2px; flex:1; min-width:150px; }
-.s2b-tm-billetera-txt b { font-size:14px; color:#fff; font-weight:600; }
-.s2b-tm-billetera-txt code { font-family:var(--mono); font-size:13px; letter-spacing:.08em; color:var(--oro1); }
 .s2b-tm-pedir { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:999px;
   border:1px solid var(--oro2); color:var(--oro1); font-family:var(--mono); font-size:10.5px;
   letter-spacing:.1em; text-transform:uppercase; transition:background .2s, color .2s; }
@@ -1382,12 +1356,11 @@ const CSS_TM = `
 .s2b-tm-nada { font-family:var(--mono); font-size:11px; color:#7E7799; }
 .s2b-tm-formas { display:inline-flex; gap:6px; flex-wrap:wrap; }
 .s2b-tm-forma { width:40px; height:24px; flex:none; }
-.s2b-tm-solouno { display:flex; gap:9px; align-items:flex-start; margin:-4px 0 14px;
-  font-size:12.5px; line-height:1.5; color:#E0BE8C; }
-.s2b-tm-solouno svg { flex:none; margin-top:2px; color:var(--oro2); }
 .s2b-tm-prob { font-family:var(--mono); font-size:13px; color:var(--oro2); white-space:nowrap; }
 .s2b-tm-bases ul { list-style:none; margin:0; padding:0; display:grid; gap:11px; }
-.s2b-tm-bases li { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#BDB4E4; line-height:1.55; }
+.s2b-tm-bases li { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#BDB4E4; line-height:1.55;
+  text-align:justify; -webkit-hyphens:auto; hyphens:auto;
+  hyphenate-limit-chars:5 2 2; text-wrap:pretty; }
 .s2b-tm-bases li svg { flex:none; margin-top:4px; color:var(--oro2); }
 .s2b-tm-volver { margin-top:18px; }
 
@@ -1488,8 +1461,6 @@ const CSS_TM = `
 @media (max-width: 400px) {
   .s2b-tm-hud-saldo { display:none; }
   .s2b-tm-tabla, .s2b-tm-bases { padding:16px 13px; }
-  .s2b-tm-billetera { padding:15px 14px; }
-  .s2b-tm-billetera li { padding:10px 11px; gap:10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
