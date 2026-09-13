@@ -4,8 +4,9 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import confetti from "canvas-confetti";
 import {
   Volume2, VolumeX, X, Copy, Check, ArrowRight, ArrowLeft, Sparkles, Info, ShieldCheck, Clock,
-  RotateCw, Gift, Layers,
+  RotateCw, Gift, Layers, Share2, Link2, Mail,
 } from "lucide-react";
+import { siWhatsapp, siTelegram, siX } from "simple-icons";
 
 import {
   PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO, LINEAS, SALIDA,
@@ -336,6 +337,15 @@ function Forma({ linea }) {
   );
 }
 
+/* el logo de cada red, del paquete simple-icons, en el mismo formato 24x24 */
+function Marca({ icono }) {
+  return (
+    <svg className="s2b-tm-marca" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d={icono.path} />
+    </svg>
+  );
+}
+
 function Simbolo({ id }) {
   if (id === "logo") {
     return (
@@ -613,6 +623,56 @@ export default function Tragamonedas({ t, waLink, irA }) {
     }
   };
 
+  /* Se arma con location y no con una direccion escrita a mano: asi el link
+     que se comparte es el de donde esta la persona, y no manda a produccion a
+     alguien que esta probando en otro lado. */
+  const SALTO = String.fromCharCode(10);
+  const enlace = typeof location !== "undefined" ? location.origin + "/jugar" : "";
+  const textoCompartir = t(
+    "Probá suerte en la máquina de Studio B2B: podés ganar hasta 30% de descuento en tu proyecto.",
+    "Try your luck on the Studio B2B slot machine: you can win up to 30% off your project."
+  );
+  const [enlaceCopiado, setEnlaceCopiado] = useState(false);
+  const [hayNativo, setHayNativo] = useState(false);
+
+  /* navigator.share solo existe en algunos navegadores -y en escritorio casi
+     nunca-, asi que se pregunta despues de montar y no en el primer pintado:
+     preguntarlo antes hace que el servidor y el cliente pinten distinto. */
+  useEffect(() => {
+    setHayNativo(typeof navigator !== "undefined" && typeof navigator.share === "function");
+  }, []);
+
+  const REDES = useMemo(() => {
+    const u = encodeURIComponent(enlace);
+    const txt = encodeURIComponent(textoCompartir);
+    return {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(textoCompartir + " " + enlace)}`,
+      telegram: `https://t.me/share/url?url=${u}&text=${txt}`,
+      x: `https://twitter.com/intent/tweet?text=${txt}&url=${u}`,
+      /* el salto de linea del cuerpo se arma con el codigo del caracter: una
+         barra-ene literal dentro del mailto llega escapada dos veces */
+      correo: `mailto:?subject=${encodeURIComponent(t("Te paso esto", "Check this out"))}&body=${encodeURIComponent(textoCompartir + SALTO + SALTO + enlace)}`,
+    };
+  }, [enlace, textoCompartir, t]);
+
+  const compartirNativo = async () => {
+    try {
+      await navigator.share({ title: "Studio B2B", text: textoCompartir, url: enlace });
+    } catch {
+      /* si la persona cierra la hoja de compartir no es un error */
+    }
+  };
+
+  const copiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(enlace);
+      setEnlaceCopiado(true);
+      setTimeout(() => montado.current && setEnlaceCopiado(false), 1800);
+    } catch {
+      /* sin portapapeles quedan los botones de cada red */
+    }
+  };
+
   const mensajeWa = (r) =>
     r?.codigo
       ? `Hola Studio B2B, jugué en la web y gané ${r.premio.es}. Mi código es ${r.codigo}.`
@@ -883,6 +943,40 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 </ul>
                 <button className="s2b-link s2b-tm-volver" onClick={() => irA("home")}>
                   <ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}
+                </button>
+              </div>
+            </div>
+
+            {/* ---- compartir ----
+                El menu nativo va primero y solo si el navegador lo tiene: en
+                el celular abre la hoja del sistema, con WhatsApp arriba de
+                todo y el resto de las apps que la persona ya usa. Los botones
+                sueltos quedan para escritorio, donde ese menu no existe. */}
+            <div className="s2b-tm-compartir">
+              <h3><Share2 size={15} /> {t("Pasale el juego a alguien", "Share the game")}</h3>
+              <p>{t("Si conocés a alguien que necesita software, que pruebe suerte.", "If you know someone who needs software, let them try their luck.")}</p>
+
+              <div className="s2b-tm-compartir-bts">
+                {hayNativo && (
+                  <button className="s2b-tm-cb s2b-tm-cb--primero" onClick={compartirNativo}>
+                    <Share2 size={16} /> {t("Compartir", "Share")}
+                  </button>
+                )}
+                <a className="s2b-tm-cb" href={REDES.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                  <Marca icono={siWhatsapp} /> WhatsApp
+                </a>
+                <a className="s2b-tm-cb" href={REDES.telegram} target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                  <Marca icono={siTelegram} /> Telegram
+                </a>
+                <a className="s2b-tm-cb" href={REDES.x} target="_blank" rel="noopener noreferrer" aria-label="X">
+                  <Marca icono={siX} /> X
+                </a>
+                <a className="s2b-tm-cb" href={REDES.correo}>
+                  <Mail size={16} /> {t("Correo", "Email")}
+                </a>
+                <button className="s2b-tm-cb" onClick={copiarEnlace}>
+                  {enlaceCopiado ? <Check size={16} /> : <Link2 size={16} />}
+                  {enlaceCopiado ? t("Copiado", "Copied") : t("Copiar link", "Copy link")}
                 </button>
               </div>
             </div>
@@ -1364,6 +1458,27 @@ const CSS_TM = `
 .s2b-tm-bases li svg { flex:none; margin-top:4px; color:var(--oro2); }
 .s2b-tm-volver { margin-top:18px; }
 
+/* ---------- compartir ---------- */
+.s2b-tm-compartir { position:relative; margin-top:20px; padding:20px 22px; border-radius:20px; text-align:center;
+  border:1px solid rgba(249,216,88,.22);
+  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(0,0,0,.22)); }
+.s2b .s2b-tm-compartir h3 { display:inline-flex; align-items:center; gap:9px; margin:0 0 8px; font-family:var(--mono);
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; }
+.s2b-tm-compartir p { font-size:14px; color:#BDB4E4; margin:0 auto 16px; max-width:46ch; }
+.s2b-tm-compartir-bts { display:flex; flex-wrap:wrap; gap:9px; justify-content:center; }
+.s2b .s2b-tm-cb { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border-radius:999px;
+  border:1px solid rgba(249,216,88,.3); background:rgba(0,0,0,.3); color:#D8D2EC;
+  font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  transition:color .2s, border-color .2s, background .2s, transform .15s; }
+.s2b .s2b-tm-cb:hover { color:#fff; border-color:var(--oro2); background:rgba(249,216,88,.14); transform:translateY(-1px); }
+/* el nativo va primero y se nota: en el celular es el unico que hace falta */
+.s2b .s2b-tm-cb--primero { color:#3A0B14; border-color:var(--oro4);
+  background:linear-gradient(180deg,var(--oro1),var(--oro2) 48%,var(--oro3));
+  box-shadow:0 3px 0 var(--oro4); font-weight:700; }
+.s2b .s2b-tm-cb--primero:hover { color:#2A0709; background:linear-gradient(180deg,#FFFDF0,var(--oro2) 48%,var(--oro2)); }
+.s2b .s2b-tm-cb--primero:active { transform:translateY(2px); box-shadow:0 1px 0 var(--oro4); }
+.s2b-tm-marca { width:15px; height:15px; flex:none; }
+
 /* ---------- el premio ---------- */
 /* align-items:start + margin:auto en la tarjeta: centrada cuando entra,
    scrolleable cuando no. Con place-items:center una tarjeta mas alta que la
@@ -1429,6 +1544,14 @@ const CSS_TM = `
 /* Celular: el gabinete se come el margen de la pagina para que los cinco
    rodillos entren sin quedar en miniatura. */
 @media (max-width: 560px) {
+  /* En el celular la maquina queda mas alta: con cinco rodillos la columna es
+     angosta y con celdas mas anchas que altas el mueble se veia achatado.
+     El alto de la ventana TIENE que ser tres veces el de la celda -1,15 x 3 =
+     3,45-; si se toca uno solo, la linea de pago deja de caer sobre la fila
+     del medio. */
+  .s2b-tm-celda { aspect-ratio:1 / 1.15; }
+  .s2b-tm-ventana { aspect-ratio:1 / 3.45; }
+  .s2b-tm-celda .s2b-tm-sim { width:80%; }
   .s2b-tm-escena { margin-left:-14px; margin-right:-14px; }
   /* la marquesina es informacion secundaria en el celular: la maquina es lo
      que importa, y estas cinco tarjetas se comian media pantalla */
