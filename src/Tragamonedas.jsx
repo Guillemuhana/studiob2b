@@ -337,6 +337,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [error, setError] = useState("");
 
   const relojes = useRef([]);
+  const cortarSonido = useRef(null);
   const audio = useRef(null);
   const montado = useRef(true);
 
@@ -345,6 +346,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
     return () => {
       montado.current = false;
       relojes.current.forEach(clearTimeout);
+      /* el giro esta programado de una vez en el reloj del audio, asi que si
+         alguien se va a mitad de la corrida hay que apagarlo a mano */
+      if (cortarSonido.current) cortarSonido.current();
     };
   }, []);
 
@@ -378,12 +382,13 @@ export default function Tragamonedas({ t, waLink, irA }) {
   }, []);
 
   const son = useCallback((fn, ...args) => {
-    if (!sonando || reducido) return;
+    if (!sonando || reducido) return undefined;
     try {
       if (!audio.current) audio.current = crearSonido();
-      audio.current[fn](...args);
+      return audio.current[fn](...args);
     } catch {
       /* si el navegador no deja sonar, la maquina anda igual */
+      return undefined;
     }
   }, [sonando, reducido]);
 
@@ -445,7 +450,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setAnim(false);
     setPos(Array(RODILLOS).fill(0));
     setRodando(Array(RODILLOS).fill(true));
-    son("giro");
+    if (cortarSonido.current) cortarSonido.current();
+    cortarSonido.current = son("rodando", reducido ? [120, 140, 160, 180, 200] : FRENOS) || null;
 
     /* dos cuadros de espera: uno para que el navegador pinte los rodillos
        arriba de todo sin transicion, y recien ahi se enciende la animacion */
@@ -460,7 +466,6 @@ export default function Tragamonedas({ t, waLink, irA }) {
       setTimeout(() => {
         if (!montado.current) return;
         setRodando((r) => r.map((v, j) => (j === i ? false : v)));
-        son("tope", i);
       }, reducido ? 60 * (i + 1) : ms)
     );
 
@@ -566,7 +571,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       </span>
                       <button
                         className="s2b-tm-hud-ico"
-                        onClick={() => setSonando((v) => !v)}
+                        onClick={() => setSonando((v) => {
+                          if (v && cortarSonido.current) cortarSonido.current();
+                          return !v;
+                        })}
                         aria-pressed={sonando}
                         aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
                       >

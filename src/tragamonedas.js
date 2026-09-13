@@ -176,13 +176,22 @@ export function guardarJugada(premio, codigo) {
 }
 
 /* ================= sonido =================
-   Sin archivos: las notas se generan con Web Audio en el momento. Un mp3 de
-   maquinita son 40 kB y suena a otra marca; esto pesa cero y afina con el
-   sitio. El contexto se crea recien en el primer clic, que es cuando el
-   navegador deja. */
+   Sin archivos: todo se genera con Web Audio en el momento. Un paquete de
+   mp3 de maquinita son 200 kB y suena a otra marca; esto pesa cero.
+
+   El giro no es un tono: es una tanda de chasquidos programados de una vez,
+   uno por cada muesca de rodillo, mas una capa de ruido filtrado que hace el
+   zumbido. Como se sabe de antemano cuando frena cada rodillo, se puede
+   programar todo junto al arrancar y queda perfectamente en tiempo con lo que
+   se ve -si se disparara desde un setInterval, el audio se correria cada vez
+   que el navegador se distrae-.
+
+   El contexto se crea en el primer clic, que es cuando el navegador deja. */
 
 export function crearSonido() {
   let ctx = null;
+  let ruido = null;
+
   const arrancar = () => {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -193,7 +202,17 @@ export function crearSonido() {
     return ctx;
   };
 
-  const nota = (freq, cuando, largo, tipo = "triangle", vol = 0.16) => {
+  /* un segundo de ruido blanco, reutilizado por todos los chasquidos */
+  const bufferRuido = (c) => {
+    if (ruido) return ruido;
+    const n = Math.floor(c.sampleRate * 1);
+    ruido = c.createBuffer(1, n, c.sampleRate);
+    const d = ruido.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    return ruido;
+  };
+
+  const nota = (freq, cuando, largo, tipo = "triangle", vol = 0.16, destino = null) => {
     const c = arrancar();
     if (!c) return;
     const osc = c.createOscillator();
@@ -204,20 +223,142 @@ export function crearSonido() {
     gan.gain.setValueAtTime(0.0001, t0);
     gan.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
     gan.gain.exponentialRampToValueAtTime(0.0001, t0 + largo);
-    osc.connect(gan).connect(c.destination);
+    osc.connect(gan).connect(destino || c.destination);
     osc.start(t0);
     osc.stop(t0 + largo + 0.03);
   };
 
+  /* el chasquido de una muesca: ruido corto pasado por un pasabanda */
+  const chasquido = (c, cuando, vol, frec, destino) => {
+    const s = c.createBufferSource();
+    s.buffer = bufferRuido(c);
+    s.loop = true;
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = frec;
+    f.Q.value = 3.2;
+    const g = c.createGain();
+    const t0 = c.currentTime + cuando;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.035);
+    s.connect(f).connect(g).connect(destino);
+    /* cada chasquido entra por un punto distinto del ruido: arrancando todos
+       en cero suenan calcados y el oido lo lee como un loop, no como una
+       maquina */
+    s.start(t0, Math.random() * 0.9);
+    s.stop(t0 + 0.05);
+  };
+
+  /* el golpe seco de un rodillo al frenar: un tono que cae mas el chasquido */
+  const golpe = (c, cuando, destino, fuerza = 1) => {
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    const t0 = c.currentTime + cuando;
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(190 * fuerza, t0);
+    osc.frequency.exponentialRampToValueAtTime(58, t0 + 0.16);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(0.3 * fuerza, t0 + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+    osc.connect(g).connect(destino);
+    osc.start(t0);
+    osc.stop(t0 + 0.26);
+    chasquido(c, cuando, 0.22 * fuerza, 1800, destino);
+  };
+
   return {
-    palanca() { nota(180, 0, 0.14, "sawtooth", 0.1); nota(320, 0.05, 0.2, "triangle", 0.08); },
-    giro() { nota(90, 0, 0.5, "sine", 0.05); },
-    tope(i) { nota(420 + i * 110, 0, 0.1, "square", 0.07); nota(210 + i * 55, 0, 0.16, "triangle", 0.09); },
+    /* el clac del boton al hundirse */
+    palanca() {
+      const c = arrancar();
+      if (!c) return;
+      chasquido(c, 0, 0.3, 2600, c.destination);
+      nota(150, 0.01, 0.1, "square", 0.12);
+      nota(70, 0.03, 0.16, "sine", 0.16);
+    },
+
+    /* Toda la corrida de una: chasquidos mientras haya rodillos girando, el
+       zumbido de fondo, el golpe de cada frenada y el subidon antes del
+       ultimo. Devuelve como cortarlo si la persona se va de la pagina. */
+    rodando(frenosMs) {
+      const c = arrancar();
+      if (!c) return () => {};
+
+      const bus = c.createGain();
+      bus.gain.value = 0.9;
+      bus.connect(c.destination);
+
+      const frenos = frenosMs.map((m) => m / 1000);
+      const fin = Math.max(...frenos);
+
+      /* el zumbido: ruido grave que se va apagando a medida que frenan */
+      const zumbido = c.createBufferSource();
+      zumbido.buffer = bufferRuido(c);
+      zumbido.loop = true;
+      const filtro = c.createBiquadFilter();
+      filtro.type = "lowpass";
+      filtro.frequency.setValueAtTime(900, c.currentTime);
+      filtro.Q.value = 1.2;
+      const gz = c.createGain();
+      const t0 = c.currentTime;
+      gz.gain.setValueAtTime(0.0001, t0);
+      gz.gain.linearRampToValueAtTime(0.05, t0 + 0.12);
+      frenos.forEach((f, i) => {
+        gz.gain.linearRampToValueAtTime(0.05 * (1 - (i + 1) / frenos.length), t0 + f);
+      });
+      filtro.frequency.linearRampToValueAtTime(260, t0 + fin);
+      zumbido.connect(filtro).connect(gz).connect(bus);
+      zumbido.start(t0);
+      zumbido.stop(t0 + fin + 0.3);
+
+      /* las muescas: una cada 55 ms, mas fuertes cuantos mas rodillos queden */
+      const paso = 0.055;
+      for (let t = 0; t < fin; t += paso) {
+        const activos = frenos.filter((f) => f > t).length;
+        if (!activos) break;
+        chasquido(c, t, 0.035 + 0.022 * activos, 2400 + (activos % 2) * 500, bus);
+      }
+
+      /* el golpe de cada frenada; el ultimo pega mas fuerte */
+      frenos.forEach((f, i) => golpe(c, f, bus, i === frenos.length - 1 ? 1.25 : 0.85));
+
+      /* el subidon antes de que pare el ultimo rodillo: es el momento en que
+         la persona ya sabe si gano o no */
+      const previo = frenos[frenos.length - 2] ?? 0;
+      const largo = Math.max(0.25, fin - previo);
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(180, t0 + previo);
+      osc.frequency.exponentialRampToValueAtTime(760, t0 + fin);
+      g.gain.setValueAtTime(0.0001, t0 + previo);
+      g.gain.linearRampToValueAtTime(0.05, t0 + previo + largo * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + fin + 0.05);
+      osc.connect(g).connect(bus);
+      osc.start(t0 + previo);
+      osc.stop(t0 + fin + 0.1);
+
+      return () => {
+        try {
+          const ahora = c.currentTime;
+          bus.gain.cancelScheduledValues(ahora);
+          bus.gain.setTargetAtTime(0, ahora, 0.02);
+          setTimeout(() => { try { bus.disconnect(); } catch {} }, 400);
+        } catch {}
+      };
+    },
+
     gano(alto) {
       const escala = alto ? [523, 659, 784, 1047, 1319] : [440, 554, 659];
       escala.forEach((f, i) => nota(f, i * 0.1, 0.34, "triangle", 0.15));
-      if (alto) escala.forEach((f, i) => nota(f * 2, 0.5 + i * 0.07, 0.5, "sine", 0.09));
+      if (alto) {
+        escala.forEach((f, i) => nota(f * 2, 0.5 + i * 0.07, 0.5, "sine", 0.09));
+        /* la lluvia de monedas del premio mayor */
+        const c = arrancar();
+        if (c) for (let i = 0; i < 26; i++) chasquido(c, 0.25 + i * 0.045, 0.1, 2600 + Math.random() * 2200, c.destination);
+      }
     },
+
     perdio() { nota(300, 0, 0.18, "triangle", 0.09); nota(220, 0.14, 0.3, "triangle", 0.08); },
   };
 }
