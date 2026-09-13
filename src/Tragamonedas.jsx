@@ -27,9 +27,12 @@ const FRENOS = [2100, 2620, 3140, 3680, 4300];
    en las jugadas perdidas que salieron con cuatro repetidos. */
 const ESPERA_ANSIA = 2300;
 
+/* Con los primeros TRES iguales ya hay algo en juego: el cuarto rodillo
+   decide entre BONUS, SUPER BONUS y el premio. Antes se miraban cuatro, y
+   eso dejaba la anticipacion casi atada a ganar el premio grande. */
 const detectarAnsia = (grilla) => {
   const s0 = grilla[0][1];
-  return [0, 1, 2, 3].every((i) => grilla[i][1] === s0);
+  return [0, 1, 2].every((i) => grilla[i][1] === s0);
 };
 
 const frenosDe = (ansia) =>
@@ -420,6 +423,51 @@ function Bonus({ t, premio, reducido, son, alTerminar }) {
   );
 }
 
+/* La lluvia del premio mayor: en vez de papelitos caen logos, que es el
+   simbolo que lo pago. Va en position fixed sobre toda la pantalla y se
+   mueve solo con transform, asi que el navegador la compone en la placa y no
+   repinta nada. Cada gota trae su tamano, su demora, su giro y su deriva:
+   sin eso caen las veinticuatro en fila y se ve como una cortina. */
+function LluviaLogos({ cantidad = 26 }) {
+  const gotas = useMemo(
+    () =>
+      Array.from({ length: cantidad }, () => ({
+        left: (Math.random() * 100).toFixed(1) + "%",
+        "--tam": (26 + Math.random() * 36).toFixed(0) + "px",
+        "--dur": (1.7 + Math.random() * 1.5).toFixed(2) + "s",
+        "--demora": (Math.random() * 1.3).toFixed(2) + "s",
+        "--giro": (Math.random() * 900 - 450).toFixed(0) + "deg",
+        "--deriva": (Math.random() * 80 - 40).toFixed(0) + "px",
+      })),
+    [cantidad]
+  );
+  return (
+    <div className="s2b-tm-lluvia" aria-hidden="true">
+      {gotas.map((g, i) => (
+        <img key={i} src="/logo.png" alt="" style={g} />
+      ))}
+    </div>
+  );
+}
+
+/* El cartel que cae cuando algo pago. Tres niveles, como en las maquinas:
+   tres iguales BONUS, cuatro SUPER BONUS, cinco el premio. */
+function Cartel({ nivel, texto, sub, reducido }) {
+  return (
+    <motion.div
+      className={"s2b-tm-cartel s2b-tm-cartel--" + nivel}
+      initial={reducido ? false : { opacity: 0, scale: 0.55, rotate: -6 }}
+      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      exit={{ opacity: 0, scale: 1.25 }}
+      transition={{ type: "spring", stiffness: 340, damping: 16 }}
+      role="status"
+    >
+      <b>{texto}</b>
+      {sub && <small>{sub}</small>}
+    </motion.div>
+  );
+}
+
 /* ================= la maquina ================= */
 
 export default function Tragamonedas({ t, waLink, irA }) {
@@ -470,6 +518,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [lineaGana, setLineaGana] = useState(null);
   const [golpe, setGolpe] = useState(false);
   const [bonus, setBonus] = useState(null);
+  const [cartel, setCartel] = useState(null);
+  const [lluvia, setLluvia] = useState(false);
 
   const relojes = useRef([]);
   const cortarSonido = useRef(null);
@@ -549,6 +599,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setAviso("");
     setLineaGana(null);
     setBonus(null);
+    setCartel(null);
+    setLluvia(false);
     son("palanca");
 
     /* Se le pide el resultado al servidor antes de mover nada: los rodillos
@@ -649,16 +701,43 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
       setLineaGana(linea || null);
 
-      if (premio.id === "giro") {
-        /* devolver la jugada no merece frenar la maquina con una ventana:
-           alcanza con el cartel y la linea cruzada encendida */
-        son("gano", false);
-        festejar(false);
-        setAviso(t("¡Otro intento! Esta jugada no te la contamos.", "Another spin! This one is on us."));
-        relojes.current.push(setTimeout(() => montado.current && setAviso(""), 4200));
+      if (premio.id === "bonus3" || premio.id === "bonus4") {
+        const cuatro = premio.id === "bonus4";
+        setCartel({
+          nivel: cuatro ? "super" : "bonus",
+          texto: cuatro ? t("¡SUPER BONUS!", "SUPER BONUS!") : t("¡BONUS!", "BONUS!"),
+          sub: cuatro
+            ? t("Cuatro iguales · dos jugadas más", "Four in a row · two more spins")
+            : t("Tres iguales · jugada devuelta", "Three in a row · spin returned"),
+        });
+        son("gano", cuatro);
+        festejar(cuatro);
+        relojes.current.push(setTimeout(() => montado.current && setCartel(null), 2600));
       } else if (premio.id) {
-        /* el medidor trepa primero; la ventana del premio sale al final */
-        setBonus(premio);
+        /* Cinco iguales. Los cinco del logo son el premio mayor de la maquina
+           y se anuncian distinto: cartel propio y lluvia de logos en vez de
+           papelitos, que es lo que hacen las maquinas cuando cae el jackpot. */
+        const mayor = premio.id === "logo";
+        setCartel({
+          nivel: mayor ? "mayor" : "grande",
+          texto: mayor ? t("¡SÚPER GRAN PREMIO!", "MEGA JACKPOT!") : t("¡GRAN PREMIO!", "JACKPOT!"),
+          sub: mayor
+            ? t("Cinco logos · el premio más alto", "Five logos · the top prize")
+            : t("Cinco iguales", "Five in a row"),
+        });
+        son("gano", true);
+        festejar(true);
+        if (mayor && !reducido) {
+          setLluvia(true);
+          relojes.current.push(setTimeout(() => montado.current && setLluvia(false), 3600));
+          /* una segunda tanda de papelitos para que el mayor se sienta mas */
+          relojes.current.push(setTimeout(() => montado.current && festejar(true), 900));
+        }
+        relojes.current.push(setTimeout(() => {
+          if (!montado.current) return;
+          setCartel(null);
+          setBonus(premio);
+        }, mayor ? 2600 : 1700));
       } else {
         son("perdio");
         setAviso(t("Esta vez no salió. Probá de nuevo.", "Not this time. Give it another spin."));
@@ -821,6 +900,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
                       <AnimatePresence>
+                        {cartel && (
+                          <Cartel
+                            nivel={cartel.nivel}
+                            texto={cartel.texto}
+                            sub={cartel.sub}
+                            reducido={reducido}
+                          />
+                        )}
+                      </AnimatePresence>
+
+                      <AnimatePresence>
                         {bonus && (
                           <Bonus
                             t={t}
@@ -832,7 +922,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                               setBonus(null);
                               setAbierto(true);
                               son("gano", bonus.id === "logo");
-                              festejar(bonus.id === "logo" || bonus.id === "diamante");
+                              if (bonus.id === "logo") festejar(true);
                             }}
                           />
                         )}
@@ -1069,6 +1159,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
       {typeof document !== "undefined" && createPortal(
         <div className="s2b s2b-tm-portal">
+          {lluvia && <LluviaLogos />}
           <AnimatePresence>
             {abierto && resultado && (
               <motion.div
@@ -1354,6 +1445,45 @@ const CSS_TM = `
   box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }
 .s2b-tm-cara.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
 @keyframes s2b-tm-latido { 50% { transform:scale(1.12); filter:drop-shadow(0 0 10px rgba(255,236,170,.9)); } }
+
+/* ---------- la lluvia del premio mayor ----------
+   Solo transform y opacity: el navegador la compone en la placa de video sin
+   repintar, que es lo unico que permite tirar veintiseis piezas a la vez sin
+   que se trabe. z-index 124: encima de la maquina pero debajo de la ventana
+   del premio, que es 125. */
+.s2b-tm-lluvia { position:fixed; inset:0; z-index:124; pointer-events:none; overflow:hidden; }
+.s2b-tm-lluvia img { position:absolute; top:-16vh; width:var(--tam); height:auto; opacity:0;
+  will-change:transform;
+  filter:drop-shadow(0 0 12px rgba(255,226,160,.85)) drop-shadow(0 4px 10px rgba(0,0,0,.6));
+  animation:s2b-tm-caer var(--dur) cubic-bezier(.32,.08,.52,1) var(--demora) forwards; }
+@keyframes s2b-tm-caer {
+  0%   { transform:translate3d(0,0,0) rotate(0deg); opacity:0; }
+  7%   { opacity:1; }
+  100% { transform:translate3d(var(--deriva), 122vh, 0) rotate(var(--giro)); opacity:.9; }
+}
+
+/* ---------- el cartel de premio ----------
+   Cae encima de los rodillos y se va solo. Los tres niveles usan la misma
+   pieza y cambian de color y de tamano, que es como se lee de un vistazo cual
+   salio sin tener que leer el texto. */
+.s2b-tm-cartel { position:absolute; inset:0; z-index:8; display:grid; align-content:center; justify-items:center;
+  gap:4px; pointer-events:none; text-align:center;
+  background:radial-gradient(closest-side, rgba(12,2,8,.82), rgba(12,2,8,.35) 70%, transparent); }
+.s2b-tm-cartel b { font-family:var(--display); font-weight:700; letter-spacing:.04em; line-height:1;
+  background:linear-gradient(180deg,#FFF9DF 4%,var(--oro2) 38%,var(--oro3) 66%,#FFF6D0 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(92,58,4,.9)) drop-shadow(0 0 26px rgba(249,216,88,.85)); }
+.s2b-tm-cartel small { font-family:var(--mono); font-size:clamp(9px,1.5vw,11.5px); letter-spacing:.16em;
+  text-transform:uppercase; color:#FFE9A8; }
+
+.s2b-tm-cartel--bonus b { font-size:clamp(30px,7vw,64px); }
+.s2b-tm-cartel--super b { font-size:clamp(34px,8vw,74px); }
+.s2b-tm-cartel--grande b { font-size:clamp(30px,7.4vw,68px); }
+.s2b-tm-cartel--mayor b { font-size:clamp(26px,6.2vw,58px); animation:s2b-tm-pulso .8s ease-in-out infinite; }
+.s2b-tm-cartel--mayor { background:radial-gradient(closest-side, rgba(60,6,20,.9), rgba(12,2,8,.5) 70%, transparent); }
+/* el mas grande late, los otros no: si laten los tres se pierde la jerarquia */
+.s2b-tm-cartel--grande b { animation:s2b-tm-pulso 1s ease-in-out infinite; }
+@keyframes s2b-tm-pulso { 50% { filter:drop-shadow(0 2px 0 rgba(92,58,4,.9)) drop-shadow(0 0 44px rgba(255,236,170,1)); transform:scale(1.04); } }
 
 /* ---------- la ronda de bonus ----------
    Tapa los rodillos mientras el medidor trepa. Va adentro del mueble y no en
@@ -1720,6 +1850,9 @@ const CSS_TM = `
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
   .s2b-tm-cara.is-premiada .s2b-tm-sim,
   .s2b-tm-nivel.is-fin,
+  .s2b-tm-cartel--grande b,
+  .s2b-tm-cartel--mayor b,
+  .s2b-tm-lluvia img,
   .s2b-tm-ventana.is-ansia,
   .s2b-tm-mueble.is-golpe .s2b-tm-cuerpo { animation:none !important; }
   .s2b-tm-zocalo::after { animation:none !important; opacity:0; }

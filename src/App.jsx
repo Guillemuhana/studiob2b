@@ -1209,6 +1209,20 @@ const CSS = `
   padding-top: 14px; }
 /* bajando se va para arriba; subiendo vuelve */
 .s2b-nav.is-oculto { transform: translateY(-115%); }
+
+/* ---------- quieto mientras se arrastra ----------
+   Las animaciones que mueven un blur o un degrade grande repintan area en
+   cada cuadro, y eso pelea con el scroll por el mismo hilo. Durante el
+   arrastre se pausan: nadie las mira mientras se mueve la pagina, y vuelven
+   solas 160 ms despues de soltar. */
+.s2b-quieto .s2b-aurora i,
+.s2b-quieto .s2b-btn--aura::before,
+.s2b-quieto .s2b-wa-fab::before,
+.s2b-quieto .s2b-tm-jack--logo::after,
+.s2b-quieto .s2b-tm-riel,
+.s2b-quieto .s2b-tm-rayos,
+.s2b-quieto .s2b-tm-halo,
+.s2b-quieto .s2b-luz { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .s2b-nav { transition: none; } }
 .s2b-nav.is-stuck { background: none; box-shadow: none; backdrop-filter: none; padding-top: 8px; }
 .s2b-nav-in { padding: 8px 10px; border-radius: 18px; border: 1px solid transparent;
@@ -3798,7 +3812,12 @@ function NeuralBg({ t }) {
       if (!vivo) return;
       const dt = Math.min(0.05, previo ? (ahora - previo) / 1000 : 0.016);
       previo = ahora;
-      if (!document.hidden && visible) pintar(dt);
+      /* Mientras la persona esta arrastrando no se pinta. Pintar la red y
+         scrollear al mismo tiempo compiten por el mismo hilo, y en un celular
+         eso es la diferencia entre 4 y 20 cuadros por segundo. Nadie mira una
+         animacion de fondo mientras scrollea; vuelve sola 160 ms despues de
+         soltar. */
+      if (!document.hidden && visible && !document.documentElement.classList.contains("s2b-quieto")) pintar(dt);
       raf = requestAnimationFrame(bucle);
     };
 
@@ -4226,6 +4245,25 @@ export default function StudioB2B() {
     return () => {
       window.removeEventListener("scroll", alMover);
       if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  /* Marca en el <html> mientras se arrastra. La usan el lienzo de la red y
+     las animaciones pesadas para quedarse quietos: durante el scroll no se
+     mira ninguna, y compiten por el mismo hilo que mueve la pagina. */
+  useEffect(() => {
+    let t = 0;
+    const raiz = document.documentElement;
+    const marcar = () => {
+      raiz.classList.add("s2b-quieto");
+      clearTimeout(t);
+      t = setTimeout(() => raiz.classList.remove("s2b-quieto"), 160);
+    };
+    window.addEventListener("scroll", marcar, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", marcar);
+      clearTimeout(t);
+      raiz.classList.remove("s2b-quieto");
     };
   }, []);
 

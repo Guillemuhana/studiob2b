@@ -29,6 +29,7 @@ export const PREMIOS = [
   {
     id: "logo",
     simbolo: "logo",
+    iguales: 5,
     peso: 2,
     rango: "GRAN PREMIO",
     monto: "30%",
@@ -40,6 +41,7 @@ export const PREMIOS = [
   {
     id: "diamante",
     simbolo: "diamante",
+    iguales: 5,
     peso: 5,
     rango: "MAYOR",
     monto: "20%",
@@ -51,6 +53,7 @@ export const PREMIOS = [
   {
     id: "lingote",
     simbolo: "lingote",
+    iguales: 5,
     peso: 8,
     rango: "MENOR",
     monto: "15%",
@@ -62,6 +65,7 @@ export const PREMIOS = [
   {
     id: "moneda",
     simbolo: "moneda",
+    iguales: 5,
     peso: 15,
     rango: "MINI",
     monto: "10%",
@@ -71,23 +75,38 @@ export const PREMIOS = [
     detalle_en: "Off the final quote of the first project we build together.",
   },
   {
-    id: "giro",
-    /* simbolo en null a proposito: este premio no lo paga un simbolo sino una
-       linea cruzada, y grillaDe() usa simbolo para saber que armar. Para
-       mostrarlo en pantalla va icono, que es solo dibujo. */
+    id: "bonus3",
+    /* simbolo en null: estos no los paga un simbolo fijo sino una cantidad de
+       iguales. grillaDe() usa "iguales" para armar la linea, e "icono" es
+       solo para mostrarlo en la tabla y la marquesina. */
     simbolo: null,
     icono: "giro",
-    peso: 12,
+    iguales: 3,
+    peso: 8,
     rango: "BONUS",
     monto: "+1",
-    es: "¡Otro intento!",
-    en: "Another spin!",
-    detalle_es: "Cinco iguales en una línea cruzada: esta jugada no te la contamos.",
-    detalle_en: "Five in a row on a crossed line: this spin is on us.",
+    es: "¡BONUS! Otro intento",
+    en: "BONUS! Another spin",
+    detalle_es: "Tres iguales: esta jugada no te la contamos.",
+    detalle_en: "Three in a row: this spin is on us.",
+  },
+  {
+    id: "bonus4",
+    simbolo: null,
+    icono: "giro",
+    iguales: 4,
+    peso: 4,
+    rango: "SUPER BONUS",
+    monto: "+2",
+    es: "¡SUPER BONUS! Dos jugadas más",
+    en: "SUPER BONUS! Two more spins",
+    detalle_es: "Cuatro iguales: te devolvemos la jugada y te regalamos otra.",
+    detalle_en: "Four in a row: we give this spin back and add another.",
   },
   {
     id: null,
     simbolo: null,
+    iguales: 0,
     peso: 58,
     rango: "",
     monto: "",
@@ -151,69 +170,78 @@ export function grillaDe(premio) {
     Array.from({ length: FILAS }, () => unoDe(SIMBOLOS))
   );
 
-  let buena = null;
-  if (premio.simbolo) {
-    buena = LINEAS.find((l) => l.id === LINEA_PAGA);
-    buena.filas.forEach((f, i) => { grilla[i][f] = premio.simbolo; });
-  } else if (premio.id === "giro") {
-    const otras = LINEAS.filter((l) => l.id !== LINEA_PAGA);
-    buena = unoDe(otras);
-    const simbolo = unoDe(SIMBOLOS);
-    buena.filas.forEach((f, i) => { grilla[i][f] = simbolo; });
-  } else {
-    /* Perder con cinco simbolos sueltos no se mira: la jugada se termina en
-       el segundo rodillo. Cuatro de cada diez veces se arma un casi-premio en
-       la linea que paga -tres o cuatro iguales y despues uno distinto-, que
-       es lo que hace que valga la pena mirar hasta el final.
+  /* Las celdas que forman el premio no se tocan mas. El repaso de abajo rompe
+     lineas que salieron de casualidad, y sin esta lista podia romper justo la
+     que paga: bonus4 salia a veces con tres iguales, o con uno. */
+  const intocables = new Set();
+  const proteger = (i, f) => intocables.add(i + "," + f);
 
-       No es solo por el suspenso. La pantalla enciende la anticipacion cuando
-       los cuatro primeros coinciden, y si eso pasara UNICAMENTE al ganar,
-       dejaria de ser suspenso para convertirse en un aviso: a la tercera
-       jugada cualquiera sabe el resultado antes de que pare el ultimo
-       rodillo. */
-    if (azar() < 0.42) {
+  let buena = null;
+  const paga = LINEAS.find((l) => l.id === LINEA_PAGA);
+
+  /* cuantos iguales trae la linea que paga, contados desde la izquierda */
+  const corrida = () => {
+    let n = 1;
+    while (n < RODILLOS && grilla[n][1] === grilla[0][1]) n++;
+    return n;
+  };
+
+  if (premio.iguales >= 3) {
+    /* Se paga de izquierda a derecha: los primeros n rodillos con el mismo
+       simbolo. El que sigue TIENE que ser distinto, o tres iguales se
+       convierten en cuatro sin querer. */
+    const simbolo = premio.simbolo || unoDe(SIMBOLOS);
+    const otros = SIMBOLOS.filter((x) => x !== simbolo);
+    for (let i = 0; i < premio.iguales; i++) { grilla[i][1] = simbolo; proteger(i, 1); }
+    for (let i = premio.iguales; i < RODILLOS; i++) { grilla[i][1] = unoDe(otros); proteger(i, 1); }
+    if (premio.iguales === RODILLOS) buena = paga;
+  } else {
+    /* Perder con cinco simbolos sueltos no se mira: la jugada se termina en el
+       segundo rodillo. Casi la mitad de las veces se arma un casi-premio.
+
+       La racha ARRANCA EN EL SEGUNDO RODILLO, nunca en el primero. Como se
+       paga de izquierda a derecha, tres iguales empezando en el primero YA son
+       un BONUS, y una jugada perdida que los muestre deja al que la mira
+       sintiendose estafado, con razon. Empezando en el segundo se ve igual de
+       cerca y no paga. */
+    if (azar() < 0.45) {
       const base = unoDe(SIMBOLOS);
       const otros = SIMBOLOS.filter((x) => x !== base);
-      const cuantos = azar() < 0.45 ? 4 : 3;
-      for (let i = 0; i < cuantos; i++) grilla[i][1] = base;
-      /* el que rompe la racha, siempre distinto */
-      for (let i = cuantos; i < RODILLOS; i++) grilla[i][1] = unoDe(otros);
+      const desde = azar() < 0.5 ? 1 : 2;
+      const hasta = Math.min(RODILLOS, desde + (azar() < 0.5 ? 4 : 3));
+      for (let i = 0; i < desde; i++) grilla[i][1] = unoDe(otros);
+      for (let i = desde; i < hasta; i++) grilla[i][1] = base;
+      for (let i = hasta; i < RODILLOS; i++) grilla[i][1] = unoDe(otros);
     }
+
+    /* El control que cierra la puerta: cinco simbolos al azar arman tres
+       iguales al hilo una de cada cincuenta veces por pura probabilidad, y eso
+       seria un BONUS que el servidor nunca dio. Se corta en el tercero. */
+    let vueltas = 0;
+    while (corrida() >= 3 && vueltas++ < 20) {
+      grilla[2][1] = unoDe(SIMBOLOS.filter((x) => x !== grilla[0][1]));
+    }
+    for (let i = 0; i < RODILLOS; i++) proteger(i, 1);
   }
 
-  /* repaso: ninguna linea completa que no sea la que corresponde */
+  /* Repaso: ninguna linea de cinco completa que no sea la que corresponde.
+     Cinco simbolos al azar arman una linea mas seguido de lo que parece. */
   for (let vuelta = 0; vuelta < 60; vuelta++) {
     const sobrante = LINEAS.find((l) => (!buena || l.id !== buena.id) && completa(grilla, l));
     if (!sobrante) break;
-
-    /* se cambia una celda de la linea sobrante que no pertenezca a la buena:
-       tocar una compartida borraria el premio. Dos lineas distintas siempre
-       difieren en al menos dos rodillos, asi que siempre hay donde tocar. */
+    /* se cambia una celda de la linea sobrante que no este protegida: tocar
+       una del premio lo borraria */
     const libres = sobrante.filas
       .map((f, i) => ({ i, f }))
-      .filter(({ i, f }) => !buena || buena.filas[i] !== f);
+      .filter(({ i, f }) => !intocables.has(i + "," + f));
+    if (!libres.length) break;
     const { i, f } = unoDe(libres);
-    grilla[i][f] = unoDe(SIMBOLOS.filter((s) => s !== grilla[i][f]));
+    grilla[i][f] = unoDe(SIMBOLOS.filter((x) => x !== grilla[i][f]));
   }
 
   return grilla;
 }
 
-/* ================= el tambor =================
-   Los rodillos son cilindros de verdad, no tiras que se deslizan: doce caras
-   repartidas alrededor de un eje, cada una girada 30 grados mas que la
-   anterior y empujada hacia afuera por el radio.
-
-   Los numeros no son al azar, salen de la geometria. Para que las caras se
-   toquen sin huecos, el radio tiene que ser R = h / (2 tan(pi/12)), o sea
-   1,866 veces el alto de una cara. Y para que la cara del frente se vea
-   midiendo exactamente un tercio de la ventana -que es donde esta dibujada la
-   linea de pago- la perspectiva tiene que ser p = R / (1 - 3f), con f = 0,25.
-   Con eso la cara del frente proyecta 33,33% y las de los costados se van
-   curvando hacia atras solas.
-
-   Ventaja de que el cilindro sea cerrado: el rebote del frenazo ya no necesita
-   celdas de colchon, porque pasarse de largo siempre encuentra otra cara. */
 export const CARAS = 12;
 export const PASO = 360 / CARAS;
 /* la cara que queda al frente cuando el tambor esta en su angulo de parada */
