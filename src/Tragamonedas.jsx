@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 import {
-  PREMIOS, CON_PREMIO, PARADA, RODILLOS,
+  PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO,
   lineaDe, armarTira,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
@@ -183,6 +183,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [restantes, setRestantes] = useState(TOPE);
   const [ganados, setGanados] = useState([]);
   const [libre, setLibre] = useState(false);
+  /* El tope vive en la base (sb2b_config_num). Si esta abierto, el servidor
+     devuelve un numero grande y no tiene sentido mostrar "9999 / 3": se
+     muestra el infinito, igual que en modo prueba. */
+  const sinTope = libre || restantes > TOPE * 4;
   const [resultado, setResultado] = useState(
     premioGuardado ? { premio: premioGuardado, codigo: guardada.codigo } : null
   );
@@ -366,8 +370,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
               </h2>
               <p className="s2b-lead s2b-tm-lead">
                 {t(
-                  "Tres jugadas por persona, sin registro y sin pagar nada. Si salen los cinco símbolos iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
-                  "Three spins per person, no sign-up and nothing to pay. Five matching symbols on the middle line and the prize is yours, to use on your next project with us."
+                  "Sin registro y sin pagar nada. Si salen los cinco símbolos iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
+                  "No sign-up and nothing to pay. Five matching symbols on the middle line and the prize is yours, to use on your next project with us."
                 )}
               </p>
             </div>
@@ -412,7 +416,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <button className="s2b-tm-hud-btn" onClick={() => irA("home")}>{t("INICIO", "HOME")}</button>
                       <span className="s2b-tm-hud-saldo">
                         <Simbolo id="moneda" />
-                        <b>{libre ? "∞" : restantes}</b>
+                        <b>{sinTope ? "∞" : restantes}</b>
                         <small>{libre ? t("modo prueba", "test mode") : t("jugadas", "spins")}</small>
                       </span>
                       <span className="s2b-tm-hud-jack">
@@ -441,15 +445,23 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <div className="s2b-tm-rayos" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
-                      <div className="s2b-tm-linea" aria-hidden="true" />
-
                       <div className="s2b-tm-ventanas">
+                        <div className="s2b-tm-linea" aria-hidden="true" />
+                        {/* las columnas que separan rodillo de rodillo: van por
+                            encima y no como gap, para que caigan justo en el
+                            borde de cada ventana */}
+                        {[1, 2, 3, 4].map((n) => (
+                          <span key={n} className="s2b-tm-pilar" style={{ left: n * 20 + "%" }} aria-hidden="true" />
+                        ))}
                         {tiras.map((tira, i) => (
                           <div className="s2b-tm-ventana" key={i}>
                             <div
                               className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
                               style={{
-                                transform: `translateY(calc(var(--celda) * -${pos[i]}))`,
+                                /* porcentaje del alto de la propia tira, no px:
+                                   asi la maquina escala con la pantalla sin que
+                                   haya que recalcular nada */
+                                transform: `translateY(-${(pos[i] / TIRA_LARGO) * 100}%)`,
                                 transition: anim
                                   ? `transform ${(reducido ? 120 : FRENOS[i]) / 1000}s cubic-bezier(.16,.72,.24,1)`
                                   : "none",
@@ -470,14 +482,14 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     <div className="s2b-tm-barra">
                       <div className="s2b-tm-caja">
                         <small>{t("JUGADAS", "SPINS")}</small>
-                        <b>{libre ? "∞" : `${restantes} / ${TOPE}`}</b>
+                        <b>{sinTope ? "∞" : `${restantes} / ${TOPE}`}</b>
                       </div>
                       <div className="s2b-tm-caja s2b-tm-caja--win">
                         <small>{t("PREMIO", "WIN")}</small>
                         <b>{resultado?.premio?.id ? resultado.premio.monto : "—"}</b>
                       </div>
 
-                      {restantes <= 0 && sincronizado ? (
+                      {restantes <= 0 && sincronizado && !sinTope ? (
                         <button
                           className="s2b-tm-spin s2b-tm-spin--visto"
                           onClick={() => resultado && setAbierto(true)}
@@ -485,6 +497,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         >
                           <Gift className="s2b-tm-spin-ico" aria-hidden="true" />
                           <b>{ganados.length ? t("PREMIOS", "PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
+                          <i className="s2b-tm-spin-vidrio" aria-hidden="true" />
                         </button>
                       ) : (
                         <motion.button
@@ -499,6 +512,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                           {/* las flechas dan la vuelta mientras los rodillos giran */}
                           <RotateCw className="s2b-tm-spin-ico" aria-hidden="true" />
                           <b>{fase === "girando" ? "…" : t("GIRAR", "SPIN")}</b>
+                          <i className="s2b-tm-spin-vidrio" aria-hidden="true" />
                         </motion.button>
                       )}
                     </div>
@@ -568,7 +582,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
               <div className="s2b-tm-bases">
                 <h3><ShieldCheck size={16} /> {t("Cómo funciona", "How it works")}</h3>
                 <ul>
-                  <li><Clock size={14} /> {t("Tres jugadas por conexión. Se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Three spins per connection. They are counted on our server, so opening another window or clearing your history won't add more.")}</li>
+                  <li><Clock size={14} /> {sinTope
+                    ? t("Por ahora podés girar las veces que quieras: la promoción está abierta.", "For now you can spin as many times as you like: the promotion is open.")
+                    : t("Tres jugadas por conexión. Se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Three spins per connection. They are counted on our server, so opening another window or clearing your history won't add more.")}</li>
                   <li><ShieldCheck size={14} /> {t("El sorteo y el código se generan en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the code are generated on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
                   <li><Sparkles size={14} /> {t("Cada código es único y se puede canjear una sola vez.", "Every code is unique and can be redeemed only once.")}</li>
                   <li><Sparkles size={14} /> {t("Los descuentos se aplican sobre el presupuesto final de un proyecto nuevo y no se acumulan entre sí.", "Discounts apply to the final quote of a new project and cannot be combined.")}</li>
@@ -631,7 +647,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       </a>
                       <span className="s2b-tm-chico">
                         {t("Guardá el código: vale 30 días.", "Keep the code: valid for 30 days.")}
-                        {restantes > 0 && " · " + t(`Te quedan ${restantes} jugadas`, `${restantes} spins left`)}
+                        {restantes > 0 && !sinTope && " · " + t(`Te quedan ${restantes} jugadas`, `${restantes} spins left`)}
                       </span>
                     </>
                   ) : (
@@ -778,12 +794,15 @@ const CSS_TM = `
   transition:color .2s, border-color .2s; }
 .s2b .s2b-tm-hud-ico:hover { color:#fff; border-color:var(--oro2); }
 
-/* ---------- el fieltro rojo y los rodillos ---------- */
-.s2b-tm-rodillos { --celda: clamp(62px, 9.2vw, 116px);
-  position:relative; padding:clamp(8px,1.2vw,12px) clamp(20px,2.8vw,30px);
+/* ---------- el fieltro rojo y los rodillos ----------
+   Nada mide en px aca: el ancho de columna lo reparte el grid y el alto sale
+   de un aspect-ratio sobre ese ancho. Antes la celda tenia alto fijo y ancho
+   elastico, asi que en el celular quedaban mas altas que anchas. */
+.s2b-tm-rodillos { position:relative; padding:clamp(8px,1.4vw,12px) clamp(13px,2.6vw,30px);
   border-radius:14px; overflow:hidden;
   background:radial-gradient(120% 90% at 50% 42%, var(--rojo1) 0%, var(--rojo2) 44%, var(--rojo4) 100%);
-  box-shadow:inset 0 0 0 2px rgba(208,154,28,.6), inset 0 6px 22px rgba(0,0,0,.75); }
+  box-shadow:inset 0 0 0 2px rgba(208,154,28,.62), inset 0 6px 22px rgba(0,0,0,.75),
+             inset 0 0 60px rgba(249,216,88,.14); }
 .s2b-tm-rayos { position:absolute; inset:-40%; pointer-events:none; opacity:.34;
   background:repeating-conic-gradient(from 0deg at 50% 50%,
     rgba(255,214,120,.45) 0deg 3deg, transparent 3deg 9deg);
@@ -791,94 +810,122 @@ const CSS_TM = `
 @keyframes s2b-tm-girar { to { transform:rotate(360deg); } }
 .s2b-tm-mueble.is-girando .s2b-tm-rayos { opacity:.55; animation-duration:10s; }
 
-.s2b-tm-riel { position:absolute; top:9px; bottom:9px; width:8px; border-radius:99px; pointer-events:none; z-index:2;
-  background:linear-gradient(180deg,#FF3D7F,#FFD54A 22%,#7FE3A8 44%,#57C7F7 64%,#A78CFF 84%,#FF3D7F);
-  background-size:100% 220%; box-shadow:0 0 12px rgba(255,255,255,.55), inset 0 0 6px rgba(0,0,0,.45);
-  animation:s2b-tm-neon 2.6s linear infinite; }
-.s2b-tm-riel--izq { left:7px; }
-.s2b-tm-riel--der { right:7px; }
-@keyframes s2b-tm-neon { to { background-position:0 -220%; } }
-.s2b-tm-mueble.is-girando .s2b-tm-riel { animation-duration:.6s; }
+/* Los rieles son LEDs sueltos, no un degrade corrido: el corte duro entre
+   color y color es lo que los hace leer como lamparitas. El negro de abajo es
+   la tira apagada que se ve entre una y otra. */
+.s2b-tm-riel { position:absolute; top:8px; bottom:8px; width:clamp(5px,1vw,9px); border-radius:99px;
+  pointer-events:none; z-index:2;
+  background:
+    repeating-linear-gradient(180deg,
+      #FF2E74 0 13px, transparent 13px 17px,
+      #FFC53D 17px 30px, transparent 30px 34px,
+      #5BE58F 34px 47px, transparent 47px 51px,
+      #3FC4FF 51px 64px, transparent 64px 68px,
+      #A96BFF 68px 81px, transparent 81px 85px),
+    linear-gradient(180deg, #16020A, #16020A);
+  background-size:100% 85px, 100% 100%;
+  box-shadow:0 0 14px rgba(255,255,255,.55), 0 0 26px rgba(255,120,190,.35), inset 0 0 5px rgba(0,0,0,.6);
+  animation:s2b-tm-neon 1.9s linear infinite; }
+.s2b-tm-riel--izq { left:clamp(4px,.8vw,7px); }
+.s2b-tm-riel--der { right:clamp(4px,.8vw,7px); }
+@keyframes s2b-tm-neon { to { background-position:0 -85px, 0 0; } }
+.s2b-tm-mueble.is-girando .s2b-tm-riel { animation-duration:.5s; }
 
-.s2b-tm-ventanas { position:relative; z-index:1; display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(4px,.7vw,8px); }
-.s2b-tm-ventana { position:relative; height:calc(var(--celda) * 3); overflow:hidden; border-radius:8px;
-  background:linear-gradient(180deg,#34070F,#180309 50%,#34070F);
-  box-shadow:inset 0 0 0 1px rgba(249,216,88,.3), inset 0 18px 24px -18px #000, inset 0 -18px 24px -18px #000; }
+/* sin gap: las ventanas se tocan y lo que separa es la columna dorada, como
+   en el mueble de verdad */
+.s2b-tm-ventanas { position:relative; z-index:1; display:grid; grid-template-columns:repeat(5,1fr); gap:0;
+  border-radius:9px; overflow:hidden; box-shadow:0 0 0 2px rgba(208,154,28,.5); }
+.s2b-tm-pilar { position:absolute; top:0; bottom:0; width:clamp(2px,.3vw,3px); transform:translateX(-50%);
+  z-index:4; pointer-events:none;
+  background:linear-gradient(180deg, var(--oro1), var(--oro3) 46%, var(--oro4) 52%, var(--oro2) 100%);
+  box-shadow:0 0 6px rgba(0,0,0,.8); }
+/* tres celdas a la vista: el alto de la ventana es tres veces el de una celda */
+.s2b-tm-ventana { position:relative; aspect-ratio:1 / 2.79; overflow:hidden;
+  background:linear-gradient(180deg,#3A0811,#1B0309 50%,#3A0811);
+  box-shadow:inset 0 18px 24px -18px #000, inset 0 -18px 24px -18px #000; }
 .s2b-tm-tira { display:block; will-change:transform; }
 .s2b-tm-tira.is-rodando { filter:blur(1.6px); }
 
-/* cada simbolo sobre su placa, como las fichas de una maquina de verdad */
-.s2b-tm-celda { position:relative; height:var(--celda); display:grid; place-items:center; }
-.s2b-tm-celda::before { content:''; position:absolute; inset:3px; border-radius:7px;
-  background:linear-gradient(180deg, rgba(184,33,59,.55), rgba(30,4,11,.6));
-  box-shadow:inset 0 0 0 1px rgba(249,216,88,.16); }
-.s2b-tm-celda .s2b-tm-sim { position:relative; z-index:1;
-  width:calc(var(--celda) * .74); height:calc(var(--celda) * .74); max-width:82%; }
+/* el simbolo manda: la placa de atras queda apenas insinuada */
+.s2b-tm-celda { position:relative; aspect-ratio:1 / .93; display:grid; place-items:center; }
+.s2b-tm-celda::before { content:''; position:absolute; inset:4px; border-radius:6px;
+  background:linear-gradient(180deg, rgba(184,33,59,.4), rgba(30,4,11,.5));
+  box-shadow:inset 0 0 0 1px rgba(249,216,88,.12); }
+.s2b-tm-celda .s2b-tm-sim { position:relative; z-index:1; width:74%; aspect-ratio:1; height:auto; }
 
-/* la linea que paga, en oro y por encima de todo */
-.s2b-tm-linea { position:absolute; left:clamp(13px,2.2vw,22px); right:clamp(13px,2.2vw,22px); top:50%;
-  height:calc(var(--celda) + 5px); transform:translateY(-50%); z-index:3; pointer-events:none; border-radius:7px;
+/* la linea que paga: adentro de las ventanas, donde "un tercio" es exacto */
+.s2b-tm-linea { position:absolute; left:0; right:0; top:33.333%; height:33.333%;
+  z-index:5; pointer-events:none;
   border-top:2px solid var(--oro2); border-bottom:2px solid var(--oro2);
   box-shadow:0 0 14px rgba(249,216,88,.6), inset 0 0 34px rgba(249,216,88,.1); }
 .s2b-tm-mueble.is-girando .s2b-tm-linea { animation:s2b-tm-late 1s ease-in-out infinite; }
 @keyframes s2b-tm-late { 50% { box-shadow:0 0 28px rgba(255,214,120,.95), inset 0 0 44px rgba(249,216,88,.24); } }
 
-/* ---------- la botonera de abajo ---------- */
-.s2b-tm-barra { display:flex; align-items:stretch; gap:clamp(7px,1.1vw,11px); margin-top:clamp(10px,1.5vw,15px); }
-/* las cajas no se estiran a lo ancho del mueble: quedan a la izquierda, como
-   en una maquina, y el boton redondo se va solo contra el borde derecho */
-.s2b-tm-caja { flex:0 1 210px; min-width:0; display:grid; align-content:center; justify-items:center; gap:2px;
-  padding:8px 10px; border-radius:12px; text-align:center;
-  border:2px solid rgba(249,216,88,.5); background:linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.42));
-  box-shadow:inset 0 2px 8px rgba(0,0,0,.7); }
-.s2b-tm-caja small { font-family:var(--mono); font-size:8.5px; letter-spacing:.16em; color:#D9B98A; }
-.s2b-tm-caja b { font-family:var(--display); font-size:clamp(15px,2.1vw,20px); font-weight:700; color:#fff; line-height:1.1; }
+/* ---------- la botonera de abajo ----------
+   Va en su propio panel oscuro, como la consola de una maquina: sobre el
+   fieltro rojo las cajas flotaban y parecian pegadas encima. */
+.s2b-tm-barra { display:flex; align-items:center; gap:clamp(6px,1.2vw,12px);
+  margin-top:clamp(8px,1.3vw,13px); padding:clamp(8px,1.2vw,13px);
+  border-radius:14px; border:1px solid rgba(249,216,88,.3);
+  background:linear-gradient(180deg,#1C0912 0%,#0A0407 100%);
+  box-shadow:inset 0 1px 0 rgba(249,216,88,.28), inset 0 10px 22px rgba(0,0,0,.75); }
+.s2b-tm-caja { flex:1 1 0; min-width:0; max-width:200px; display:grid; align-content:center; justify-items:center; gap:2px;
+  padding:8px 6px; border-radius:11px; text-align:center;
+  border:2px solid rgba(249,216,88,.55); background:linear-gradient(180deg, rgba(0,0,0,.75), rgba(30,6,14,.6));
+  box-shadow:inset 0 3px 9px rgba(0,0,0,.8); }
+.s2b-tm-caja small { font-family:var(--mono); font-size:clamp(7.5px,1.5vw,8.5px); letter-spacing:.14em; color:#E0BE8C; }
+.s2b-tm-caja b { font-family:var(--display); font-size:clamp(14px,3.4vw,21px); font-weight:700; color:#fff; line-height:1.1;
+  white-space:nowrap; text-shadow:0 0 12px rgba(255,214,120,.35); }
 .s2b-tm-caja--win b { color:var(--oro1); }
 
-/* El boton redondo de las maquinas: verde vidriado con el aro de oro hecho a
-   base de box-shadow apilado -un border no da tres anillos- y la base oscura
-   de abajo, que es lo que lo hace parecer un boton fisico que se hunde. */
-.s2b .s2b-tm-spin { flex:none; margin-left:auto; width:clamp(84px,12.5vw,124px); aspect-ratio:1; border-radius:50%;
-  position:relative; display:grid; place-items:center; color:#fff; padding:0;
-  background:radial-gradient(circle at 50% 26%, #9CF0AE 0%, #4FD07C 32%, #24A755 60%, #0D6B31 100%);
+/* El boton redondo de las maquinas: el aro de oro son tres box-shadow
+   apilados -un border no da tres anillos- y la base oscura de abajo es la que
+   lo hace parecer un boton fisico que se hunde. */
+.s2b .s2b-tm-spin { flex:none; margin-left:auto; width:clamp(74px,19vw,134px); aspect-ratio:1; border-radius:50%;
+  position:relative; display:grid; place-items:center; color:#fff; padding:0; overflow:hidden;
+  background:radial-gradient(circle at 50% 24%, #A9F5B9 0%, #57D684 30%, #23A755 58%, #0A5E2A 100%);
   box-shadow:
     0 0 0 3px var(--oro3),
     0 0 0 6px var(--oro2),
     0 0 0 8px var(--oro4),
-    0 9px 0 -2px #083F1F,
-    0 22px 38px -12px rgba(0,0,0,.95),
-    inset 0 5px 12px rgba(255,255,255,.55),
-    inset 0 -12px 18px rgba(0,0,0,.4);
+    0 9px 0 -2px #06371B,
+    0 24px 42px -12px rgba(0,0,0,.95),
+    0 0 34px -4px rgba(90,230,140,.55),
+    inset 0 -14px 20px rgba(0,0,0,.45);
   transition:transform .12s, box-shadow .12s, filter .2s; }
-.s2b .s2b-tm-spin b { position:relative; z-index:2; font-family:var(--display);
-  font-size:clamp(13px,1.7vw,17px); font-weight:700; letter-spacing:.09em;
-  text-shadow:0 2px 3px rgba(0,0,0,.5); }
-.s2b-tm-spin-ico { position:absolute; z-index:1; width:76%; height:76%; stroke-width:1.1;
-  color:rgba(255,255,255,.5); }
-.s2b .s2b-tm-spin.is-girando .s2b-tm-spin-ico { animation:s2b-tm-vuelta .9s linear infinite; }
+.s2b .s2b-tm-spin b { position:relative; z-index:3; font-family:var(--display);
+  font-size:clamp(11px,2.6vw,19px); font-weight:700; letter-spacing:.08em;
+  text-shadow:0 2px 4px rgba(0,0,0,.65); }
+.s2b-tm-spin-ico { position:absolute; z-index:2; width:78%; height:78%; stroke-width:1.1;
+  color:rgba(255,255,255,.55); }
+.s2b .s2b-tm-spin.is-girando .s2b-tm-spin-ico { animation:s2b-tm-vuelta .8s linear infinite; }
 @keyframes s2b-tm-vuelta { to { transform:rotate(360deg); } }
-.s2b .s2b-tm-spin:hover { filter:brightness(1.08); }
+/* el reflejo de vidrio: una elipse clara arriba, que es lo que convierte un
+   circulo plano en un boton con volumen */
+.s2b-tm-spin-vidrio { position:absolute; z-index:1; top:5%; left:12%; right:12%; height:44%;
+  border-radius:50%; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.08) 70%, transparent); }
+.s2b .s2b-tm-spin:hover { filter:brightness(1.1); }
 .s2b .s2b-tm-spin:active {
   transform:translateY(7px);
   box-shadow:
     0 0 0 3px var(--oro3),
     0 0 0 6px var(--oro2),
     0 0 0 8px var(--oro4),
-    0 2px 0 -2px #083F1F,
+    0 2px 0 -2px #06371B,
     0 8px 16px -8px rgba(0,0,0,.9),
-    inset 0 5px 12px rgba(255,255,255,.4),
-    inset 0 -12px 18px rgba(0,0,0,.45); }
+    inset 0 -14px 20px rgba(0,0,0,.5); }
 .s2b .s2b-tm-spin:disabled { cursor:progress; }
 .s2b .s2b-tm-spin--visto {
-  background:radial-gradient(circle at 50% 26%, #DCC9FF 0%, #A98BFF 32%, #7B54F0 60%, #3F1FA8 100%);
+  background:radial-gradient(circle at 50% 24%, #E3D3FF 0%, #B197FF 30%, #7B54F0 58%, #33188C 100%);
   box-shadow:
     0 0 0 3px var(--oro3),
     0 0 0 6px var(--oro2),
     0 0 0 8px var(--oro4),
-    0 9px 0 -2px #2A1277,
-    0 22px 38px -12px rgba(0,0,0,.95),
-    inset 0 5px 12px rgba(255,255,255,.55),
-    inset 0 -12px 18px rgba(0,0,0,.4); }
+    0 9px 0 -2px #24106A,
+    0 24px 42px -12px rgba(0,0,0,.95),
+    0 0 34px -4px rgba(150,110,255,.55),
+    inset 0 -14px 20px rgba(0,0,0,.45); }
 .s2b .s2b-tm-spin--visto:active { transform:translateY(7px); }
 
 .s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
@@ -958,31 +1005,57 @@ const CSS_TM = `
 .s2b-tm-reclamar { width:100%; justify-content:center; margin-top:6px; }
 .s2b-tm-chico { display:block; margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:#9E97C4; }
 
+/* ==================================================================
+   Responsive
+   El gabinete se limita a 760 px y se centra: mas ancho que eso no es
+   una maquina, es un cartel. De ahi para abajo todo baja solo, porque
+   las medidas salen de proporciones y no de px fijos.
+   ================================================================== */
+.s2b-tm-escena { max-width:760px; margin-left:auto; margin-right:auto; }
+
 @media (min-width: 760px) {
-  .s2b-tm-marquesina { grid-template-columns:repeat(4,1fr); }
+  .s2b-tm-marquesina { grid-template-columns:repeat(4,1fr); max-width:760px; margin-left:auto; margin-right:auto; }
   .s2b-tm-abajo { grid-template-columns:1.15fr .85fr; }
 }
-/* En el celular cinco rodillos no entran con las monedas al lado: se sacan
-   las de los costados y el boton de girar se lleva su propia fila. */
-@media (max-width: 720px) {
+
+/* Tablet y celular grande: se achica el marco y se recuperan los costados. */
+@media (max-width: 760px) {
   .s2b-tm-monedas { display:none; }
   .s2b-tm-hud-jack { margin-left:0; order:3; }
-  .s2b-tm-rodillos { padding-left:15px; padding-right:15px; }
-  .s2b-tm-riel { width:5px; left:5px; }
-  .s2b-tm-riel--der { left:auto; right:5px; }
-  /* el boton redondo ya entra al lado de las cajas, no necesita fila propia */
-  .s2b-tm-caja { padding:7px 8px; }
+  .s2b-tm-mueble { padding:7px; }
+  .s2b-tm-cuerpo { padding:9px; }
 }
-@media (max-width: 520px) {
+
+/* Celular: el gabinete se come el margen de la pagina para que los cinco
+   rodillos entren sin quedar en miniatura. */
+@media (max-width: 560px) {
+  .s2b-tm-escena { margin-left:-14px; margin-right:-14px; }
+  .s2b-tm-mueble { padding:5px; border-radius:18px; }
+  .s2b-tm-cuerpo { padding:7px; border-radius:14px; }
+  .s2b-tm-rodillos { padding:6px 12px; }
+  .s2b-tm-hud { gap:5px; margin-bottom:7px; }
+  .s2b .s2b-tm-hud-btn { padding:6px 10px; font-size:9px; }
+  .s2b-tm-hud-saldo, .s2b-tm-hud-jack { padding:5px 9px; gap:5px; }
+  .s2b-tm-hud-saldo .s2b-tm-sim, .s2b-tm-hud-jack .s2b-tm-sim { width:16px; height:16px; }
+  .s2b-tm-hud-saldo b, .s2b-tm-hud-jack b { font-size:13px; }
+  .s2b .s2b-tm-hud-ico { width:28px; height:28px; }
+  .s2b-tm-barra { padding:7px; gap:6px; }
+  .s2b-tm-caja { padding:6px 4px; border-width:1px; }
   /* cinco simbolos por fila no entran al lado del texto: se achican */
   .s2b-tm-tres .s2b-tm-sim { width:16px; height:16px; }
   .s2b-tm-tabla td { font-size:12.5px; padding:9px 0; }
   .s2b-tm-prob { font-size:11.5px; }
 }
-@media (max-width: 420px) {
-  .s2b-tm-hud-saldo small { display:none; }
+
+/* Celular angosto: la marquesina pasa a una sola columna y el HUD deja de
+   repetir lo que ya dice la botonera. */
+@media (max-width: 400px) {
+  .s2b-tm-hud-saldo { display:none; }
   .s2b-tm-tabla, .s2b-tm-bases { padding:16px 13px; }
+  .s2b-tm-billetera { padding:15px 14px; }
+  .s2b-tm-billetera li { padding:10px 11px; gap:10px; }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }

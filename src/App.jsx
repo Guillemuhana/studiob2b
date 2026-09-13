@@ -191,6 +191,32 @@ const CSS = `
 .s2b-menu button.top:hover { color:#fff; background: rgba(255,255,255,.1); }
 .s2b-nav.is-stuck .s2b-menu button.top:hover { color: var(--title); background: rgba(109,74,255,.08); }
 
+/* "Jugar" no es una seccion mas del menu: es la promocion. Va en una pastilla
+   con filo dorado y una luz que le cruza por detras cada tantos segundos, que
+   es lo que hace que el ojo vuelva ahi sin que nada se mueva de lugar. */
+.s2b-menu button.top.is-jugar,
+.s2b-drawer button.dl.is-jugar {
+  position:relative; overflow:hidden; isolation:isolate;
+  color:#FFE9A8; background:linear-gradient(120deg, rgba(249,216,88,.14), rgba(109,74,255,.22));
+  box-shadow:inset 0 0 0 1px rgba(249,216,88,.5), 0 0 18px -6px rgba(249,216,88,.5);
+}
+.s2b-nav.is-stuck .s2b-menu button.top.is-jugar { color:#8A5A06;
+  background:linear-gradient(120deg, rgba(249,216,88,.3), rgba(109,74,255,.16));
+  box-shadow:inset 0 0 0 1px rgba(200,145,20,.55), 0 0 16px -6px rgba(208,154,28,.6); }
+.s2b-menu button.top.is-jugar:hover,
+.s2b-drawer button.dl.is-jugar:hover { color:#FFF6D0;
+  background:linear-gradient(120deg, rgba(249,216,88,.26), rgba(109,74,255,.3)); }
+.s2b-nav.is-stuck .s2b-menu button.top.is-jugar:hover { color:#5E3A00;
+  background:linear-gradient(120deg, rgba(249,216,88,.45), rgba(109,74,255,.2)); }
+
+.s2b-luz { position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(100deg, transparent 34%, rgba(255,245,210,.75) 50%, transparent 66%);
+  transform:translateX(-150%); animation:s2b-luz-pasa 3.8s ease-in-out infinite; }
+@keyframes s2b-luz-pasa { 0%, 58% { transform:translateX(-150%); } 88%, 100% { transform:translateX(150%); } }
+@media (prefers-reduced-motion: reduce) { .s2b-luz { animation:none; opacity:.28; transform:none; } }
+
+.s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
+
 .s2b-pop { position:absolute; top:calc(100% + 8px); left:50%; transform: translateX(-50%); width:min(560px, 78vw);
   background:#fff; border:1px solid var(--line); border-radius:20px; padding:10px; z-index:90;
   box-shadow: 0 30px 70px -24px rgba(24,12,60,.35); display:grid; gap:2px; }
@@ -1840,6 +1866,7 @@ const CSS = `
 @media (max-width: 820px) { .s2b-barra { display: flex; } }
 /* mientras la barra esta puesta, la burbuja de WhatsApp se corre para arriba */
 .s2b-wa--alto { bottom: 88px; }
+@media (max-width: 760px) { .s2b-wa--oculta { display: none; } }
 /* y el cambio de idioma, que en el celular vive abajo a la izquierda */
 @media (max-width: 820px) { .s2b-lang--alto { bottom: 98px; } }
 
@@ -3841,7 +3868,7 @@ function WhatsappGlyph() {
   );
 }
 
-function WhatsAppBubble({ t, chips, subida }) {
+function WhatsAppBubble({ t, chips, subida, oculta }) {
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(false);
   const box = useRef(null);
@@ -3870,7 +3897,7 @@ function WhatsAppBubble({ t, chips, subida }) {
   };
 
   return (
-    <div className={"s2b-wa" + (shown ? " is-shown" : "") + (subida ? " s2b-wa--alto" : "")} ref={box}>
+    <div className={"s2b-wa" + (shown ? " is-shown" : "") + (subida ? " s2b-wa--alto" : "") + (oculta ? " s2b-wa--oculta" : "")} ref={box}>
       {open && (
         <div className="s2b-wa-panel" role="dialog" aria-label={t("Escribinos por WhatsApp", "Message us on WhatsApp")}>
           <div className="s2b-wa-top">
@@ -4404,7 +4431,16 @@ export default function StudioB2B() {
                 )}
               </div>
               {NAV_LINKS.map((n) => (
-                <div key={n.id}><button className="top" onClick={() => goTo(n.id)}>{n.label}</button></div>
+                <div key={n.id}>
+                  <button
+                    className={"top" + (n.id === "jugar" ? " is-jugar" : "")}
+                    onClick={() => goTo(n.id)}
+                  >
+                    {n.label}
+                    {/* la luz que cruza por detras cada tantos segundos */}
+                    {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
+                  </button>
+                </div>
               ))}
               <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginLeft: 8 }} onClick={() => goTo("contacto")}>
                 {t("Contactanos", "Contact us")} <ArrowUpRight size={16} />
@@ -4425,7 +4461,12 @@ export default function StudioB2B() {
               <button aria-label={t("Cerrar", "Close")} onClick={() => setDrawer(false)}><X size={26} /></button>
             </div>
             {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
-            {NAV_LINKS.map((n) => <button key={n.id} className="dl" onClick={() => goTo(n.id)}>{n.label}</button>)}
+            {NAV_LINKS.map((n) => (
+              <button key={n.id} className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
+                {n.label}
+                {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
+              </button>
+            ))}
             <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 26, width: "100%", justifyContent: "center" }} onClick={() => goTo("contacto")}>
               Contactanos <ArrowUpRight size={16} />
             </button>
@@ -5287,7 +5328,10 @@ export default function StudioB2B() {
         </div>
       )}
 
-      <WhatsAppBubble t={t} chips={WA_CHIPS} subida={barra} />
+      {/* en /jugar el celular tiene el boton de girar justo donde cae la
+          burbuja, y son dos botones peleandose el mismo pulgar. La pagina ya
+          lleva a WhatsApp por su cuenta cuando alguien gana. */}
+      <WhatsAppBubble t={t} chips={WA_CHIPS} subida={barra} oculta={vista === "jugar"} />
       {/* el schema de preguntas va solo en la pagina donde las preguntas se ven:
           Google lo pide asi para el resultado enriquecido */}
       {vista === "preguntas" && <script
