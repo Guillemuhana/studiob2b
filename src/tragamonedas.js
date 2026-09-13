@@ -233,29 +233,34 @@ export function guardarJugada(premio, codigo) {
 }
 
 /* ================= sonido =================
-   Sin archivos: todo se genera con Web Audio en el momento. Un paquete de
-   mp3 de maquinita son 200 kB, suena a otra marca y hay que servirlo; esto
-   pesa cero.
+   Sin archivos de audio: todo se genera con Web Audio en el momento.
 
-   Las piezas son cuatro, y con esas cuatro se arma todo lo que suena:
+   Un oscilador suelto suena a juguete siempre, por mas notas que se le pongan.
+   Lo que hace que algo suene grabado son cuatro cosas, y las cuatro estan
+   aca:
 
-   - chasquido: ruido corto por un pasabanda. Es la muesca del rodillo, el
-     clic del boton y el ataque metalico de cada moneda.
-   - campana: parciales INARMONICOS (1, 2.76, 5.4, 8.93). Un metal no suena
-     con armonicos enteros como una cuerda; por eso una campana hecha con
-     octavas suena a organo y no a campana. Esos numeros son los de una barra
-     circular y son los que hacen que el oido diga "metal".
-   - moneda: dos parciales agudos que caen de tono, con el ataque de ruido.
-     Cayendo de tono es como se lee "algo que rebota".
-   - nota: el oscilador simple, para las melodias.
+   1. SALA. Nada suena en el vacio. Hay una reverb hecha con ruido que decae
+      -una respuesta al impulso sintetica- y todo manda una parte ahi. Es el
+      cambio que mas se nota de todos: sin sala, el mejor sonido sigue
+      pareciendo un beep.
+   2. CUERPO INARMONICO. Un metal no vibra en armonicos enteros como una
+      cuerda. Las monedas y las campanas se arman con parciales corridos y
+      desafinados al azar entre golpe y golpe; dos monedas iguales delatan
+      la sintesis al instante.
+   3. TRANSITORIO. El primer milisegundo de cualquier golpe real es ruido de
+      banda ancha, no un tono. Cada pieza arranca con su chasquido filtrado.
+   4. ESPACIO Y PEGAMENTO. Las monedas caen repartidas en el estereo y todo
+      pasa por un compresor al final, que es lo que junta las piezas en una
+      sola cosa en vez de sonar como capas apiladas.
 
-   Todo lo largo -la corrida, la lluvia de monedas- se programa de una vez
-   contra el reloj del audio, que no se corre aunque el navegador se distraiga.
-   El contexto se crea en el primer clic, que es cuando el navegador deja. */
+   Todo lo largo se programa de una vez contra el reloj del audio, que no se
+   corre aunque el navegador se distraiga. El contexto se crea en el primer
+   clic, que es cuando el navegador deja. */
 
 export function crearSonido() {
   let ctx = null;
   let ruido = null;
+  let bus = null;
 
   const arrancar = () => {
     if (!ctx) {
@@ -276,232 +281,283 @@ export function crearSonido() {
     return ruido;
   };
 
-  const salida = () => arrancar();
-
-  const nota = (freq, cuando, largo, tipo = "triangle", vol = 0.16, destino = null) => {
-    const c = arrancar();
-    if (!c) return;
-    const osc = c.createOscillator();
-    const gan = c.createGain();
-    const t0 = c.currentTime + cuando;
-    osc.type = tipo;
-    osc.frequency.setValueAtTime(freq, t0);
-    gan.gain.setValueAtTime(0.0001, t0);
-    gan.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
-    gan.gain.exponentialRampToValueAtTime(0.0001, t0 + largo);
-    osc.connect(gan).connect(destino || c.destination);
-    osc.start(t0);
-    osc.stop(t0 + largo + 0.03);
+  /* la sala: ruido que decae, mas oscuro hacia el final, como cualquier
+     ambiente grande */
+  const impulso = (c, seg, caida) => {
+    const n = Math.floor(c.sampleRate * seg);
+    const b = c.createBuffer(2, n, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = b.getChannelData(ch);
+      let previo = 0;
+      for (let i = 0; i < n; i++) {
+        const t = i / n;
+        const crudo = (Math.random() * 2 - 1) * Math.pow(1 - t, caida);
+        /* un pasabajos de un polo: la cola se va apagando en agudos */
+        previo = previo + (crudo - previo) * (0.55 - t * 0.35);
+        d[i] = previo;
+      }
+    }
+    return b;
   };
 
-  const chasquido = (c, cuando, vol, frec, destino) => {
+  /* seco y humedo, con un compresor al final que junta todo */
+  const maestro = (c) => {
+    if (bus) return bus;
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -20;
+    comp.knee.value = 20;
+    comp.ratio.value = 4;
+    comp.attack.value = 0.004;
+    comp.release.value = 0.2;
+    comp.connect(c.destination);
+
+    const sala = c.createConvolver();
+    sala.buffer = impulso(c, 1.7, 2.4);
+    const humedo = c.createGain();
+    humedo.gain.value = 0.42;
+    sala.connect(humedo).connect(comp);
+
+    bus = { seco: comp, sala };
+    return bus;
+  };
+
+  /* punto de entrada de una pieza: su lugar en el estereo y cuanto manda a
+     la sala */
+  const punto = (c, pan = 0, envio = 0.3, destino = null) => {
+    const m = maestro(c);
+    const p = c.createStereoPanner ? c.createStereoPanner() : null;
+    const g = c.createGain();
+    const salida = p || g;
+    if (p) { p.pan.value = pan; p.connect(g); }
+    g.connect(destino || m.seco);
+    const env = c.createGain();
+    env.gain.value = envio;
+    g.connect(env).connect(m.sala);
+    return salida;
+  };
+
+  const alAzar = (a, b) => a + Math.random() * (b - a);
+
+  /* el transitorio: ruido corto por un pasabanda */
+  const chasquido = (c, cuando, vol, frec, destino, largo = 0.035, q = 3.2) => {
     const s = c.createBufferSource();
     s.buffer = bufferRuido(c);
     s.loop = true;
     const f = c.createBiquadFilter();
     f.type = "bandpass";
     f.frequency.value = frec;
-    f.Q.value = 3.2;
+    f.Q.value = q;
     const g = c.createGain();
     const t0 = c.currentTime + cuando;
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.linearRampToValueAtTime(vol, t0 + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.035);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.0015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + largo);
     s.connect(f).connect(g).connect(destino);
-    /* cada chasquido entra por un punto distinto del ruido: arrancando todos
-       en cero suenan calcados y el oido lo lee como un loop */
     s.start(t0, Math.random() * 0.9);
-    s.stop(t0 + 0.05);
+    s.stop(t0 + largo + 0.02);
   };
 
-  /* campana: los parciales van inarmonicos a proposito */
-  const PARCIALES = [1, 2.76, 5.4, 8.93];
-  const PESOS = [1, 0.5, 0.28, 0.15];
-  const campana = (c, f0, cuando, largo, vol, destino) => {
-    PARCIALES.forEach((r, i) => {
-      const osc = c.createOscillator();
-      const g = c.createGain();
-      const t0 = c.currentTime + cuando;
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(f0 * r, t0);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol * PESOS[i]), t0 + 0.004);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + largo * (1 - i * 0.16));
-      osc.connect(g).connect(destino);
-      osc.start(t0);
-      osc.stop(t0 + largo + 0.06);
+  const parcial = (c, freq, cuando, largo, vol, destino, tipo = "sine") => {
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    const t0 = c.currentTime + cuando;
+    osc.type = tipo;
+    osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t0 + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + largo);
+    osc.connect(g).connect(destino);
+    osc.start(t0);
+    osc.stop(t0 + largo + 0.04);
+  };
+
+  const nota = (freq, cuando, largo, tipo = "triangle", vol = 0.16, pan = 0) => {
+    const c = arrancar();
+    if (!c) return;
+    parcial(c, freq, cuando, largo, vol, punto(c, pan, 0.28), tipo);
+  };
+
+  /* CAMPANA: parciales inarmonicos, desafinados distinto en cada golpe */
+  const campana = (c, f0, cuando, largo, vol, pan = 0) => {
+    const d = punto(c, pan, 0.5);
+    [1, 2.76, 5.4, 8.93, 13.3].forEach((r, i) => {
+      const peso = [1, 0.5, 0.3, 0.16, 0.08][i];
+      parcial(c, f0 * r * alAzar(0.994, 1.006), cuando, largo * (1 - i * 0.13), vol * peso, d);
     });
-    chasquido(c, cuando, vol * 0.35, 4200, destino);
+    chasquido(c, cuando, vol * 0.4, 4200, d, 0.02);
   };
 
-  /* una moneda que cae y rebota */
-  const moneda = (c, cuando, destino, vol = 0.09) => {
-    const base = 1650 + Math.random() * 1500;
-    [1, 1.87].forEach((r, i) => {
+  /* MONEDA: cuatro parciales corridos que caen de tono, cada una distinta */
+  const moneda = (c, cuando, vol = 0.075, pan = alAzar(-0.75, 0.75)) => {
+    const d = punto(c, pan, 0.42);
+    const base = alAzar(1500, 3100);
+    const ratios = [1, alAzar(1.6, 1.9), alAzar(2.3, 2.7), alAzar(3.1, 3.6)];
+    ratios.forEach((r, i) => {
+      const largo = alAzar(0.12, 0.3) * (1 - i * 0.12);
       const osc = c.createOscillator();
       const g = c.createGain();
       const t0 = c.currentTime + cuando;
-      const largo = 0.16 + Math.random() * 0.14;
-      osc.type = "triangle";
+      osc.type = i ? "sine" : "triangle";
       osc.frequency.setValueAtTime(base * r, t0);
-      osc.frequency.exponentialRampToValueAtTime(base * r * 0.8, t0 + largo);
+      osc.frequency.exponentialRampToValueAtTime(base * r * alAzar(0.74, 0.86), t0 + largo);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol * (i ? 0.45 : 1), t0 + 0.004);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol * [1, 0.5, 0.3, 0.17][i]), t0 + 0.003);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + largo);
-      osc.connect(g).connect(destino);
+      osc.connect(g).connect(d);
       osc.start(t0);
-      osc.stop(t0 + largo + 0.05);
+      osc.stop(t0 + largo + 0.04);
     });
-    chasquido(c, cuando, vol * 0.5, 5400, destino);
+    chasquido(c, cuando, vol * 0.7, alAzar(4200, 7000), d, 0.016, 1.6);
   };
 
-  /* la lluvia: monedas al azar con el volumen cayendo, como la bandeja que
-     se llena y despues se vacia */
-  const lluvia = (c, destino, cuantas, desde, largo, fuerza = 1) => {
+  /* la bandeja: monedas al azar, repartidas en el estereo, con el volumen
+     cayendo como cuando se termina de pagar */
+  const bandeja = (c, cuantas, desde, largo, fuerza = 1) => {
     for (let i = 0; i < cuantas; i++) {
-      const t = desde + (i / cuantas) * largo + Math.random() * 0.05;
-      const caida = 1 - (i / cuantas) * 0.45;
-      moneda(c, t, destino, 0.085 * fuerza * caida);
+      const t = desde + Math.pow(i / cuantas, 0.85) * largo + alAzar(0, 0.045);
+      moneda(c, t, 0.075 * fuerza * (1 - (i / cuantas) * 0.5));
     }
   };
 
-  /* el golpe de un rodillo al frenar: cuerpo grave, chasquido seco y el
-     timbre metalico del tope */
-  const golpe = (c, cuando, destino, fuerza = 1) => {
+  /* el frenazo de un rodillo: cuerpo grave, el golpe seco del tope y el
+     timbre metalico que queda sonando */
+  const golpe = (c, cuando, fuerza = 1, pan = 0) => {
+    const d = punto(c, pan, 0.35);
     const osc = c.createOscillator();
     const g = c.createGain();
     const t0 = c.currentTime + cuando;
     osc.type = "sine";
-    osc.frequency.setValueAtTime(190 * fuerza, t0);
-    osc.frequency.exponentialRampToValueAtTime(56, t0 + 0.17);
+    osc.frequency.setValueAtTime(180 * fuerza, t0);
+    osc.frequency.exponentialRampToValueAtTime(52, t0 + 0.18);
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.linearRampToValueAtTime(0.3 * fuerza, t0 + 0.006);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24);
-    osc.connect(g).connect(destino);
+    g.gain.linearRampToValueAtTime(0.3 * fuerza, t0 + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.26);
+    osc.connect(g).connect(d);
     osc.start(t0);
-    osc.stop(t0 + 0.28);
-    chasquido(c, cuando, 0.24 * fuerza, 1900, destino);
-    campana(c, 760 + Math.random() * 180, cuando + 0.005, 0.16, 0.05 * fuerza, destino);
+    osc.stop(t0 + 0.3);
+    chasquido(c, cuando, 0.22 * fuerza, 1500, d, 0.05, 1.4);
+    chasquido(c, cuando + 0.004, 0.14 * fuerza, 5200, d, 0.02, 2.2);
+    campana(c, alAzar(700, 880), cuando + 0.006, 0.22, 0.045 * fuerza, pan);
   };
 
-  /* escala mayor, que es la que suena a premio en cualquier maquina */
   const FANFARRIA = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568];
 
   return {
     palanca() {
       const c = arrancar();
       if (!c) return;
-      chasquido(c, 0, 0.3, 2600, c.destination);
-      nota(155, 0.008, 0.07, "square", 0.13);
-      nota(66, 0.03, 0.15, "sine", 0.18);
+      const d = punto(c, 0, 0.22);
+      /* un boton real son dos ruidos: el contacto y el tope de abajo */
+      chasquido(c, 0, 0.32, 3200, d, 0.018, 1.5);
+      chasquido(c, 0.016, 0.2, 900, d, 0.05, 1.2);
+      parcial(c, 78, 0.014, 0.13, 0.2, d, "sine");
     },
 
     rodando(frenosMs) {
       const c = arrancar();
       if (!c) return () => {};
+      const m = maestro(c);
 
-      const bus = c.createGain();
-      bus.gain.value = 0.9;
-      bus.connect(c.destination);
+      const corte = c.createGain();
+      corte.gain.value = 1;
+      corte.connect(m.seco);
+      const envio = c.createGain();
+      envio.gain.value = 0.22;
+      corte.connect(envio).connect(m.sala);
 
-      const frenos = frenosMs.map((m) => m / 1000);
+      const frenos = frenosMs.map((x) => x / 1000);
       const fin = Math.max(...frenos);
       const t0 = c.currentTime;
 
-      /* el zumbido del motor: ruido grave que se apaga con cada frenada */
-      const zumbido = c.createBufferSource();
-      zumbido.buffer = bufferRuido(c);
-      zumbido.loop = true;
-      const filtro = c.createBiquadFilter();
-      filtro.type = "lowpass";
-      filtro.frequency.setValueAtTime(900, t0);
-      filtro.Q.value = 1.2;
-      const gz = c.createGain();
-      gz.gain.setValueAtTime(0.0001, t0);
-      gz.gain.linearRampToValueAtTime(0.05, t0 + 0.12);
-      frenos.forEach((f, i) => {
-        gz.gain.linearRampToValueAtTime(0.05 * (1 - (i + 1) / frenos.length), t0 + f);
-      });
-      filtro.frequency.linearRampToValueAtTime(260, t0 + fin);
-      zumbido.connect(filtro).connect(gz).connect(bus);
-      zumbido.start(t0);
-      zumbido.stop(t0 + fin + 0.3);
+      /* el motor: ruido grave con una resonancia que baja al frenar */
+      const motor = c.createBufferSource();
+      motor.buffer = bufferRuido(c);
+      motor.loop = true;
+      const f = c.createBiquadFilter();
+      f.type = "lowpass";
+      f.frequency.setValueAtTime(1100, t0);
+      f.Q.value = 3.5;
+      const gm = c.createGain();
+      gm.gain.setValueAtTime(0.0001, t0);
+      gm.gain.linearRampToValueAtTime(0.055, t0 + 0.12);
+      frenos.forEach((x, i) => gm.gain.linearRampToValueAtTime(0.055 * (1 - (i + 1) / frenos.length), t0 + x));
+      f.frequency.linearRampToValueAtTime(240, t0 + fin);
+      motor.connect(f).connect(gm).connect(corte);
+      motor.start(t0);
+      motor.stop(t0 + fin + 0.3);
 
-      /* las muescas, mas fuertes cuantos mas rodillos queden girando */
-      const paso = 0.055;
+      /* las muescas: mas fuertes cuantos mas rodillos queden, y cada una con
+         su tono, que es lo que evita el efecto de loop */
+      const paso = 0.052;
       for (let t = 0; t < fin; t += paso) {
-        const activos = frenos.filter((f) => f > t).length;
+        const activos = frenos.filter((x) => x > t).length;
         if (!activos) break;
-        chasquido(c, t, 0.035 + 0.022 * activos, 2400 + (activos % 2) * 500, bus);
+        chasquido(c, t, 0.03 + 0.02 * activos, alAzar(1800, 3200), corte, 0.028, 2.4);
       }
 
-      frenos.forEach((f, i) => golpe(c, f, bus, i === frenos.length - 1 ? 1.3 : 0.85));
+      frenos.forEach((x, i) =>
+        golpe(c, x, i === frenos.length - 1 ? 1.3 : 0.85, -0.6 + i * 0.3));
 
-      /* el subidon antes del ultimo rodillo: el momento en que ya se sabe */
+      /* el subidon antes del ultimo rodillo */
       const previo = frenos[frenos.length - 2] ?? 0;
       const largo = Math.max(0.25, fin - previo);
       const osc = c.createOscillator();
       const g = c.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(180, t0 + previo);
-      osc.frequency.exponentialRampToValueAtTime(760, t0 + fin);
+      osc.frequency.setValueAtTime(170, t0 + previo);
+      osc.frequency.exponentialRampToValueAtTime(720, t0 + fin);
       g.gain.setValueAtTime(0.0001, t0 + previo);
-      g.gain.linearRampToValueAtTime(0.05, t0 + previo + largo * 0.6);
+      g.gain.linearRampToValueAtTime(0.045, t0 + previo + largo * 0.6);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + fin + 0.05);
-      osc.connect(g).connect(bus);
+      osc.connect(g).connect(corte);
       osc.start(t0 + previo);
       osc.stop(t0 + fin + 0.1);
 
       return () => {
         try {
           const ahora = c.currentTime;
-          bus.gain.cancelScheduledValues(ahora);
-          bus.gain.setTargetAtTime(0, ahora, 0.02);
-          setTimeout(() => { try { bus.disconnect(); } catch {} }, 400);
+          corte.gain.cancelScheduledValues(ahora);
+          corte.gain.setTargetAtTime(0, ahora, 0.02);
+          setTimeout(() => { try { corte.disconnect(); } catch {} }, 400);
         } catch {}
       };
     },
 
-    /* nivel 1: descuento. nivel 2: el premio mayor, con campana y bandeja. */
     gano(nivel) {
       const c = arrancar();
       if (!c) return;
-      const d = c.destination;
       const notas = nivel >= 2 ? FANFARRIA : FANFARRIA.slice(0, 4);
 
       notas.forEach((f, i) => {
-        nota(f, i * 0.085, 0.3, "square", 0.075);
-        nota(f, i * 0.085, 0.42, "triangle", 0.12);
+        nota(f, i * 0.082, 0.28, "square", 0.055, -0.25);
+        nota(f, i * 0.082, 0.44, "triangle", 0.1, 0.25);
       });
-      /* el acorde que cierra */
-      const cierre = notas.length * 0.085;
-      [notas[0], notas[2], notas[notas.length - 1]].forEach((f) => nota(f, cierre, 0.9, "triangle", 0.1));
+      const cierre = notas.length * 0.082;
+      [notas[0], notas[2], notas[notas.length - 1]].forEach((f, i) =>
+        nota(f, cierre, 0.95, "triangle", 0.085, (i - 1) * 0.35));
 
       if (nivel >= 2) {
-        /* la campana del premio mayor, tres golpes */
-        [0, 0.34, 0.68].forEach((t) => campana(c, 1046.5, cierre + t, 1.5, 0.16, d));
-        lluvia(c, d, 64, cierre + 0.1, 2.6, 1.1);
-        /* brillo sostenido arriba */
-        FANFARRIA.forEach((f, i) => nota(f * 2, cierre + 0.5 + i * 0.06, 0.6, "sine", 0.05));
+        [0, 0.33, 0.66].forEach((t, i) => campana(c, 1046.5, cierre + t, 1.6, 0.15, (i - 1) * 0.3));
+        bandeja(c, 44, cierre + 0.1, 2.6, 1.05);
+        FANFARRIA.forEach((f, i) => nota(f * 2, cierre + 0.5 + i * 0.06, 0.6, "sine", 0.04, alAzar(-0.5, 0.5)));
       } else {
-        campana(c, 880, cierre, 1.1, 0.11, d);
-        lluvia(c, d, 22, cierre + 0.06, 1.1, 0.9);
+        campana(c, 880, cierre, 1.2, 0.1);
+        bandeja(c, 18, cierre + 0.06, 1.1, 0.85);
       }
     },
 
-    /* otro intento: dos notas que suben y unas pocas monedas */
     bonus() {
       const c = arrancar();
       if (!c) return;
-      nota(659.25, 0, 0.24, "triangle", 0.13);
-      nota(987.77, 0.12, 0.42, "triangle", 0.13);
-      campana(c, 1318.5, 0.12, 0.8, 0.08, c.destination);
-      lluvia(c, c.destination, 8, 0.2, 0.5, 0.7);
+      nota(659.25, 0, 0.22, "triangle", 0.11, -0.2);
+      nota(987.77, 0.115, 0.4, "triangle", 0.11, 0.2);
+      campana(c, 1318.5, 0.115, 0.85, 0.075);
+      bandeja(c, 7, 0.2, 0.5, 0.65);
     },
 
     perdio() {
-      nota(330, 0, 0.16, "triangle", 0.08);
-      nota(247, 0.13, 0.3, "triangle", 0.07);
+      nota(330, 0, 0.15, "triangle", 0.07);
+      nota(247, 0.125, 0.28, "triangle", 0.06);
     },
   };
 }
