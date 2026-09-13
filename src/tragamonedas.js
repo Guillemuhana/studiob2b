@@ -166,6 +166,25 @@ export function grillaDe(premio) {
     buena = unoDe(otras);
     const simbolo = unoDe(SIMBOLOS);
     buena.filas.forEach((f, i) => { grilla[i][f] = simbolo; });
+  } else {
+    /* Perder con cinco simbolos sueltos no se mira: la jugada se termina en
+       el segundo rodillo. Cuatro de cada diez veces se arma un casi-premio en
+       la linea que paga -tres o cuatro iguales y despues uno distinto-, que
+       es lo que hace que valga la pena mirar hasta el final.
+
+       No es solo por el suspenso. La pantalla enciende la anticipacion cuando
+       los cuatro primeros coinciden, y si eso pasara UNICAMENTE al ganar,
+       dejaria de ser suspenso para convertirse en un aviso: a la tercera
+       jugada cualquiera sabe el resultado antes de que pare el ultimo
+       rodillo. */
+    if (azar() < 0.42) {
+      const base = unoDe(SIMBOLOS);
+      const otros = SIMBOLOS.filter((x) => x !== base);
+      const cuantos = azar() < 0.45 ? 4 : 3;
+      for (let i = 0; i < cuantos; i++) grilla[i][1] = base;
+      /* el que rompe la racha, siempre distinto */
+      for (let i = cuantos; i < RODILLOS; i++) grilla[i][1] = unoDe(otros);
+    }
   }
 
   /* repaso: ninguna linea completa que no sea la que corresponde */

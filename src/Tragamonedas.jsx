@@ -17,7 +17,22 @@ import {
    tarda el doble que el primero, que es de donde sale el suspenso de una
    maquina de verdad. */
 const FRENOS = [2100, 2620, 3140, 3680, 4300];
-const ULTIMO_FRENO = FRENOS[FRENOS.length - 1];
+
+/* ANTICIPACION. Cuando los primeros cuatro rodillos ya muestran el mismo
+   simbolo en la linea que paga, el quinto tarda el doble y la maquina lo
+   marca. Es el truco con el que un casino estira el suspenso, y no es una
+   trampa: se dispara con la grilla que ya decidio el servidor, no se fabrica
+   un casi-premio que no paso. Pasa en todo premio -los cinco son iguales- y
+   en las jugadas perdidas que salieron con cuatro repetidos. */
+const ESPERA_ANSIA = 2300;
+
+const detectarAnsia = (grilla) => {
+  const s0 = grilla[0][1];
+  return [0, 1, 2, 3].every((i) => grilla[i][1] === s0);
+};
+
+const frenosDe = (ansia) =>
+  ansia ? FRENOS.map((f, i) => (i === RODILLOS - 1 ? f + ESPERA_ANSIA : f)) : FRENOS;
 
 /* El premio y el codigo los decide el servidor (api/jugar.js -> Postgres).
    Aca solo se pide y se muestra: si el sorteo viviera en el navegador,
@@ -354,6 +369,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [pos, setPos] = useState(() => Array(RODILLOS).fill(PARADA));
   const [anim, setAnim] = useState(false);
   const [rodando, setRodando] = useState(() => Array(RODILLOS).fill(false));
+  /* los tiempos de esta jugada: cambian si hay anticipacion */
+  const [frenos, setFrenos] = useState(FRENOS);
+  const [ansia, setAnsia] = useState(false);
   const [fase, setFase] = useState("listo");
   const [restantes, setRestantes] = useState(TOPE);
   const [ganados, setGanados] = useState([]);
@@ -376,6 +394,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [aviso, setAviso] = useState("");
   /* que linea pago, para poder dibujarla encima de los rodillos */
   const [lineaGana, setLineaGana] = useState(null);
+  const [golpe, setGolpe] = useState(false);
 
   const relojes = useRef([]);
   const cortarSonido = useRef(null);
@@ -489,6 +508,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setRestantes(typeof datos.restantes === "number" ? datos.restantes : 0);
 
     const grilla = grillaDe(premio);
+    const hayAnsia = !reducido && detectarAnsia(grilla);
+    const tiempos = reducido ? [120, 140, 160, 180, 200] : frenosDe(hayAnsia);
+    setFrenos(tiempos);
     const linea = premio.simbolo
       ? LINEAS[0]
       : premio.id === "giro"
@@ -500,8 +522,20 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setAnim(false);
     setPos(Array(RODILLOS).fill(0));
     setRodando(Array(RODILLOS).fill(true));
+    setAnsia(false);
     if (cortarSonido.current) cortarSonido.current();
-    cortarSonido.current = son("rodando", reducido ? [120, 140, 160, 180, 200] : FRENOS) || null;
+    cortarSonido.current = son("rodando", tiempos) || null;
+
+    /* Se limpian los relojes de la jugada anterior ACA, antes de programar los
+       de esta. Estaba despues, y lo primero que hacia era cancelar el
+       temporizador de la anticipacion que se acababa de programar. */
+    relojes.current.forEach(clearTimeout);
+    relojes.current = [];
+
+    /* el momento en que quedan cuatro iguales y falta uno */
+    if (hayAnsia) {
+      relojes.current.push(setTimeout(() => montado.current && setAnsia(true), FRENOS[RODILLOS - 2] + 120));
+    }
 
     /* dos cuadros de espera: uno para que el navegador pinte los rodillos
        arriba de todo sin transicion, y recien ahi se enciende la animacion */
@@ -511,13 +545,23 @@ export default function Tragamonedas({ t, waLink, irA }) {
       setPos(Array(RODILLOS).fill(PARADA));
     }));
 
-    relojes.current.forEach(clearTimeout);
-    relojes.current = FRENOS.map((ms, i) =>
+    /* el desenfoque se apaga ANTES de la frenada, no despues: un rodillo se
+       va aclarando mientras desacelera, y si se limpia recien al parar la
+       nitidez llega tarde */
+    relojes.current = relojes.current.concat(tiempos.map((ms, i) =>
       setTimeout(() => {
         if (!montado.current) return;
         setRodando((r) => r.map((v, j) => (j === i ? false : v)));
-      }, reducido ? 60 * (i + 1) : ms)
-    );
+      }, reducido ? 60 * (i + 1) : Math.max(0, ms - 480))
+    ));
+
+    /* el sacudon del gabinete cuando para el ultimo */
+    relojes.current.push(setTimeout(() => {
+      if (!montado.current) return;
+      setAnsia(false);
+      setGolpe(true);
+      relojes.current.push(setTimeout(() => montado.current && setGolpe(false), 420));
+    }, reducido ? 260 : tiempos[RODILLOS - 1]));
 
     relojes.current.push(setTimeout(() => {
       if (!montado.current) return;
@@ -544,7 +588,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
         setAviso(t("Esta vez no salió. Probá de nuevo.", "Not this time. Give it another spin."));
         relojes.current.push(setTimeout(() => montado.current && setAviso(""), 3600));
       }
-    }, (reducido ? 260 : ULTIMO_FRENO) + 420));
+    }, (reducido ? 260 : tiempos[RODILLOS - 1]) + 420));
   }, [fase, son, festejar, reducido, t]);
 
   /* Con el premio abierto el fondo se queda quieto: en el celular, si no, el
@@ -628,7 +672,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
               </div>
 
               <div className="s2b-tm-tilt">
-                <div className={"s2b-tm-mueble" + (fase === "girando" ? " is-girando" : "")}>
+                <div className={"s2b-tm-mueble"
+                  + (fase === "girando" ? " is-girando" : "")
+                  + (ansia ? " is-ansia" : "")
+                  + (golpe ? " is-golpe" : "")}>
                   <div className="s2b-tm-cuerpo">
 
                     {/* la barra de arriba, como el HUD de una maquina: en vez de
@@ -690,7 +737,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
                           <span key={n} className="s2b-tm-pilar" style={{ left: n * 20 + "%" }} aria-hidden="true" />
                         ))}
                         {tiras.map((tira, i) => (
-                          <div className="s2b-tm-ventana" key={i}>
+                          <div
+                            className={"s2b-tm-ventana" + (ansia && i === RODILLOS - 1 ? " is-ansia" : "")}
+                            key={i}
+                          >
                             <div
                               className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
                               style={{
@@ -703,7 +753,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                                  salida se le descuenta al giro para que la
                                  frenada caiga igual donde tiene que caer. */
                               transition: anim
-                                  ? `transform ${(reducido ? 120 : FRENOS[i] - SALIDA[i]) / 1000}s cubic-bezier(.13,.74,.26,1.11) ${(reducido ? 0 : SALIDA[i]) / 1000}s`
+                                  ? `transform ${(reducido ? 120 : frenos[i] - SALIDA[i]) / 1000}s cubic-bezier(.13,.74,.26,1.11) ${(reducido ? 0 : SALIDA[i]) / 1000}s`
                                   : "none",
                               }}
                             >
@@ -1126,8 +1176,8 @@ const CSS_TM = `
     rgba(0,0,0,.72) 0%, rgba(0,0,0,.34) 12%, rgba(0,0,0,0) 34%,
     rgba(255,240,210,.05) 50%,
     rgba(0,0,0,0) 66%, rgba(0,0,0,.34) 88%, rgba(0,0,0,.72) 100%); }
-.s2b-tm-tira { display:block; will-change:transform; }
-.s2b-tm-tira.is-rodando { filter:blur(1.6px); }
+.s2b-tm-tira { display:block; will-change:transform; filter:blur(0); transition:filter .45s ease-out; }
+.s2b-tm-tira.is-rodando { filter:blur(1.7px); transition:filter .12s ease-in; }
 
 /* el simbolo manda: la placa de atras queda apenas insinuada */
 .s2b-tm-celda { position:relative; aspect-ratio:1 / .93; display:grid; place-items:center; }
@@ -1140,6 +1190,27 @@ const CSS_TM = `
   box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }
 .s2b-tm-celda.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
 @keyframes s2b-tm-latido { 50% { transform:scale(1.12); filter:drop-shadow(0 0 10px rgba(255,236,170,.9)); } }
+
+/* ---------- anticipacion ----------
+   El ultimo rodillo, cuando los otros cuatro ya salieron iguales. Se le
+   enciende el marco y el fieltro sube de temperatura: es todo lo que hace
+   falta para que la vista se vaya sola ahi. */
+.s2b-tm-ventana.is-ansia { box-shadow:inset 0 0 0 2px var(--oro2), 0 0 22px rgba(249,216,88,.55);
+  animation:s2b-tm-ansia .55s ease-in-out infinite; z-index:2; }
+@keyframes s2b-tm-ansia { 50% { box-shadow:inset 0 0 0 2px #FFF6D0, 0 0 34px rgba(255,214,120,.95); } }
+.s2b-tm-mueble.is-ansia .s2b-tm-rodillos { box-shadow:inset 0 0 0 2px var(--oro2), inset 0 6px 22px rgba(0,0,0,.75), inset 0 0 80px rgba(249,216,88,.3); }
+.s2b-tm-mueble.is-ansia .s2b-tm-riel { animation-duration:.22s; }
+
+/* el sacudon: el mueble acusa la frenada del ultimo rodillo. Es transform,
+   asi que se compone en GPU y no cuesta un repintado. */
+.s2b-tm-mueble.is-golpe .s2b-tm-cuerpo { animation:s2b-tm-sacudon .4s cubic-bezier(.36,.07,.19,.97); }
+@keyframes s2b-tm-sacudon {
+  0%, 100% { transform:translate3d(0,0,0); }
+  12% { transform:translate3d(0,3px,0); }
+  28% { transform:translate3d(-1.5px,-2px,0); }
+  46% { transform:translate3d(1.5px,1.5px,0); }
+  68% { transform:translate3d(-1px,-1px,0); }
+}
 
 /* la linea que paga: adentro de las ventanas, donde "un tercio" es exacto */
 .s2b-tm-linea { position:absolute; left:0; right:0; top:33.333%; height:33.333%;
@@ -1422,7 +1493,9 @@ const CSS_TM = `
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
-  .s2b-tm-celda.is-premiada .s2b-tm-sim { animation:none !important; }
+  .s2b-tm-celda.is-premiada .s2b-tm-sim,
+  .s2b-tm-ventana.is-ansia,
+  .s2b-tm-mueble.is-golpe .s2b-tm-cuerpo { animation:none !important; }
   .s2b-tm-zocalo::after { animation:none !important; opacity:0; }
 }
 `;
