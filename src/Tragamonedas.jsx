@@ -4,12 +4,12 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import confetti from "canvas-confetti";
 import {
   Volume2, VolumeX, X, Copy, Check, ArrowRight, ArrowLeft, Sparkles, Info, ShieldCheck, Clock,
-  RotateCw, Gift,
+  RotateCw, Gift, Layers,
 } from "lucide-react";
 
 import {
-  PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO,
-  lineaDe, armarTira,
+  PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO, LINEAS,
+  grillaDe, armarTira,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
 
@@ -288,6 +288,23 @@ const DIBUJOS = {
   ),
 };
 
+/* El dibujo de una linea de pago: una grilla de 5x3 con el camino marcado.
+   En la tabla dice mas que cualquier texto. */
+function Forma({ linea }) {
+  return (
+    <svg className="s2b-tm-forma" viewBox="0 0 50 30" aria-hidden="true">
+      {[0, 1, 2].map((f) =>
+        [0, 1, 2, 3, 4].map((i) => (
+          <rect key={f + "-" + i} x={i * 10 + 1.5} y={f * 10 + 1.5} width="7" height="7" rx="1.6"
+            fill={linea.filas[i] === f ? "#F9D858" : "rgba(249,216,88,.18)"} />
+        ))
+      )}
+      <polyline points={linea.filas.map((f, i) => `${i * 10 + 5},${f * 10 + 5}`).join(" ")}
+        fill="none" stroke="#FFF6D0" strokeOpacity=".8" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
 function Simbolo({ id }) {
   if (id === "logo") {
     return (
@@ -311,10 +328,12 @@ export default function Tragamonedas({ t, waLink, irA }) {
   );
 
   const [tiras, setTiras] = useState(() => {
-    const linea = premioGuardado
-      ? lineaDe(premioGuardado)
-      : ["diamante", "moneda", "logo", "lingote", "estrella"];
-    return linea.map((c) => armarTira(c));
+    const base = premioGuardado
+      ? grillaDe(premioGuardado)
+      : [["lingote", "diamante", "logo"], ["estrella", "moneda", "diamante"],
+         ["rayo", "logo", "moneda"], ["moneda", "lingote", "chip"],
+         ["diamante", "estrella", "rayo"]];
+    return base.map((col) => armarTira(col));
   });
   const [pos, setPos] = useState(() => Array(RODILLOS).fill(PARADA));
   const [anim, setAnim] = useState(false);
@@ -339,6 +358,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
      castigar al que sigue jugando. Queda un aviso corto abajo de los rodillos
      que se va solo. */
   const [aviso, setAviso] = useState("");
+  /* que linea pago, para poder dibujarla encima de los rodillos */
+  const [lineaGana, setLineaGana] = useState(null);
 
   const relojes = useRef([]);
   const cortarSonido = useRef(null);
@@ -372,7 +393,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
         if (ultima) {
           const premio = premioDe(ultima.premio);
           setResultado({ premio, codigo: ultima.codigo });
-          setTiras(lineaDe(premio).map((c) => armarTira(c)));
+          setTiras(grillaDe(premio).map((col) => armarTira(col)));
           setPos(Array(RODILLOS).fill(PARADA));
           guardarJugada(premio, ultima.codigo);
         }
@@ -416,6 +437,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setResultado(null);
     setError("");
     setAviso("");
+    setLineaGana(null);
     son("palanca");
 
     /* Se le pide el resultado al servidor antes de mover nada: los rodillos
@@ -449,7 +471,14 @@ export default function Tragamonedas({ t, waLink, irA }) {
     const codigo = datos.codigo || null;
     setLibre(!!datos.libre);
     setRestantes(typeof datos.restantes === "number" ? datos.restantes : 0);
-    const nuevas = lineaDe(premio).map((c) => armarTira(c));
+
+    const grilla = grillaDe(premio);
+    const linea = premio.simbolo
+      ? LINEAS[0]
+      : premio.id === "giro"
+        ? LINEAS.find((l) => l.filas.every((f, i) => grilla[i][f] === grilla[0][l.filas[0]]) && l.id !== "centro")
+        : null;
+    const nuevas = grilla.map((col) => armarTira(col));
 
     setTiras(nuevas);
     setAnim(false);
@@ -481,7 +510,16 @@ export default function Tragamonedas({ t, waLink, irA }) {
       guardarJugada(premio, codigo);
       if (codigo) setGanados((g) => [...g, { premio: premio.id, codigo, canjeado: false }]);
 
-      if (premio.id) {
+      setLineaGana(linea || null);
+
+      if (premio.id === "giro") {
+        /* devolver la jugada no merece frenar la maquina con una ventana:
+           alcanza con el cartel y la linea cruzada encendida */
+        son("gano", false);
+        festejar(false);
+        setAviso(t("¡Otro intento! Esta jugada no te la contamos.", "Another spin! This one is on us."));
+        relojes.current.push(setTimeout(() => montado.current && setAviso(""), 4200));
+      } else if (premio.id) {
         setAbierto(true);
         son("gano", premio.id === "logo");
         festejar(premio.id === "logo" || premio.id === "diamante");
@@ -607,6 +645,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
                       <div className="s2b-tm-ventanas">
                         <div className="s2b-tm-linea" aria-hidden="true" />
+                        {/* la linea que pago, dibujada por los centros de las
+                            celdas. El vector-effect mantiene el grosor aunque
+                            el viewBox se estire distinto en cada eje. */}
+                        {lineaGana && fase !== "girando" && (
+                          <svg className="s2b-tm-trazo" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                            <polyline
+                              points={lineaGana.filas.map((f, i) => `${(i + 0.5) * 20},${(f + 0.5) * (100 / 3)}`).join(" ")}
+                              fill="none" vectorEffect="non-scaling-stroke"
+                            />
+                          </svg>
+                        )}
                         {/* las columnas que separan rodillo de rodillo: van por
                             encima y no como gap, para que caigan justo en el
                             borde de cada ventana */}
@@ -698,6 +747,13 @@ export default function Tragamonedas({ t, waLink, irA }) {
             {ganados.length > 0 && (
               <div className="s2b-tm-billetera">
                 <h3><Sparkles size={15} /> {t("Tus códigos", "Your codes")}</h3>
+                {ganados.length > 1 && (
+                  <p className="s2b-tm-solouno">
+                    <Layers size={14} />
+                    {t("No son acumulables: elegí uno. Al canjearlo, los otros quedan anulados.",
+                       "They don't stack: pick one. Redeeming it voids the others.")}
+                  </p>
+                )}
                 <ul>
                   {ganados.map((g) => {
                     const p = premioDe(g.premio);
@@ -727,7 +783,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 <table>
                   <thead>
                     <tr>
-                      <th>{t("Combinación", "Combination")}</th>
+                      <th>{t("Cinco iguales en…", "Five in a row on…")}</th>
                       <th>{t("Premio", "Prize")}</th>
                       <th>{t("Probabilidad", "Odds")}</th>
                     </tr>
@@ -736,11 +792,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     {PREMIOS.map((p) => (
                       <tr key={p.id || "nada"} className={ganador === p.id && fase === "hecho" ? "is-ganado" : ""}>
                         <td>
-                          {p.simbolo
-                            ? <span className="s2b-tm-tres">
-                                {Array.from({ length: RODILLOS }).map((_, k) => <Simbolo key={k} id={p.simbolo} />)}
-                              </span>
-                            : <span className="s2b-tm-nada">{t("Cualquier otra", "Any other")}</span>}
+                          {p.simbolo ? (
+                            <span className="s2b-tm-tres">
+                              {Array.from({ length: RODILLOS }).map((_, k) => <Simbolo key={k} id={p.simbolo} />)}
+                            </span>
+                          ) : p.id === "giro" ? (
+                            <span className="s2b-tm-formas">
+                              {LINEAS.filter((l) => l.id !== "centro").map((l) => <Forma key={l.id} linea={l} />)}
+                            </span>
+                          ) : (
+                            <span className="s2b-tm-nada">{t("Cualquier otra", "Any other")}</span>
+                          )}
                         </td>
                         <td>{t(p.es, p.en)}</td>
                         <td className="s2b-tm-prob">{p.peso}%</td>
@@ -757,8 +819,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     ? t("Por ahora podés girar las veces que quieras: la promoción está abierta.", "For now you can spin as many times as you like: the promotion is open.")
                     : t("Tres jugadas por conexión. Se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Three spins per connection. They are counted on our server, so opening another window or clearing your history won't add more.")}</li>
                   <li><ShieldCheck size={14} /> {t("El sorteo y el código se generan en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the code are generated on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
-                  <li><Sparkles size={14} /> {t("Cada código es único y se puede canjear una sola vez.", "Every code is unique and can be redeemed only once.")}</li>
-                  <li><Sparkles size={14} /> {t("Los descuentos se aplican sobre el presupuesto final de un proyecto nuevo y no se acumulan entre sí.", "Discounts apply to the final quote of a new project and cannot be combined.")}</li>
+                  <li><Layers size={14} /> {t("Los descuentos NO son acumulables: si ganás más de uno, se usa uno solo. Al canjear el que elijas, los demás quedan anulados.", "Discounts are NOT cumulative: if you win more than one, only one is used. When you redeem the one you pick, the rest are voided.")}</li>
+                  <li><Sparkles size={14} /> {t("Cada código es único, se aplica sobre el presupuesto final de un proyecto nuevo y se canjea una sola vez.", "Every code is unique, applies to the final quote of a new project and can be redeemed only once.")}</li>
+                  <li><RotateCw size={14} /> {t("Cinco iguales en una línea cruzada devuelven la jugada: no te la contamos.", "Five in a row on a crossed line gives the spin back: it doesn't count.")}</li>
                   <li><ArrowRight size={14} /> {t("Para reclamarlo, mandanos el código por WhatsApp. Vale 30 días desde la jugada.", "To claim it, send us the code on WhatsApp. Valid for 30 days from the spin.")}</li>
                 </ul>
                 <button className="s2b-link s2b-tm-volver" onClick={() => irA("home")}>
@@ -1029,6 +1092,19 @@ const CSS_TM = `
   z-index:5; pointer-events:none;
   border-top:2px solid var(--oro2); border-bottom:2px solid var(--oro2);
   box-shadow:0 0 14px rgba(249,216,88,.6), inset 0 0 34px rgba(249,216,88,.1); }
+/* el trazo de la linea que pago: se dibuja sola de izquierda a derecha */
+/* width y height explicitos, no solo inset: un <svg> que solo trae viewBox no
+   tiene tamano intrinseco pero si relacion de aspecto, y con las cuatro
+   posiciones en cero el navegador lo resuelve por la relacion en vez de
+   llenar la caja. El trazo caia hasta 238 px mas abajo de la celda. */
+.s2b-tm-trazo { position:absolute; inset:0; width:100%; height:100%; z-index:6; pointer-events:none; overflow:visible; }
+.s2b-tm-trazo polyline { stroke:#FFF6D0; stroke-width:4; stroke-linecap:round; stroke-linejoin:round;
+  filter:drop-shadow(0 0 7px rgba(249,216,88,.95)) drop-shadow(0 0 16px rgba(255,180,40,.7));
+  stroke-dasharray:400; stroke-dashoffset:400;
+  animation:s2b-tm-trazar .7s ease-out forwards, s2b-tm-latir 1.6s .7s ease-in-out infinite; }
+@keyframes s2b-tm-trazar { to { stroke-dashoffset:0; } }
+@keyframes s2b-tm-latir { 50% { opacity:.55; } }
+
 .s2b-tm-mueble.is-girando .s2b-tm-linea { animation:s2b-tm-late 1s ease-in-out infinite; }
 @keyframes s2b-tm-late { 50% { box-shadow:0 0 28px rgba(255,214,120,.95), inset 0 0 44px rgba(249,216,88,.24); } }
 
@@ -1140,6 +1216,11 @@ const CSS_TM = `
 .s2b-tm-tres { display:inline-flex; gap:2px; }
 .s2b-tm-tres .s2b-tm-sim { width:23px; height:23px; }
 .s2b-tm-nada { font-family:var(--mono); font-size:11px; color:#7E7799; }
+.s2b-tm-formas { display:inline-flex; gap:6px; flex-wrap:wrap; }
+.s2b-tm-forma { width:40px; height:24px; flex:none; }
+.s2b-tm-solouno { display:flex; gap:9px; align-items:flex-start; margin:-4px 0 14px;
+  font-size:12.5px; line-height:1.5; color:#E0BE8C; }
+.s2b-tm-solouno svg { flex:none; margin-top:2px; color:var(--oro2); }
 .s2b-tm-prob { font-family:var(--mono); font-size:13px; color:var(--oro2); white-space:nowrap; }
 .s2b-tm-bases ul { list-style:none; margin:0; padding:0; display:grid; gap:11px; }
 .s2b-tm-bases li { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#BDB4E4; line-height:1.55; }
@@ -1233,5 +1314,6 @@ const CSS_TM = `
 @media (prefers-reduced-motion: reduce) {
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
+  .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
 }
 `;

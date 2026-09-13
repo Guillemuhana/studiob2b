@@ -71,9 +71,20 @@ export const PREMIOS = [
     detalle_en: "Off the final quote of the first project we build together.",
   },
   {
+    id: "giro",
+    simbolo: null,
+    peso: 12,
+    rango: "BONUS",
+    monto: "+1",
+    es: "¡Otro intento!",
+    en: "Another spin!",
+    detalle_es: "Cinco iguales en una línea cruzada: esta jugada no te la contamos.",
+    detalle_en: "Five in a row on a crossed line: this spin is on us.",
+  },
+  {
     id: null,
     simbolo: null,
-    peso: 70,
+    peso: 58,
     rango: "",
     monto: "",
     es: "Esta vez no salió",
@@ -102,44 +113,86 @@ function azar() {
 const unoDe = (lista) => lista[Math.floor(azar() * lista.length)];
 
 export const RODILLOS = 5;
+export const FILAS = 3;
 
-/* Los cinco simbolos de la linea de pago. Con premio van los cinco iguales;
-   sin premio se sortea cuantos repetidos salen -entre dos y cuatro- y el
-   resto se completa con otros. Perder de un pelo se mira; perder con cinco
-   simbolos sueltos al azar no se mira, y perder siempre con cuatro iguales
-   se nota amanado. */
-export function lineaDe(premio) {
-  if (premio.simbolo) return Array(RODILLOS).fill(premio.simbolo);
+/* Las cinco lineas de pago, como en cualquier maquina. Cada una dice, para
+   cada rodillo, en que fila mira: 0 arriba, 1 medio, 2 abajo.
 
-  const base = unoDe(SIMBOLOS);
-  const otros = SIMBOLOS.filter((s) => s !== base);
-  const repetidos = 2 + Math.floor(azar() * 3);        // 2, 3 o 4
-  const linea = Array.from({ length: RODILLOS }, () => unoDe(otros));
+   La del medio paga los descuentos. Las otras cuatro pagan "otro intento":
+   devuelven la jugada. Asi el cartel cruzado tambien sirve de algo, que es lo
+   que hace que una maquina se sienta viva en vez de un boton de si o no. */
+export const LINEAS = [
+  { id: "centro", filas: [1, 1, 1, 1, 1], es: "Línea del medio", en: "Middle line" },
+  { id: "arriba", filas: [0, 0, 0, 0, 0], es: "Línea de arriba", en: "Top line" },
+  { id: "abajo",  filas: [2, 2, 2, 2, 2], es: "Línea de abajo",  en: "Bottom line" },
+  { id: "uve",    filas: [0, 1, 2, 1, 0], es: "Diagonal en V",   en: "V diagonal" },
+  { id: "cuna",   filas: [2, 1, 0, 1, 2], es: "Diagonal invertida", en: "Inverted V" },
+];
 
-  /* mezcla honesta: un sort() con comparador al azar reparte sesgado */
-  const puestos = [0, 1, 2, 3, 4];
-  for (let i = puestos.length - 1; i > 0; i--) {
-    const j = Math.floor(azar() * (i + 1));
-    [puestos[i], puestos[j]] = [puestos[j], puestos[i]];
+const LINEA_PAGA = "centro";
+
+const completa = (grilla, linea) => {
+  const s = grilla[0][linea.filas[0]];
+  return linea.filas.every((f, i) => grilla[i][f] === s);
+};
+
+/* Devuelve la primera linea completa, si hay alguna. Se usa para dibujarla y
+   tambien para comprobar que no quede ninguna de regalo. */
+export function lineaGanadora(grilla) {
+  return LINEAS.find((l) => completa(grilla, l)) || null;
+}
+
+/* La grilla de 5x3 que van a mostrar los rodillos.
+
+   El servidor ya decidio el premio; aca solo se arma lo que se ve para que
+   cuadre con esa decision, y despues se rompe cualquier linea que haya salido
+   completa de casualidad. Sin ese repaso se puede regalar un premio: cinco
+   simbolos al azar arman una linea mas seguido de lo que parece. */
+export function grillaDe(premio) {
+  const grilla = Array.from({ length: RODILLOS }, () =>
+    Array.from({ length: FILAS }, () => unoDe(SIMBOLOS))
+  );
+
+  let buena = null;
+  if (premio.simbolo) {
+    buena = LINEAS.find((l) => l.id === LINEA_PAGA);
+    buena.filas.forEach((f, i) => { grilla[i][f] = premio.simbolo; });
+  } else if (premio.id === "giro") {
+    const otras = LINEAS.filter((l) => l.id !== LINEA_PAGA);
+    buena = unoDe(otras);
+    const simbolo = unoDe(SIMBOLOS);
+    buena.filas.forEach((f, i) => { grilla[i][f] = simbolo; });
   }
-  /* nunca los cinco: repetidos llega hasta cuatro y el resto sale de otros,
-     que ya excluye a base */
-  puestos.slice(0, repetidos).forEach((i) => { linea[i] = base; });
-  return linea;
+
+  /* repaso: ninguna linea completa que no sea la que corresponde */
+  for (let vuelta = 0; vuelta < 60; vuelta++) {
+    const sobrante = LINEAS.find((l) => (!buena || l.id !== buena.id) && completa(grilla, l));
+    if (!sobrante) break;
+
+    /* se cambia una celda de la linea sobrante que no pertenezca a la buena:
+       tocar una compartida borraria el premio. Dos lineas distintas siempre
+       difieren en al menos dos rodillos, asi que siempre hay donde tocar. */
+    const libres = sobrante.filas
+      .map((f, i) => ({ i, f }))
+      .filter(({ i, f }) => !buena || buena.filas[i] !== f);
+    const { i, f } = unoDe(libres);
+    grilla[i][f] = unoDe(SIMBOLOS.filter((s) => s !== grilla[i][f]));
+  }
+
+  return grilla;
 }
 
 export const TIRA_LARGO = 26;
 
-/* La tira de cada rodillo: relleno al azar y, al final, los tres simbolos que
-   van a quedar a la vista. El del medio es el que paga. */
-export function armarTira(centro) {
+/* La tira de un rodillo: relleno al azar y, al final, las tres celdas que van
+   a quedar a la vista, de arriba hacia abajo. */
+export function armarTira(columna) {
   const tira = [];
-  for (let i = 0; i < TIRA_LARGO - 3; i++) tira.push(unoDe(SIMBOLOS));
-  tira.push(unoDe(SIMBOLOS), centro, unoDe(SIMBOLOS));
-  return tira;
+  for (let i = 0; i < TIRA_LARGO - FILAS; i++) tira.push(unoDe(SIMBOLOS));
+  return tira.concat(columna);
 }
 
-export const PARADA = TIRA_LARGO - 3;
+export const PARADA = TIRA_LARGO - FILAS;
 
 /* ================= la jugada guardada =================
    Copia local de lo que dijo el servidor, para pintar la pantalla sin esperar
