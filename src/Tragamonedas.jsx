@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 import {
-  PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO, LINEAS,
+  PREMIOS, CON_PREMIO, PARADA, RODILLOS, TIRA_LARGO, LINEAS, SALIDA,
   grillaDe, armarTira,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
@@ -531,15 +531,13 @@ export default function Tragamonedas({ t, waLink, irA }) {
       if (premio.id === "giro") {
         /* devolver la jugada no merece frenar la maquina con una ventana:
            alcanza con el cartel y la linea cruzada encendida */
-        son("bonus");
+        son("gano", false);
         festejar(false);
         setAviso(t("¡Otro intento! Esta jugada no te la contamos.", "Another spin! This one is on us."));
         relojes.current.push(setTimeout(() => montado.current && setAviso(""), 4200));
       } else if (premio.id) {
         setAbierto(true);
-        /* el premio mayor se lleva campana, bandeja de monedas y fanfarria
-           larga; el resto, una version corta */
-        son("gano", premio.id === "logo" ? 2 : 1);
+        son("gano", premio.id === "logo");
         festejar(premio.id === "logo" || premio.id === "diamante");
       } else {
         son("perdio");
@@ -700,13 +698,21 @@ export default function Tragamonedas({ t, waLink, irA }) {
                                    asi la maquina escala con la pantalla sin que
                                    haya que recalcular nada */
                                 transform: `translateY(-${(pos[i] / TIRA_LARGO) * 100}%)`,
-                                transition: anim
-                                  ? `transform ${(reducido ? 120 : FRENOS[i]) / 1000}s cubic-bezier(.16,.72,.24,1)`
+                                /* la curva se pasa del 1 y vuelve: es el rebote
+                                 del rodillo contra su tope. El retraso de
+                                 salida se le descuenta al giro para que la
+                                 frenada caiga igual donde tiene que caer. */
+                              transition: anim
+                                  ? `transform ${(reducido ? 120 : FRENOS[i] - SALIDA[i]) / 1000}s cubic-bezier(.13,.74,.26,1.11) ${(reducido ? 0 : SALIDA[i]) / 1000}s`
                                   : "none",
                               }}
                             >
                               {tira.map((sim, k) => (
-                                <div className="s2b-tm-celda" key={k}><Simbolo id={sim} /></div>
+                                <div
+                                  className={"s2b-tm-celda" +
+                                    (lineaGana && fase !== "girando" && k === PARADA + lineaGana.filas[i] ? " is-premiada" : "")}
+                                  key={k}
+                                ><Simbolo id={sim} /></div>
                               ))}
                             </div>
                           </div>
@@ -1111,8 +1117,15 @@ const CSS_TM = `
   box-shadow:0 0 6px rgba(0,0,0,.8); }
 /* tres celdas a la vista: el alto de la ventana es tres veces el de una celda */
 .s2b-tm-ventana { position:relative; aspect-ratio:1 / 2.79; overflow:hidden;
-  background:linear-gradient(180deg,#3A0811,#1B0309 50%,#3A0811);
-  box-shadow:inset 0 18px 24px -18px #000, inset 0 -18px 24px -18px #000; }
+  background:linear-gradient(180deg,#3A0811,#1B0309 50%,#3A0811); }
+/* la curva del tambor: un rodillo es un cilindro, y lo que se va para atras
+   recibe menos luz. Sin esto los tres simbolos se ven planos, pegados en una
+   pared. */
+.s2b-tm-ventana::after { content:''; position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(0,0,0,.72) 0%, rgba(0,0,0,.34) 12%, rgba(0,0,0,0) 34%,
+    rgba(255,240,210,.05) 50%,
+    rgba(0,0,0,0) 66%, rgba(0,0,0,.34) 88%, rgba(0,0,0,.72) 100%); }
 .s2b-tm-tira { display:block; will-change:transform; }
 .s2b-tm-tira.is-rodando { filter:blur(1.6px); }
 
@@ -1122,6 +1135,11 @@ const CSS_TM = `
   background:linear-gradient(180deg, rgba(184,33,59,.4), rgba(30,4,11,.5));
   box-shadow:inset 0 0 0 1px rgba(249,216,88,.12); }
 .s2b-tm-celda .s2b-tm-sim { position:relative; z-index:1; width:74%; aspect-ratio:1; height:auto; }
+/* el simbolo que pago late despues de la frenada */
+.s2b-tm-celda.is-premiada::before { background:linear-gradient(180deg, rgba(249,216,88,.42), rgba(208,154,28,.22));
+  box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }
+.s2b-tm-celda.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
+@keyframes s2b-tm-latido { 50% { transform:scale(1.12); filter:drop-shadow(0 0 10px rgba(255,236,170,.9)); } }
 
 /* la linea que paga: adentro de las ventanas, donde "un tercio" es exacto */
 .s2b-tm-linea { position:absolute; left:0; right:0; top:33.333%; height:33.333%;
@@ -1404,6 +1422,7 @@ const CSS_TM = `
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
+  .s2b-tm-celda.is-premiada .s2b-tm-sim { animation:none !important; }
   .s2b-tm-zocalo::after { animation:none !important; opacity:0; }
 }
 `;
