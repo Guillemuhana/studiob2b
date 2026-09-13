@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import confetti from "canvas-confetti";
-import Tilt from "react-parallax-tilt";
 import {
   Volume2, VolumeX, X, Copy, Check, ArrowRight, ArrowLeft, Sparkles, Info, ShieldCheck, Clock,
   RotateCw, Gift,
@@ -393,8 +392,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
             {/* el mueble */}
             <div className="s2b-tm-escena">
-              {/* las monedas sueltas van fuera del Tilt: adentro se inclinarian
-                  con el gabinete y se romperia la ilusion de que estan delante */}
+              {/* las monedas van por delante del gabinete, no adentro */}
               <div className="s2b-tm-monedas" aria-hidden="true">
                 {MONEDAS.map((m, i) => (
                   <span key={i} className="s2b-tm-moneda" style={m}>
@@ -403,18 +401,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 ))}
               </div>
 
-              <Tilt
-                className="s2b-tm-tilt"
-                tiltMaxAngleX={reducido ? 0 : 3}
-                tiltMaxAngleY={reducido ? 0 : 4}
-                perspective={1600}
-                transitionSpeed={1400}
-                glareEnable={!reducido}
-                glareMaxOpacity={0.1}
-                glareColor="#FFE9A8"
-                glarePosition="all"
-                glareBorderRadius="30px"
-              >
+              <div className="s2b-tm-tilt">
                 <div className={"s2b-tm-mueble" + (fase === "girando" ? " is-girando" : "")}>
                   <div className="s2b-tm-cuerpo">
 
@@ -519,7 +506,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     {error && <div className="s2b-tm-error" role="alert">{error}</div>}
                   </div>
                 </div>
-              </Tilt>
+              </div>
             </div>
 
             {/* lo que ya se gano, para que no haya que buscarlo en el chat */}
