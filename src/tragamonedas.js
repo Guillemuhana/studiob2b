@@ -140,12 +140,6 @@ const completa = (grilla, linea) => {
   return linea.filas.every((f, i) => grilla[i][f] === s);
 };
 
-/* Devuelve la primera linea completa, si hay alguna. Se usa para dibujarla y
-   tambien para comprobar que no quede ninguna de regalo. */
-export function lineaGanadora(grilla) {
-  return LINEAS.find((l) => completa(grilla, l)) || null;
-}
-
 /* La grilla de 5x3 que van a mostrar los rodillos.
 
    El servidor ya decidio el premio; aca solo se arma lo que se ve para que

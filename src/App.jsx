@@ -1205,7 +1205,11 @@ const CSS = `
 /* Antes se iba con el hero. Ahora acompana todo el recorrido: una pastilla de
    vidrio oscuro que se achica apenas al bajar. */
 .s2b-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 80; background: none; box-shadow: none;
-  transition: padding .35s cubic-bezier(.2,.7,.2,1); padding-top: 14px; }
+  transition: padding .35s cubic-bezier(.2,.7,.2,1), transform .32s cubic-bezier(.2,.7,.2,1);
+  padding-top: 14px; }
+/* bajando se va para arriba; subiendo vuelve */
+.s2b-nav.is-oculto { transform: translateY(-115%); }
+@media (prefers-reduced-motion: reduce) { .s2b-nav { transition: none; } }
 .s2b-nav.is-stuck { background: none; box-shadow: none; backdrop-filter: none; padding-top: 8px; }
 .s2b-nav-in { padding: 8px 10px; border-radius: 18px; border: 1px solid transparent;
   transition: background .35s, border-color .35s, box-shadow .35s, padding .35s; }
@@ -4109,6 +4113,12 @@ function useCelular() {
 export default function StudioB2B() {
   const heroRef = useRef(null);
   const [stuck, setStuck] = useState(false);
+  /* el nav se va cuando se baja y vuelve cuando se sube */
+  const [navOculto, setNavOculto] = useState(false);
+  /* el menu del celular, en una referencia: el que escucha el scroll se
+     suscribe una sola vez y necesita leer el valor de ahora, no el del
+     pintado en que se suscribio */
+  const drawerRef = useRef(false);
   const [pop, setPop] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [tab, setTab] = useState("soft");
@@ -4189,11 +4199,42 @@ export default function StudioB2B() {
     return () => { el.removeEventListener("mousemove", onMove); cancelAnimationFrame(raf); };
   }, []);
 
+  /* El nav sigue fijo, pero deja de estar SIEMPRE a la vista: bajando se
+     esconde -asi no tapa nada ni se come 90 px de pantalla, que en un celular
+     es mucho- y subiendo vuelve solo, que es cuando alguien lo busca.
+
+     Hay un umbral de 6 px a proposito: sin el, el rebote del scroll en iOS y
+     el temblor de un dedo hacen que el nav parpadee. Y arriba de todo siempre
+     se muestra, sin importar hacia donde se venia moviendo. */
   useEffect(() => {
-    const s = () => setStuck(window.scrollY > 20);
-    window.addEventListener("scroll", s, { passive: true });
-    return () => window.removeEventListener("scroll", s);
+    let anterior = window.scrollY;
+    let raf = 0;
+    const mirar = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const dif = y - anterior;
+      setStuck(y > 20);
+      /* con el menu abierto no se esconde: al cerrarlo el nav tiene que estar
+         donde la persona lo dejo */
+      if (drawerRef.current) { anterior = y; return; }
+      if (y < 120) setNavOculto(false);
+      else if (Math.abs(dif) > 6) setNavOculto(dif > 0);
+      anterior = y;
+    };
+    const alMover = () => { if (!raf) raf = requestAnimationFrame(mirar); };
+    window.addEventListener("scroll", alMover, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", alMover);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
+
+  /* con el menu del celular abierto el nav no se puede esconder: adentro esta
+     el boton de cerrar */
+  useEffect(() => {
+    drawerRef.current = drawer;
+    if (drawer) setNavOculto(false);
+  }, [drawer]);
 
   /* La barra de abajo, solo en /proceso y solo en el celular: es la pagina que
      va en la publicidad, y con siete pasos de por medio el formulario queda
@@ -4440,7 +4481,7 @@ export default function StudioB2B() {
 
       {/* ============ HERO + NAV ============ */}
       <div className="s2b-band s2b-band--dark">
-        <header className={"s2b-nav" + (stuck ? " is-stuck" : "")}>
+        <header className={"s2b-nav" + (stuck ? " is-stuck" : "") + (navOculto ? " is-oculto" : "")}>
           <div className="s2b-wrap s2b-nav-in">
             <button className="s2b-brand" onClick={() => (vista === "home" ? window.scrollTo({ top: 0, behavior: "smooth" }) : irA("home"))}>
               <span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span>

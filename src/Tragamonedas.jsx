@@ -9,7 +9,7 @@ import {
 import { siWhatsapp, siTelegram, siX } from "simple-icons";
 
 import {
-  PREMIOS, CON_PREMIO, RODILLOS, LINEAS, SALIDA, CARAS, PASO, CARA_FRENTE,
+  PREMIOS, CON_PREMIO, RODILLOS, LINEAS, SALIDA, PASO, CARA_FRENTE,
   grillaDe, armarTambor, anguloDeParada,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
@@ -796,11 +796,6 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         <b>{sinTope ? "∞" : restantes}</b>
                         <small>{libre ? t("modo prueba", "test mode") : t("jugadas", "spins")}</small>
                       </span>
-                      <span className="s2b-tm-hud-jack">
-                        <Simbolo id="logo" />
-                        <em>{t("GRAN PREMIO", "JACKPOT")}</em>
-                        <b>30%</b>
-                      </span>
                       <button
                         className="s2b-tm-hud-ico"
                         onClick={() => setSonando((v) => {
@@ -1259,13 +1254,11 @@ const CSS_TM = `
   background:linear-gradient(180deg,var(--oro1),var(--oro2) 48%,var(--oro3));
   box-shadow:0 3px 0 var(--oro4); transition:transform .12s, box-shadow .12s; }
 .s2b .s2b-tm-hud-btn:active { transform:translateY(2px); box-shadow:0 1px 0 var(--oro4); }
-.s2b-tm-hud-saldo, .s2b-tm-hud-jack { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:999px;
+.s2b-tm-hud-saldo { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:999px;
   border:1px solid rgba(249,216,88,.45); background:rgba(0,0,0,.42); }
-.s2b-tm-hud-saldo .s2b-tm-sim, .s2b-tm-hud-jack .s2b-tm-sim { width:20px; height:20px; }
-.s2b-tm-hud-saldo b, .s2b-tm-hud-jack b { font-family:var(--display); font-size:15px; font-weight:700; color:var(--oro1); }
+.s2b-tm-hud-saldo .s2b-tm-sim { width:20px; height:20px; }
+.s2b-tm-hud-saldo b { font-family:var(--display); font-size:15px; font-weight:700; color:var(--oro1); }
 .s2b-tm-hud-saldo small { font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:#D9B98A; }
-.s2b-tm-hud-jack { margin-left:auto; }
-.s2b-tm-hud-jack em { font-style:normal; font-family:var(--mono); font-size:9px; letter-spacing:.16em; color:var(--oro2); }
 .s2b .s2b-tm-hud-ico { width:32px; height:32px; flex:none; border-radius:9px; display:grid; place-items:center;
   color:var(--oro2); border:1px solid rgba(249,216,88,.4); background:rgba(0,0,0,.42);
   transition:color .2s, border-color .2s; }
@@ -1673,7 +1666,6 @@ const CSS_TM = `
      costaba mas de lo que aportaba. */
   .s2b-tm-band::before { filter:none; opacity:.75; }
   .s2b-tm-monedas { display:none; }
-  .s2b-tm-hud-jack { margin-left:0; order:3; }
   .s2b-tm-mueble { padding:7px; }
   .s2b-tm-cuerpo { padding:9px; }
 }
@@ -1703,9 +1695,9 @@ const CSS_TM = `
   .s2b-tm-rodillos { padding:6px 12px; }
   .s2b-tm-hud { gap:5px; margin-bottom:7px; }
   .s2b .s2b-tm-hud-btn { padding:6px 10px; font-size:9px; }
-  .s2b-tm-hud-saldo, .s2b-tm-hud-jack { padding:5px 9px; gap:5px; }
-  .s2b-tm-hud-saldo .s2b-tm-sim, .s2b-tm-hud-jack .s2b-tm-sim { width:16px; height:16px; }
-  .s2b-tm-hud-saldo b, .s2b-tm-hud-jack b { font-size:13px; }
+  .s2b-tm-hud-saldo { padding:5px 9px; gap:5px; }
+  .s2b-tm-hud-saldo .s2b-tm-sim { width:16px; height:16px; }
+  .s2b-tm-hud-saldo b { font-size:13px; }
   .s2b .s2b-tm-hud-ico { width:28px; height:28px; }
   .s2b-tm-barra { padding:7px; gap:6px; }
   .s2b-tm-caja { padding:6px 4px; border-width:1px; }
