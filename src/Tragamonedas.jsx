@@ -335,6 +335,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [copiado, setCopiado] = useState(false);
   const [sonando, setSonando] = useState(true);
   const [error, setError] = useState("");
+  /* Perder no abre ventana: frenar una maquina para decirte que no ganaste es
+     castigar al que sigue jugando. Queda un aviso corto abajo de los rodillos
+     que se va solo. */
+  const [aviso, setAviso] = useState("");
 
   const relojes = useRef([]);
   const cortarSonido = useRef(null);
@@ -411,6 +415,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setFase("girando");
     setResultado(null);
     setError("");
+    setAviso("");
     son("palanca");
 
     /* Se le pide el resultado al servidor antes de mover nada: los rodillos
@@ -473,11 +478,18 @@ export default function Tragamonedas({ t, waLink, irA }) {
       if (!montado.current) return;
       setResultado({ premio, codigo });
       setFase("listo");
-      setAbierto(true);
       guardarJugada(premio, codigo);
       if (codigo) setGanados((g) => [...g, { premio: premio.id, codigo, canjeado: false }]);
-      if (premio.id) { son("gano", premio.id === "logo"); festejar(premio.id === "logo" || premio.id === "diamante"); }
-      else son("perdio");
+
+      if (premio.id) {
+        setAbierto(true);
+        son("gano", premio.id === "logo");
+        festejar(premio.id === "logo" || premio.id === "diamante");
+      } else {
+        son("perdio");
+        setAviso(t("Esta vez no salió. Probá de nuevo.", "Not this time. Give it another spin."));
+        relojes.current.push(setTimeout(() => montado.current && setAviso(""), 3600));
+      }
     }, (reducido ? 260 : ULTIMO_FRENO) + 420));
   }, [fase, son, festejar, reducido, t]);
 
@@ -666,6 +678,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     </div>
 
                     {error && <div className="s2b-tm-error" role="alert">{error}</div>}
+                    {aviso && !error && (
+                      <motion.div
+                        className="s2b-tm-aviso"
+                        role="status"
+                        initial={reducido ? false : { opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {aviso}
+                      </motion.div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1076,6 +1099,9 @@ const CSS_TM = `
     inset 0 -14px 20px rgba(0,0,0,.45); }
 .s2b .s2b-tm-spin--visto:active { transform:translateY(7px); }
 
+.s2b-tm-aviso { margin-top:10px; padding:9px 14px; border-radius:11px; text-align:center;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:#E0BE8C; background:rgba(0,0,0,.4); border:1px solid rgba(249,216,88,.3); }
 .s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
   color:#FFD9D9; background:rgba(255,60,60,.18); border:1px solid rgba(255,120,120,.45); }
 
