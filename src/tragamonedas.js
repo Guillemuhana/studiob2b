@@ -435,6 +435,15 @@ export function crearSonido() {
       };
     },
 
+    /* cada escalon que sube el medidor del bonus: una nota mas aguda que la
+       anterior, que es lo que hace que se sienta que trepa */
+    escalon(n) {
+      const escala = [392, 466, 523, 587, 659, 784];
+      const f = escala[Math.min(n, escala.length - 1)];
+      nota(f, 0, 0.16, "square", 0.07);
+      nota(f * 2, 0.01, 0.22, "triangle", 0.09);
+    },
+
     gano(alto) {
       const escala = alto ? [523, 659, 784, 1047, 1319] : [440, 554, 659];
       escala.forEach((f, i) => nota(f, i * 0.1, 0.34, "triangle", 0.15));

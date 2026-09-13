@@ -357,6 +357,69 @@ function Simbolo({ id }) {
   return <span className={"s2b-tm-sim s2b-tm-sim--" + id}>{DIBUJOS[id]}</span>;
 }
 
+/* ================= la ronda de bonus =================
+   Lo que hacen las maquinas nuevas cuando pagan: en vez de mostrar el premio
+   de golpe, el medidor trepa nivel por nivel y frena en el que toco. Cada
+   escalon que sube es medio segundo mas de suspenso.
+
+   Una aclaracion que no es menor: aca NO se elige nada. Muchas maquinas
+   ponen cofres para abrir, pero el premio ya esta decidido desde antes -lo
+   sorteo el servidor- y esa eleccion no cambia nada: es una decision de
+   mentira. Esto solo revela lo que ya salio, que es espectaculo honesto. */
+
+function Bonus({ t, premio, reducido, son, alTerminar }) {
+  /* de abajo hacia arriba, como sube el medidor */
+  const niveles = useMemo(() => CON_PREMIO.filter((p) => p.simbolo).slice().reverse(), []);
+  const destino = niveles.findIndex((p) => p.id === premio.id);
+  const [paso, setPaso] = useState(-1);
+  const relojes = useRef([]);
+
+  useEffect(() => {
+    let i = -1;
+    const subir = () => {
+      i += 1;
+      setPaso(i);
+      son("escalon", i);
+      if (i < destino) relojes.current.push(setTimeout(subir, reducido ? 90 : 430));
+      else relojes.current.push(setTimeout(alTerminar, reducido ? 150 : 1150));
+    };
+    relojes.current.push(setTimeout(subir, reducido ? 40 : 420));
+    const r = relojes.current;
+    return () => r.forEach(clearTimeout);
+  }, [destino, reducido, son, alTerminar]);
+
+  return (
+    <motion.div
+      className="s2b-tm-bonus"
+      initial={reducido ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      role="status"
+      aria-label={t("Premio", "Prize")}
+    >
+      <span className="s2b-tm-bonus-tit">{t("SUBIENDO", "CLIMBING")}</span>
+      <div className="s2b-tm-bonus-niveles">
+        {niveles.slice().reverse().map((p) => {
+          const idx = niveles.indexOf(p);
+          const encendido = paso >= idx;
+          const llego = paso === destino && idx === destino;
+          return (
+            <div
+              key={p.id}
+              className={"s2b-tm-nivel" + (encendido ? " is-on" : "") + (llego ? " is-fin" : "")}
+            >
+              <Simbolo id={p.simbolo} />
+              <span className="s2b-tm-nivel-rango">{p.rango}</span>
+              <b>{p.monto}</b>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ================= la maquina ================= */
 
 export default function Tragamonedas({ t, waLink, irA }) {
@@ -405,6 +468,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
   /* que linea pago, para poder dibujarla encima de los rodillos */
   const [lineaGana, setLineaGana] = useState(null);
   const [golpe, setGolpe] = useState(false);
+  const [bonus, setBonus] = useState(null);
 
   const relojes = useRef([]);
   const cortarSonido = useRef(null);
@@ -483,6 +547,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setError("");
     setAviso("");
     setLineaGana(null);
+    setBonus(null);
     son("palanca");
 
     /* Se le pide el resultado al servidor antes de mover nada: los rodillos
@@ -590,9 +655,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
         setAviso(t("¡Otro intento! Esta jugada no te la contamos.", "Another spin! This one is on us."));
         relojes.current.push(setTimeout(() => montado.current && setAviso(""), 4200));
       } else if (premio.id) {
-        setAbierto(true);
-        son("gano", premio.id === "logo");
-        festejar(premio.id === "logo" || premio.id === "diamante");
+        /* el medidor trepa primero; la ventana del premio sale al final */
+        setBonus(premio);
       } else {
         son("perdio");
         setAviso(t("Esta vez no salió. Probá de nuevo.", "Not this time. Give it another spin."));
@@ -759,6 +823,24 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <div className="s2b-tm-rayos" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
+                      <AnimatePresence>
+                        {bonus && (
+                          <Bonus
+                            t={t}
+                            premio={bonus}
+                            reducido={reducido}
+                            son={son}
+                            alTerminar={() => {
+                              if (!montado.current) return;
+                              setBonus(null);
+                              setAbierto(true);
+                              son("gano", bonus.id === "logo");
+                              festejar(bonus.id === "logo" || bonus.id === "diamante");
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+
                       <div className="s2b-tm-ventanas">
                         <div className="s2b-tm-linea" aria-hidden="true" />
                         {/* la linea que pago, dibujada por los centros de las
@@ -1256,6 +1338,37 @@ const CSS_TM = `
 .s2b-tm-celda.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
 @keyframes s2b-tm-latido { 50% { transform:scale(1.12); filter:drop-shadow(0 0 10px rgba(255,236,170,.9)); } }
 
+/* ---------- la ronda de bonus ----------
+   Tapa los rodillos mientras el medidor trepa. Va adentro del mueble y no en
+   una ventana aparte: la maquina no se abandona para mostrar el premio, es la
+   misma maquina la que cambia de cara. */
+.s2b-tm-bonus { position:absolute; inset:0; z-index:7; display:grid; align-content:center; justify-items:center;
+  gap:clamp(6px,1vw,10px); padding:clamp(8px,1.4vw,14px); border-radius:14px;
+  background:radial-gradient(120% 90% at 50% 40%, rgba(120,20,40,.94), rgba(12,2,8,.97) 72%);
+  backdrop-filter:blur(2px); }
+.s2b-tm-bonus-tit { font-family:var(--mono); font-size:clamp(9px,1.4vw,11px); letter-spacing:.3em; color:var(--oro2); }
+.s2b-tm-bonus-niveles { display:grid; gap:clamp(4px,.8vw,7px); width:min(330px,92%); }
+
+.s2b-tm-nivel { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;
+  padding:clamp(5px,.9vw,9px) clamp(9px,1.4vw,14px); border-radius:11px;
+  border:1px solid rgba(249,216,88,.2); background:rgba(0,0,0,.45);
+  opacity:.4; filter:grayscale(.7);
+  transition:opacity .25s, filter .25s, box-shadow .25s, background .25s, transform .25s; }
+.s2b-tm-nivel .s2b-tm-sim { width:clamp(20px,3.4vw,30px); height:clamp(20px,3.4vw,30px); }
+.s2b-tm-nivel-rango { font-family:var(--mono); font-size:clamp(8px,1.2vw,9.5px); letter-spacing:.16em; color:#D9B98A; text-align:left; }
+.s2b-tm-nivel b { font-family:var(--display); font-size:clamp(14px,2.4vw,20px); font-weight:700; color:#fff; }
+
+/* el escalon al que ya llego el medidor */
+.s2b-tm-nivel.is-on { opacity:1; filter:none;
+  border-color:rgba(249,216,88,.6); background:linear-gradient(100deg, rgba(208,154,28,.4), rgba(60,8,20,.7)); }
+/* y el que gano, que es donde frena */
+.s2b-tm-nivel.is-fin { border-color:var(--oro1); transform:scale(1.045);
+  background:linear-gradient(100deg, rgba(249,216,88,.6), rgba(208,154,28,.35));
+  box-shadow:0 0 26px rgba(249,216,88,.75);
+  animation:s2b-tm-cobra .7s ease-in-out infinite; }
+.s2b-tm-nivel.is-fin b { color:#2A0709; text-shadow:0 1px 0 rgba(255,255,255,.4); }
+@keyframes s2b-tm-cobra { 50% { box-shadow:0 0 40px rgba(255,236,170,.95); } }
+
 /* ---------- anticipacion ----------
    El ultimo rodillo, cuando los otros cuatro ya salieron iguales. Se le
    enciende el marco y el fieltro sube de temperatura: es todo lo que hace
@@ -1591,6 +1704,7 @@ const CSS_TM = `
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
   .s2b-tm-celda.is-premiada .s2b-tm-sim,
+  .s2b-tm-nivel.is-fin,
   .s2b-tm-ventana.is-ansia,
   .s2b-tm-mueble.is-golpe .s2b-tm-cuerpo { animation:none !important; }
   .s2b-tm-zocalo::after { animation:none !important; opacity:0; }
