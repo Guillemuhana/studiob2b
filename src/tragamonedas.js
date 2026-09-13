@@ -101,17 +101,31 @@ function azar() {
 
 const unoDe = (lista) => lista[Math.floor(azar() * lista.length)];
 
-/* Los tres simbolos de la linea de pago. Si hay premio, van los tres iguales;
-   si no, dos iguales y uno distinto: perder de un pelo se mira, perder con
-   tres simbolos al azar no se mira. */
+export const RODILLOS = 5;
+
+/* Los cinco simbolos de la linea de pago. Con premio van los cinco iguales;
+   sin premio se sortea cuantos repetidos salen -entre dos y cuatro- y el
+   resto se completa con otros. Perder de un pelo se mira; perder con cinco
+   simbolos sueltos al azar no se mira, y perder siempre con cuatro iguales
+   se nota amanado. */
 export function lineaDe(premio) {
-  if (premio.simbolo) return [premio.simbolo, premio.simbolo, premio.simbolo];
-  const a = unoDe(SIMBOLOS);
-  /* el distinto se elige de los que sobran en vez de reintentar hasta acertar:
-     un while que depende del azar es un cuelgue esperando una racha */
-  const b = unoDe(SIMBOLOS.filter((s) => s !== a));
-  const suelto = Math.floor(azar() * 3);
-  return [0, 1, 2].map((i) => (i === suelto ? b : a));
+  if (premio.simbolo) return Array(RODILLOS).fill(premio.simbolo);
+
+  const base = unoDe(SIMBOLOS);
+  const otros = SIMBOLOS.filter((s) => s !== base);
+  const repetidos = 2 + Math.floor(azar() * 3);        // 2, 3 o 4
+  const linea = Array.from({ length: RODILLOS }, () => unoDe(otros));
+
+  /* mezcla honesta: un sort() con comparador al azar reparte sesgado */
+  const puestos = [0, 1, 2, 3, 4];
+  for (let i = puestos.length - 1; i > 0; i--) {
+    const j = Math.floor(azar() * (i + 1));
+    [puestos[i], puestos[j]] = [puestos[j], puestos[i]];
+  }
+  /* nunca los cinco: repetidos llega hasta cuatro y el resto sale de otros,
+     que ya excluye a base */
+  puestos.slice(0, repetidos).forEach((i) => { linea[i] = base; });
+  return linea;
 }
 
 export const TIRA_LARGO = 26;

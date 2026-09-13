@@ -9,7 +9,9 @@
    construccion.
 
    El tope es de tres jugadas por IP y lo cuenta Postgres, con un cerrojo por
-   IP para que dos clics simultaneos no entren los dos.
+   IP para que dos clics simultaneos no entren los dos. Los codigos, en cambio,
+   son por navegador: la IP la comparte media oficina y el premio de uno no es
+   de todos.
 
    Ni la IP ni la huella las manda el cliente: si viajaran en el cuerpo del
    pedido, cambiarlas seria tan facil como editar un fetch. Las dos se hashean
@@ -25,6 +27,11 @@ const SAL = process.env.SB2B_SAL;
 /* solo para contestar cuando todavia no hay ninguna fila; el tope de verdad
    lo tiene la base, en sb2b_config_num */
 const TOPE = 3;
+/* La llave de prueba: quien la trae juega sin tope y sus jugadas quedan
+   marcadas como prueba, asi no ensucian las estadisticas ni le comen el cupo
+   a nadie. Es un header y no un dato del cuerpo para que no se cuele por una
+   copia del link sin querer. */
+const LIBRE = process.env.SB2B_LIBRE;
 
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 
@@ -67,20 +74,31 @@ export default async function handler(req, res) {
   const idioma = String(req.headers["accept-language"] || "");
   const huella = sha(`${SAL}|${ip}|${navegador}|${idioma}`);
   const ipHash = sha(`${SAL}|${ip}`);
+  const libre = !!LIBRE && req.headers["x-sb2b-libre"] === LIBRE;
 
   try {
     if (req.method === "GET") {
-      const filas = (await rpc("sb2b_consultar", { p_secreto: SECRETO, p_ip_hash: ipHash })) || [];
+      const filas = (await rpc("sb2b_consultar", {
+        p_secreto: SECRETO,
+        p_huella: huella,
+        p_ip_hash: ipHash,
+        p_libre: libre,
+      })) || [];
       return res.status(200).json({
-        jugadas: filas.map((j) => ({
+        /* las jugadas de la IP cuentan para el tope, pero solo viajan las de
+           este navegador: en una oficina todos comparten IP y el codigo del
+           companero no tiene por que aparecer -ni poder reclamarse- aca */
+        jugadas: filas.filter((j) => j.mia).map((j) => ({
           premio: j.premio,
           codigo: j.codigo,
           creado: j.creado,
           canjeado: !!j.canjeado_en,
         })),
+        usadasEnLaIp: filas.length,
         /* si no hay ninguna fila la base no devuelve restantes: entonces no
            jugo nadie desde esta IP y le quedan las tres */
-        restantes: filas.length ? filas[0].restantes : TOPE,
+        restantes: libre ? 99 : (filas.length ? filas[0].restantes : TOPE),
+        libre,
       });
     }
 
@@ -88,6 +106,7 @@ export default async function handler(req, res) {
       p_secreto: SECRETO,
       p_huella: huella,
       p_ip_hash: ipHash,
+      p_libre: libre,
     });
     const j = Array.isArray(filas) ? filas[0] : null;
     if (!j) throw new Error("la base no devolvio jugada");
@@ -101,6 +120,7 @@ export default async function handler(req, res) {
       creado: j.creado,
       restantes: j.restantes,
       agotado: false,
+      libre,
     });
   } catch (e) {
     console.error("[jugar]", e.message);

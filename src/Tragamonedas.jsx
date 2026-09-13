@@ -8,24 +8,45 @@ import {
 } from "lucide-react";
 
 import {
-  PREMIOS, CON_PREMIO, PARADA,
+  PREMIOS, CON_PREMIO, PARADA, RODILLOS,
   lineaDe, armarTira,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
 
-/* Los tres rodillos paran escalonados: el ultimo tarda casi el doble que el
-   primero, que es de donde sale el suspenso de una maquina de verdad. */
-const FRENOS = [2400, 3150, 3950];
+/* Los cinco rodillos paran escalonados de izquierda a derecha: el ultimo
+   tarda el doble que el primero, que es de donde sale el suspenso de una
+   maquina de verdad. */
+const FRENOS = [2100, 2620, 3140, 3680, 4300];
+const ULTIMO_FRENO = FRENOS[FRENOS.length - 1];
 
 /* El premio y el codigo los decide el servidor (api/jugar.js -> Postgres).
    Aca solo se pide y se muestra: si el sorteo viviera en el navegador,
    cualquiera se fabrica el premio mayor desde el inspector. */
 const API = "/api/jugar";
 
+/* La llave de prueba entra una sola vez por la URL (?libre=...) y se queda en
+   sessionStorage: asi se puede navegar el sitio sin arrastrarla en la barra de
+   direcciones, y se va sola al cerrar la pestana. Sin llave valida el servidor
+   la ignora, asi que compartir el link no regala jugadas. */
+const LLAVE_LIBRE = "s2b-libre";
+
+function llaveDePrueba() {
+  try {
+    const u = new URLSearchParams(location.search).get("libre");
+    if (u) sessionStorage.setItem(LLAVE_LIBRE, u);
+    return u || sessionStorage.getItem(LLAVE_LIBRE) || "";
+  } catch {
+    return "";
+  }
+}
+
 async function pedirJugada(metodo) {
+  const llave = llaveDePrueba();
   const r = await fetch(API, {
     method: metodo,
-    headers: { Accept: "application/json" },
+    headers: llave
+      ? { Accept: "application/json", "x-sb2b-libre": llave }
+      : { Accept: "application/json" },
     cache: "no-store",
   });
   if (!r.ok) throw new Error("api " + r.status);
@@ -34,6 +55,19 @@ async function pedirJugada(metodo) {
 
 const premioDe = (id) => PREMIOS.find((p) => (p.id || "nada") === id) || PREMIOS[PREMIOS.length - 1];
 const TOPE = 3;
+
+/* Las monedas que rodean el gabinete. Van escritas a mano y no sorteadas:
+   sorteadas en cada pintado saltarian de lugar con cada giro. */
+const MONEDAS = [
+  { left: "-3%", top: "5%", width: "62px", "--giro": "-18deg", "--demora": "0s" },
+  { left: "1%", top: "60%", width: "46px", "--giro": "12deg", "--demora": ".9s" },
+  { left: "-4%", top: "85%", width: "72px", "--giro": "24deg", "--demora": "1.7s" },
+  { right: "-3%", top: "10%", width: "54px", "--giro": "16deg", "--demora": ".4s" },
+  { right: "0%", top: "52%", width: "68px", "--giro": "-22deg", "--demora": "1.3s" },
+  { right: "-2%", top: "87%", width: "44px", "--giro": "8deg", "--demora": "2.1s" },
+  { left: "-5%", top: "34%", width: "40px", "--giro": "-10deg", "--demora": "1.1s" },
+  { right: "-5%", top: "32%", width: "52px", "--giro": "20deg", "--demora": ".2s" },
+];
 const COLORES = ["#6D4AFF", "#A78CFF", "#C9B6FF", "#FFC53D", "#FFFFFF"];
 
 /* ================= los simbolos =================
@@ -137,15 +171,18 @@ export default function Tragamonedas({ t, waLink, irA }) {
   );
 
   const [tiras, setTiras] = useState(() => {
-    const linea = premioGuardado ? lineaDe(premioGuardado) : ["diamante", "logo", "lingote"];
+    const linea = premioGuardado
+      ? lineaDe(premioGuardado)
+      : ["diamante", "moneda", "logo", "lingote", "estrella"];
     return linea.map((c) => armarTira(c));
   });
-  const [pos, setPos] = useState([PARADA, PARADA, PARADA]);
+  const [pos, setPos] = useState(() => Array(RODILLOS).fill(PARADA));
   const [anim, setAnim] = useState(false);
-  const [rodando, setRodando] = useState([false, false, false]);
+  const [rodando, setRodando] = useState(() => Array(RODILLOS).fill(false));
   const [fase, setFase] = useState("listo");
   const [restantes, setRestantes] = useState(TOPE);
   const [ganados, setGanados] = useState([]);
+  const [libre, setLibre] = useState(false);
   const [resultado, setResultado] = useState(
     premioGuardado ? { premio: premioGuardado, codigo: guardada.codigo } : null
   );
@@ -176,6 +213,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
       .then((d) => {
         if (!vivo || !montado.current) return;
         setSincronizado(true);
+        setLibre(!!d.libre);
         setRestantes(typeof d.restantes === "number" ? d.restantes : TOPE);
         setGanados((d.jugadas || []).filter((j) => j.codigo));
         const ultima = (d.jugadas || [])[d.jugadas.length - 1];
@@ -183,7 +221,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
           const premio = premioDe(ultima.premio);
           setResultado({ premio, codigo: ultima.codigo });
           setTiras(lineaDe(premio).map((c) => armarTira(c)));
-          setPos([PARADA, PARADA, PARADA]);
+          setPos(Array(RODILLOS).fill(PARADA));
           guardarJugada(premio, ultima.codigo);
         }
         setFase("listo");
@@ -255,13 +293,14 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
     const premio = premioDe(datos.premio);
     const codigo = datos.codigo || null;
+    setLibre(!!datos.libre);
     setRestantes(typeof datos.restantes === "number" ? datos.restantes : 0);
     const nuevas = lineaDe(premio).map((c) => armarTira(c));
 
     setTiras(nuevas);
     setAnim(false);
-    setPos([0, 0, 0]);
-    setRodando([true, true, true]);
+    setPos(Array(RODILLOS).fill(0));
+    setRodando(Array(RODILLOS).fill(true));
     son("giro");
 
     /* dos cuadros de espera: uno para que el navegador pinte los rodillos
@@ -269,7 +308,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (!montado.current) return;
       setAnim(true);
-      setPos([PARADA, PARADA, PARADA]);
+      setPos(Array(RODILLOS).fill(PARADA));
     }));
 
     relojes.current.forEach(clearTimeout);
@@ -290,7 +329,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
       if (codigo) setGanados((g) => [...g, { premio: premio.id, codigo, canjeado: false }]);
       if (premio.id) { son("gano", premio.id === "logo"); festejar(premio.id === "logo" || premio.id === "diamante"); }
       else son("perdio");
-    }, (reducido ? 260 : FRENOS[2]) + 420));
+    }, (reducido ? 260 : ULTIMO_FRENO) + 420));
   }, [fase, son, festejar, reducido, t]);
 
   const copiar = async () => {
@@ -327,8 +366,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
               </h2>
               <p className="s2b-lead s2b-tm-lead">
                 {t(
-                  "Tres jugadas por persona, sin registro y sin pagar nada. Si salen tres iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
-                  "Three spins per person, no sign-up and nothing to pay. Three matching symbols on the middle line and the prize is yours, to use on your next project with us."
+                  "Tres jugadas por persona, sin registro y sin pagar nada. Si salen los cinco símbolos iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
+                  "Three spins per person, no sign-up and nothing to pay. Five matching symbols on the middle line and the prize is yours, to use on your next project with us."
                 )}
               </p>
             </div>
@@ -352,105 +391,139 @@ export default function Tragamonedas({ t, waLink, irA }) {
             </div>
 
             {/* el mueble */}
-            <Tilt
-              className="s2b-tm-tilt"
-              tiltMaxAngleX={reducido ? 0 : 4}
-              tiltMaxAngleY={reducido ? 0 : 5}
-              perspective={1400}
-              transitionSpeed={1400}
-              glareEnable={!reducido}
-              glareMaxOpacity={0.12}
-              glareColor="#C9B6FF"
-              glarePosition="all"
-              glareBorderRadius="28px"
-            >
-              <div className={"s2b-tm-mueble" + (fase === "girando" ? " is-girando" : "")}>
-                {/* el marco dorado es una capa aparte: un border-image no deja
-                    poner el bisel de adentro ni el resplandor de afuera */}
-                <div className="s2b-tm-cuerpo">
-                  <div className="s2b-tm-luces" aria-hidden="true">
-                    {Array.from({ length: 26 }).map((_, i) => <i key={i} style={{ animationDelay: i * 80 + "ms" }} />)}
-                  </div>
-
-                  <div className="s2b-tm-rodillos">
-                    <div className="s2b-tm-rayos" aria-hidden="true" />
-                    <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
-                    <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
-                    <div className="s2b-tm-linea" aria-hidden="true" />
-
-                    <div className="s2b-tm-ventanas">
-                      {tiras.map((tira, i) => (
-                        <div className="s2b-tm-ventana" key={i}>
-                          <div
-                            className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
-                            style={{
-                              transform: `translateY(calc(var(--celda) * -${pos[i]}))`,
-                              transition: anim
-                                ? `transform ${(reducido ? 120 : FRENOS[i]) / 1000}s cubic-bezier(.16,.72,.24,1)`
-                                : "none",
-                            }}
-                          >
-                            {tira.map((s, k) => (
-                              <div className="s2b-tm-celda" key={k}><Simbolo id={s} /></div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="s2b-tm-barra">
-                    <button
-                      className="s2b-tm-son"
-                      onClick={() => setSonando((s) => !s)}
-                      aria-pressed={sonando}
-                      aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
-                    >
-                      {sonando ? <Volume2 size={17} /> : <VolumeX size={17} />}
-                    </button>
-
-                    <span className="s2b-tm-fichas" title={t("Jugadas que te quedan", "Spins left")}>
-                      <Sparkles size={14} />
-                      <b>{restantes}</b> / {TOPE}
-                      <i className="s2b-tm-creditos" aria-hidden="true">
-                        {Array.from({ length: TOPE }).map((_, i) => (
-                          <em key={i} className={i < restantes ? "is-on" : ""} />
-                        ))}
-                      </i>
-                    </span>
-
-                    {restantes <= 0 && sincronizado ? (
-                      <button
-                        className="s2b-tm-spin s2b-tm-spin--visto"
-                        onClick={() => resultado && setAbierto(true)}
-                        disabled={!resultado}
-                      >
-                        <b>{ganados.length ? t("MIS PREMIOS", "MY PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
-                        <small>{ganados.length ? t("tocá para verlos", "tap to see them") : t("volvé en otro momento", "come back another time")}</small>
-                      </button>
-                    ) : (
-                      <motion.button
-                        className="s2b-tm-spin"
-                        onClick={girar}
-                        disabled={fase === "girando"}
-                        whileHover={reducido || fase === "girando" ? undefined : { scale: 1.04 }}
-                        whileTap={reducido || fase === "girando" ? undefined : { scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 420, damping: 20 }}
-                      >
-                        <b>{fase === "girando" ? t("GIRANDO…", "SPINNING…") : t("GIRAR", "SPIN")}</b>
-                        <small>
-                          {restantes === 1
-                            ? t("última jugada", "last spin")
-                            : t(`${restantes} jugadas`, `${restantes} spins`)}
-                        </small>
-                      </motion.button>
-                    )}
-                  </div>
-
-                  {error && <div className="s2b-tm-error" role="alert">{error}</div>}
-                </div>
+            <div className="s2b-tm-escena">
+              {/* las monedas sueltas van fuera del Tilt: adentro se inclinarian
+                  con el gabinete y se romperia la ilusion de que estan delante */}
+              <div className="s2b-tm-monedas" aria-hidden="true">
+                {MONEDAS.map((m, i) => (
+                  <span key={i} className="s2b-tm-moneda" style={m}>
+                    <Simbolo id="moneda" />
+                  </span>
+                ))}
               </div>
-            </Tilt>
+
+              <Tilt
+                className="s2b-tm-tilt"
+                tiltMaxAngleX={reducido ? 0 : 3}
+                tiltMaxAngleY={reducido ? 0 : 4}
+                perspective={1600}
+                transitionSpeed={1400}
+                glareEnable={!reducido}
+                glareMaxOpacity={0.1}
+                glareColor="#FFE9A8"
+                glarePosition="all"
+                glareBorderRadius="30px"
+              >
+                <div className={"s2b-tm-mueble" + (fase === "girando" ? " is-girando" : "")}>
+                  <div className="s2b-tm-cuerpo">
+
+                    {/* la barra de arriba, como el HUD de una maquina: en vez de
+                        saldo y apuesta -que aca no existen- lleva las jugadas
+                        que quedan y el premio mayor */}
+                    <div className="s2b-tm-hud">
+                      <button className="s2b-tm-hud-btn" onClick={() => irA("home")}>{t("INICIO", "HOME")}</button>
+                      <span className="s2b-tm-hud-saldo">
+                        <Simbolo id="moneda" />
+                        <b>{libre ? "∞" : restantes}</b>
+                        <small>{libre ? t("modo prueba", "test mode") : t("jugadas", "spins")}</small>
+                      </span>
+                      <span className="s2b-tm-hud-jack">
+                        <Simbolo id="logo" />
+                        <em>{t("GRAN PREMIO", "JACKPOT")}</em>
+                        <b>30%</b>
+                      </span>
+                      <button
+                        className="s2b-tm-hud-ico"
+                        onClick={() => setSonando((v) => !v)}
+                        aria-pressed={sonando}
+                        aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
+                      >
+                        {sonando ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                      </button>
+                      <button
+                        className="s2b-tm-hud-ico"
+                        onClick={() => document.querySelector(".s2b-tm-tabla")?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                        aria-label={t("Ver la tabla de premios", "See the prize table")}
+                      >
+                        <Info size={16} />
+                      </button>
+                    </div>
+
+                    <div className="s2b-tm-rodillos">
+                      <div className="s2b-tm-rayos" aria-hidden="true" />
+                      <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
+                      <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
+                      <div className="s2b-tm-linea" aria-hidden="true" />
+
+                      <div className="s2b-tm-ventanas">
+                        {tiras.map((tira, i) => (
+                          <div className="s2b-tm-ventana" key={i}>
+                            <div
+                              className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
+                              style={{
+                                transform: `translateY(calc(var(--celda) * -${pos[i]}))`,
+                                transition: anim
+                                  ? `transform ${(reducido ? 120 : FRENOS[i]) / 1000}s cubic-bezier(.16,.72,.24,1)`
+                                  : "none",
+                              }}
+                            >
+                              {tira.map((sim, k) => (
+                                <div className="s2b-tm-celda" key={k}><Simbolo id={sim} /></div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* la botonera de abajo: las mismas cajas que una maquina,
+                        pero diciendo la verdad, porque aca no hay apuesta ni
+                        saldo que mover */}
+                    <div className="s2b-tm-barra">
+                      <div className="s2b-tm-caja">
+                        <small>{t("JUGADAS", "SPINS")}</small>
+                        <b>{libre ? "∞" : `${restantes} / ${TOPE}`}</b>
+                      </div>
+                      <div className="s2b-tm-caja s2b-tm-caja--win">
+                        <small>{t("PREMIO", "WIN")}</small>
+                        <b>{resultado?.premio?.id ? resultado.premio.monto : "—"}</b>
+                      </div>
+
+                      {restantes <= 0 && sincronizado ? (
+                        <button
+                          className="s2b-tm-spin s2b-tm-spin--visto"
+                          onClick={() => resultado && setAbierto(true)}
+                          disabled={!resultado}
+                        >
+                          <b>{ganados.length ? t("MIS PREMIOS", "MY PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
+                          <small>{ganados.length ? t("tocá para verlos", "tap to see them") : t("volvé en otro momento", "come back another time")}</small>
+                        </button>
+                      ) : (
+                        <motion.button
+                          className="s2b-tm-spin"
+                          onClick={girar}
+                          disabled={fase === "girando"}
+                          whileHover={reducido || fase === "girando" ? undefined : { scale: 1.03 }}
+                          whileTap={reducido || fase === "girando" ? undefined : { scale: 0.96 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 20 }}
+                        >
+                          <b>{fase === "girando" ? t("GIRANDO…", "SPINNING…") : t("GIRAR", "SPIN")}</b>
+                          <small>
+                            {libre
+                              ? t("modo prueba · sin tope", "test mode · no limit")
+                              : restantes === 1
+                                ? t("última jugada", "last spin")
+                                : t(`${restantes} jugadas gratis`, `${restantes} free spins`)}
+                          </small>
+                        </motion.button>
+                      )}
+                    </div>
+
+                    {error && <div className="s2b-tm-error" role="alert">{error}</div>}
+                  </div>
+                </div>
+              </Tilt>
+            </div>
 
             {/* lo que ya se gano, para que no haya que buscarlo en el chat */}
             {ganados.length > 0 && (
@@ -495,7 +568,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <tr key={p.id || "nada"} className={ganador === p.id && fase === "hecho" ? "is-ganado" : ""}>
                         <td>
                           {p.simbolo
-                            ? <span className="s2b-tm-tres"><Simbolo id={p.simbolo} /><Simbolo id={p.simbolo} /><Simbolo id={p.simbolo} /></span>
+                            ? <span className="s2b-tm-tres">
+                                {Array.from({ length: RODILLOS }).map((_, k) => <Simbolo key={k} id={p.simbolo} />)}
+                              </span>
                             : <span className="s2b-tm-nada">{t("Cualquier otra", "Any other")}</span>}
                         </td>
                         <td>{t(p.es, p.en)}</td>
@@ -622,15 +697,15 @@ const CSS_TM = `
 .s2b-tm-band {
   overflow:hidden;
   --oro1:#FFF6D0; --oro2:#F9D858; --oro3:#D09A1C; --oro4:#7C4E06;
-  --rojo1:#A81D33; --rojo2:#6B0F20; --rojo3:#370713; --rojo4:#1E040B;
+  --rojo1:#B8213B; --rojo2:#7A1024; --rojo3:#3D0714; --rojo4:#1E040B;
 }
 .s2b-tm-band::before {
   content:''; position:absolute; inset:-20% -10% auto -10%; height:130%; pointer-events:none;
   background:
-    radial-gradient(680px circle at 50% 34%, rgba(255,190,60,.2), transparent 62%),
-    radial-gradient(520px circle at 14% 8%, rgba(216,40,70,.18), transparent 64%),
-    conic-gradient(from 200deg at 72% 28%, transparent 0 44%, rgba(109,74,255,.3) 60%, rgba(167,140,255,.16) 74%, transparent 90%);
-  filter: blur(54px);
+    radial-gradient(760px circle at 50% 40%, rgba(255,180,50,.26), transparent 62%),
+    radial-gradient(560px circle at 12% 8%, rgba(216,40,70,.24), transparent 64%),
+    conic-gradient(from 200deg at 76% 26%, transparent 0 46%, rgba(109,74,255,.26) 62%, transparent 88%);
+  filter: blur(56px);
 }
 .s2b-tm-top { position:relative; text-align:center; display:grid; justify-items:center; }
 .s2b-tm-h2 { max-width:22ch; }
@@ -646,7 +721,7 @@ const CSS_TM = `
 
 .s2b-tm-sim--logo::before {
   content:''; position:absolute; inset:-16%; border-radius:50%; pointer-events:none;
-  background: radial-gradient(circle at 50% 44%, rgba(255,226,150,.75), rgba(255,170,40,.32) 48%, transparent 72%);
+  background: radial-gradient(circle at 50% 44%, rgba(255,226,150,.8), rgba(255,170,40,.34) 48%, transparent 72%);
 }
 .s2b-tm-sim--logo > img { position:relative; z-index:1;
   filter: drop-shadow(0 0 9px rgba(255,226,160,.95)) drop-shadow(0 4px 9px rgba(0,0,0,.7)); }
@@ -656,7 +731,7 @@ const CSS_TM = `
 .s2b-tm-jack { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px;
   padding:11px 13px; border-radius:14px;
   border:1px solid rgba(249,216,88,.38);
-  background:linear-gradient(160deg, rgba(168,29,51,.5), rgba(55,7,19,.72));
+  background:linear-gradient(160deg, rgba(184,33,59,.55), rgba(61,7,20,.78));
   box-shadow:inset 0 1px 0 rgba(255,246,208,.28), 0 10px 26px -16px rgba(0,0,0,.9); }
 .s2b-tm-jack .s2b-tm-sim { width:36px; height:36px; grid-row:span 2; }
 .s2b-tm-jack-rango { grid-column:1; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:var(--oro2); }
@@ -665,8 +740,8 @@ const CSS_TM = `
   -webkit-background-clip:text; background-clip:text; color:transparent;
   filter: drop-shadow(0 1px 0 rgba(0,0,0,.55)); }
 .s2b-tm-jack--logo { border-color:var(--oro2);
-  background:linear-gradient(160deg, rgba(208,154,28,.45), rgba(55,7,19,.8));
-  box-shadow:inset 0 1px 0 rgba(255,246,208,.45), 0 0 26px -8px rgba(249,216,88,.55); }
+  background:linear-gradient(160deg, rgba(208,154,28,.5), rgba(61,7,20,.82));
+  box-shadow:inset 0 1px 0 rgba(255,246,208,.45), 0 0 26px -8px rgba(249,216,88,.6); }
 .s2b-tm-jack--logo::after {
   content:''; position:absolute; inset:0; pointer-events:none;
   background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.34) 50%, transparent 64%);
@@ -675,84 +750,114 @@ const CSS_TM = `
 @keyframes s2b-tm-brillo { 0%,55%{transform:translateX(-120%)} 85%,100%{transform:translateX(120%)} }
 .s2b-tm-jack.is-ganado { border-color:#7FE3A8; box-shadow:0 0 0 1px #7FE3A8, 0 14px 40px -18px rgba(127,227,168,.8); }
 
+/* ---------- monedas sueltas ---------- */
+.s2b-tm-escena { position:relative; }
+.s2b-tm-monedas { position:absolute; inset:-6% -5%; pointer-events:none; z-index:3; }
+.s2b-tm-moneda { position:absolute; display:block; aspect-ratio:1; opacity:.92;
+  transform:rotate(var(--giro)); animation:s2b-tm-flotar 5.5s ease-in-out infinite;
+  animation-delay:var(--demora); filter:drop-shadow(0 8px 14px rgba(0,0,0,.6)); }
+.s2b-tm-moneda .s2b-tm-sim { width:100%; height:100%; }
+@keyframes s2b-tm-flotar {
+  50% { transform:rotate(var(--giro)) translateY(-12px) scale(1.05); }
+}
+
 /* ---------- el mueble ----------
    El marco dorado es una capa propia y no un border-image: asi lleva bisel
    adentro, resplandor afuera y esquinas redondeadas sin cortar el degrade. */
-.s2b-tm-tilt { position:relative; }
-.s2b-tm-mueble { position:relative; padding:clamp(8px,1.2vw,12px); border-radius:clamp(20px,2.6vw,30px);
-  background:linear-gradient(158deg, var(--oro1) 0%, var(--oro2) 18%, var(--oro4) 40%, var(--oro2) 58%, var(--oro3) 74%, var(--oro1) 100%);
+.s2b-tm-tilt { position:relative; z-index:2; }
+.s2b-tm-mueble { position:relative; padding:clamp(7px,1.1vw,11px); border-radius:clamp(20px,2.6vw,32px);
+  background:linear-gradient(158deg, var(--oro1) 0%, var(--oro2) 16%, var(--oro4) 38%, var(--oro2) 56%, var(--oro3) 72%, var(--oro1) 100%);
   box-shadow:
-    0 0 0 1px rgba(124,78,6,.85),
-    0 22px 60px -22px rgba(255,170,40,.5),
+    0 0 0 1px rgba(124,78,6,.9),
+    0 22px 70px -20px rgba(255,170,40,.55),
     0 60px 130px -50px rgba(0,0,0,.95); }
-.s2b-tm-cuerpo { position:relative; border-radius:clamp(14px,2vw,22px); padding:clamp(12px,2vw,20px);
-  background:linear-gradient(180deg, var(--rojo2) 0%, var(--rojo3) 58%, var(--rojo4) 100%);
-  box-shadow:inset 0 2px 0 rgba(0,0,0,.55), inset 0 -2px 0 rgba(255,246,208,.12); }
+.s2b-tm-cuerpo { position:relative; border-radius:clamp(14px,2vw,24px); padding:clamp(10px,1.6vw,16px);
+  background:linear-gradient(180deg, var(--rojo2) 0%, var(--rojo3) 56%, var(--rojo4) 100%);
+  box-shadow:inset 0 2px 0 rgba(0,0,0,.55), inset 0 -2px 0 rgba(255,246,208,.14); }
 
-.s2b-tm-luces { position:absolute; left:14px; right:14px; top:6px; pointer-events:none; display:flex; justify-content:space-between; }
-.s2b-tm-luces i { width:5px; height:5px; border-radius:50%; background:var(--oro1); opacity:.35;
-  animation:s2b-tm-luz 1.6s ease-in-out infinite; }
-@keyframes s2b-tm-luz { 50% { opacity:1; box-shadow:0 0 9px var(--oro2), 0 0 16px rgba(249,216,88,.7); } }
+/* ---------- la barra de arriba ---------- */
+.s2b-tm-hud { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:clamp(9px,1.3vw,13px); }
+.s2b .s2b-tm-hud-btn { padding:7px 14px; border-radius:9px; border:2px solid var(--oro4); color:#40100A;
+  font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.14em;
+  background:linear-gradient(180deg,var(--oro1),var(--oro2) 48%,var(--oro3));
+  box-shadow:0 3px 0 var(--oro4); transition:transform .12s, box-shadow .12s; }
+.s2b .s2b-tm-hud-btn:active { transform:translateY(2px); box-shadow:0 1px 0 var(--oro4); }
+.s2b-tm-hud-saldo, .s2b-tm-hud-jack { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:999px;
+  border:1px solid rgba(249,216,88,.45); background:rgba(0,0,0,.42); }
+.s2b-tm-hud-saldo .s2b-tm-sim, .s2b-tm-hud-jack .s2b-tm-sim { width:20px; height:20px; }
+.s2b-tm-hud-saldo b, .s2b-tm-hud-jack b { font-family:var(--display); font-size:15px; font-weight:700; color:var(--oro1); }
+.s2b-tm-hud-saldo small { font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:#D9B98A; }
+.s2b-tm-hud-jack { margin-left:auto; }
+.s2b-tm-hud-jack em { font-style:normal; font-family:var(--mono); font-size:9px; letter-spacing:.16em; color:var(--oro2); }
+.s2b .s2b-tm-hud-ico { width:32px; height:32px; flex:none; border-radius:9px; display:grid; place-items:center;
+  color:var(--oro2); border:1px solid rgba(249,216,88,.4); background:rgba(0,0,0,.42);
+  transition:color .2s, border-color .2s; }
+.s2b .s2b-tm-hud-ico:hover { color:#fff; border-color:var(--oro2); }
 
-/* el fieltro rojo, con el estallido de luz atras de los rodillos */
-.s2b-tm-rodillos { --celda: clamp(74px, 19vw, 116px);
-  position:relative; margin-top:14px; padding:clamp(9px,1.4vw,14px) clamp(22px,3.4vw,34px);
-  border-radius:16px; overflow:hidden;
-  background:radial-gradient(120% 90% at 50% 42%, var(--rojo1) 0%, var(--rojo2) 46%, var(--rojo4) 100%);
-  box-shadow:inset 0 0 0 2px rgba(208,154,28,.55), inset 0 6px 22px rgba(0,0,0,.7); }
-.s2b-tm-rayos { position:absolute; inset:-40%; pointer-events:none; opacity:.3;
+/* ---------- el fieltro rojo y los rodillos ---------- */
+.s2b-tm-rodillos { --celda: clamp(62px, 9.2vw, 116px);
+  position:relative; padding:clamp(8px,1.2vw,12px) clamp(20px,2.8vw,30px);
+  border-radius:14px; overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 42%, var(--rojo1) 0%, var(--rojo2) 44%, var(--rojo4) 100%);
+  box-shadow:inset 0 0 0 2px rgba(208,154,28,.6), inset 0 6px 22px rgba(0,0,0,.75); }
+.s2b-tm-rayos { position:absolute; inset:-40%; pointer-events:none; opacity:.34;
   background:repeating-conic-gradient(from 0deg at 50% 50%,
-    rgba(255,214,120,.42) 0deg 3deg, transparent 3deg 9deg);
+    rgba(255,214,120,.45) 0deg 3deg, transparent 3deg 9deg);
   animation:s2b-tm-girar 44s linear infinite; }
 @keyframes s2b-tm-girar { to { transform:rotate(360deg); } }
-.s2b-tm-mueble.is-girando .s2b-tm-rayos { opacity:.5; animation-duration:11s; }
+.s2b-tm-mueble.is-girando .s2b-tm-rayos { opacity:.55; animation-duration:10s; }
 
-/* los rieles de neon de los costados */
-.s2b-tm-riel { position:absolute; top:10px; bottom:10px; width:9px; border-radius:99px; pointer-events:none; z-index:1;
+.s2b-tm-riel { position:absolute; top:9px; bottom:9px; width:8px; border-radius:99px; pointer-events:none; z-index:2;
   background:linear-gradient(180deg,#FF3D7F,#FFD54A 22%,#7FE3A8 44%,#57C7F7 64%,#A78CFF 84%,#FF3D7F);
-  background-size:100% 220%; box-shadow:0 0 12px rgba(255,255,255,.5), inset 0 0 6px rgba(0,0,0,.4);
+  background-size:100% 220%; box-shadow:0 0 12px rgba(255,255,255,.55), inset 0 0 6px rgba(0,0,0,.45);
   animation:s2b-tm-neon 2.6s linear infinite; }
-.s2b-tm-riel--izq { left:8px; }
-.s2b-tm-riel--der { right:8px; }
+.s2b-tm-riel--izq { left:7px; }
+.s2b-tm-riel--der { right:7px; }
 @keyframes s2b-tm-neon { to { background-position:0 -220%; } }
-.s2b-tm-mueble.is-girando .s2b-tm-riel { animation-duration:.7s; }
+.s2b-tm-mueble.is-girando .s2b-tm-riel { animation-duration:.6s; }
 
-.s2b-tm-ventanas { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(6px,1vw,10px); }
-.s2b-tm-ventana { position:relative; height:calc(var(--celda) * 3); overflow:hidden; border-radius:10px;
-  background:linear-gradient(180deg,#2B0610,#13030A 50%,#2B0610);
-  box-shadow:inset 0 0 0 1px rgba(249,216,88,.35), inset 0 20px 26px -20px #000, inset 0 -20px 26px -20px #000; }
+.s2b-tm-ventanas { position:relative; z-index:1; display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(4px,.7vw,8px); }
+.s2b-tm-ventana { position:relative; height:calc(var(--celda) * 3); overflow:hidden; border-radius:8px;
+  background:linear-gradient(180deg,#34070F,#180309 50%,#34070F);
+  box-shadow:inset 0 0 0 1px rgba(249,216,88,.3), inset 0 18px 24px -18px #000, inset 0 -18px 24px -18px #000; }
 .s2b-tm-tira { display:block; will-change:transform; }
-.s2b-tm-tira.is-rodando { filter:blur(1.5px); }
-.s2b-tm-celda { height:var(--celda); display:grid; place-items:center; }
-.s2b-tm-celda .s2b-tm-sim { width:calc(var(--celda) * .72); height:calc(var(--celda) * .72); }
+.s2b-tm-tira.is-rodando { filter:blur(1.6px); }
+
+/* cada simbolo sobre su placa, como las fichas de una maquina de verdad */
+.s2b-tm-celda { position:relative; height:var(--celda); display:grid; place-items:center; }
+.s2b-tm-celda::before { content:''; position:absolute; inset:3px; border-radius:7px;
+  background:linear-gradient(180deg, rgba(184,33,59,.55), rgba(30,4,11,.6));
+  box-shadow:inset 0 0 0 1px rgba(249,216,88,.16); }
+.s2b-tm-celda .s2b-tm-sim { position:relative; z-index:1;
+  width:calc(var(--celda) * .74); height:calc(var(--celda) * .74); max-width:82%; }
 
 /* la linea que paga, en oro y por encima de todo */
-.s2b-tm-linea { position:absolute; left:clamp(14px,2.6vw,24px); right:clamp(14px,2.6vw,24px); top:50%;
-  height:calc(var(--celda) + 6px); transform:translateY(-50%); z-index:2; pointer-events:none; border-radius:8px;
+.s2b-tm-linea { position:absolute; left:clamp(13px,2.2vw,22px); right:clamp(13px,2.2vw,22px); top:50%;
+  height:calc(var(--celda) + 5px); transform:translateY(-50%); z-index:3; pointer-events:none; border-radius:7px;
   border-top:2px solid var(--oro2); border-bottom:2px solid var(--oro2);
-  box-shadow:0 0 14px rgba(249,216,88,.55), inset 0 0 30px rgba(249,216,88,.1); }
+  box-shadow:0 0 14px rgba(249,216,88,.6), inset 0 0 34px rgba(249,216,88,.1); }
 .s2b-tm-mueble.is-girando .s2b-tm-linea { animation:s2b-tm-late 1s ease-in-out infinite; }
-@keyframes s2b-tm-late { 50% { box-shadow:0 0 26px rgba(255,214,120,.95), inset 0 0 40px rgba(249,216,88,.22); } }
+@keyframes s2b-tm-late { 50% { box-shadow:0 0 28px rgba(255,214,120,.95), inset 0 0 44px rgba(249,216,88,.24); } }
 
-/* ---------- la botonera ---------- */
-.s2b-tm-barra { display:flex; align-items:center; gap:clamp(8px,1.4vw,14px); margin-top:clamp(12px,1.8vw,18px); }
-.s2b .s2b-tm-son { width:48px; height:48px; flex:none; border-radius:12px; display:grid; place-items:center;
-  color:#3A0B14; border:2px solid var(--oro4);
-  background:linear-gradient(180deg,var(--oro1),var(--oro2) 45%,var(--oro3));
-  box-shadow:0 4px 0 var(--oro4), 0 10px 20px -10px rgba(0,0,0,.9);
-  transition:transform .12s, box-shadow .12s; }
-.s2b .s2b-tm-son:hover { transform:translateY(-1px); }
-.s2b .s2b-tm-son:active { transform:translateY(3px); box-shadow:0 1px 0 var(--oro4); }
+/* ---------- la botonera de abajo ---------- */
+.s2b-tm-barra { display:flex; align-items:stretch; gap:clamp(7px,1.1vw,11px); margin-top:clamp(10px,1.5vw,15px); }
+.s2b-tm-caja { flex:1; min-width:0; display:grid; align-content:center; justify-items:center; gap:2px;
+  padding:8px 10px; border-radius:12px; text-align:center;
+  border:2px solid rgba(249,216,88,.5); background:linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.42));
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.7); }
+.s2b-tm-caja small { font-family:var(--mono); font-size:8.5px; letter-spacing:.16em; color:#D9B98A; }
+.s2b-tm-caja b { font-family:var(--display); font-size:clamp(15px,2.1vw,20px); font-weight:700; color:#fff; line-height:1.1; }
+.s2b-tm-caja--win b { color:var(--oro1); }
 
-.s2b .s2b-tm-spin { flex:1; min-height:64px; border-radius:16px; position:relative; overflow:hidden;
+.s2b .s2b-tm-spin { flex:1.9; min-height:62px; border-radius:14px; position:relative; overflow:hidden;
   display:grid; align-content:center; gap:1px; color:#fff; text-align:center;
   border:3px solid var(--oro2);
   background:linear-gradient(180deg,#7BE08F 0%,#35BE64 42%,#137A38 100%);
   box-shadow:0 5px 0 #0B5327, 0 16px 34px -14px rgba(19,122,56,.9), inset 0 1px 0 rgba(255,255,255,.5);
   transition:transform .12s, box-shadow .12s; }
-.s2b .s2b-tm-spin b { font-family:var(--display); font-size:clamp(19px,2.8vw,26px); font-weight:700; letter-spacing:.08em;
-  text-shadow:0 2px 0 rgba(0,0,0,.32); }
-.s2b .s2b-tm-spin small { font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; opacity:.85; }
+.s2b .s2b-tm-spin b { font-family:var(--display); font-size:clamp(18px,2.6vw,25px); font-weight:700; letter-spacing:.1em;
+  text-shadow:0 2px 0 rgba(0,0,0,.34); }
+.s2b .s2b-tm-spin small { font-family:var(--mono); font-size:9px; letter-spacing:.15em; text-transform:uppercase; opacity:.9; }
 .s2b .s2b-tm-spin::after { content:''; position:absolute; inset:0;
   background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.42) 50%, transparent 64%);
   transform:translateX(-120%); transition:transform .7s ease; }
@@ -763,24 +868,18 @@ const CSS_TM = `
   box-shadow:0 5px 0 #2A1277, 0 16px 34px -14px rgba(109,74,255,.9), inset 0 1px 0 rgba(255,255,255,.5); }
 .s2b .s2b-tm-spin--visto:active { box-shadow:0 1px 0 #2A1277; }
 
-.s2b-tm-fichas { display:inline-flex; align-items:center; gap:7px; flex:none; padding:9px 14px; border-radius:10px;
-  border:1px solid rgba(249,216,88,.4); background:rgba(0,0,0,.35);
-  font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--oro2); }
-.s2b-tm-fichas svg { color:var(--oro1); }
-.s2b-tm-fichas b { color:var(--oro1); font-size:13px; font-weight:600; }
-.s2b-tm-creditos { display:inline-flex; gap:3px; margin-left:3px; font-style:normal; }
-.s2b-tm-creditos em { width:7px; height:7px; border-radius:50%; background:rgba(249,216,88,.22); }
-.s2b-tm-creditos em.is-on { background:var(--oro2); box-shadow:0 0 7px var(--oro2); }
+.s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
+  color:#FFD9D9; background:rgba(255,60,60,.18); border:1px solid rgba(255,120,120,.45); }
 
 /* ---------- los codigos ganados ---------- */
 .s2b-tm-billetera { position:relative; margin-top:26px; padding:18px 20px; border-radius:20px;
-  border:1px solid rgba(249,216,88,.35); background:linear-gradient(160deg, rgba(168,29,51,.24), rgba(0,0,0,.28)); }
+  border:1px solid rgba(249,216,88,.35); background:linear-gradient(160deg, rgba(184,33,59,.26), rgba(0,0,0,.3)); }
 .s2b .s2b-tm-billetera h3 { display:flex; align-items:center; gap:9px; margin:0 0 14px; font-family:var(--mono);
   font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; }
 .s2b-tm-billetera h3 svg { color:var(--oro2); }
 .s2b-tm-billetera ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
 .s2b-tm-billetera li { display:flex; align-items:center; gap:13px; padding:11px 14px; border-radius:14px;
-  border:1px solid rgba(249,216,88,.22); background:rgba(0,0,0,.3); flex-wrap:wrap; }
+  border:1px solid rgba(249,216,88,.22); background:rgba(0,0,0,.34); flex-wrap:wrap; }
 .s2b-tm-billetera li .s2b-tm-sim { width:34px; height:34px; }
 .s2b-tm-billetera-txt { display:grid; gap:2px; flex:1; min-width:150px; }
 .s2b-tm-billetera-txt b { font-size:14px; color:#fff; font-weight:600; }
@@ -790,13 +889,11 @@ const CSS_TM = `
   letter-spacing:.1em; text-transform:uppercase; transition:background .2s, color .2s; }
 .s2b-tm-pedir:hover { background:var(--oro2); color:#3A0B14; }
 .s2b-tm-usado { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#7FE3A8; }
-.s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
-  color:#FFD9D9; background:rgba(255,60,60,.16); border:1px solid rgba(255,120,120,.45); }
 
 /* ---------- tabla y bases ---------- */
-.s2b-tm-abajo { position:relative; display:grid; gap:20px; margin-top:34px; }
+.s2b-tm-abajo { position:relative; display:grid; gap:20px; margin-top:26px; }
 .s2b-tm-tabla, .s2b-tm-bases { border:1px solid rgba(249,216,88,.22); border-radius:20px; padding:20px 22px;
-  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(0,0,0,.2)); }
+  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(0,0,0,.22)); }
 .s2b .s2b-tm-tabla h3, .s2b .s2b-tm-bases h3 { display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px;
   letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; margin:0 0 14px; }
 .s2b-tm-tabla h3 svg, .s2b-tm-bases h3 svg { color:var(--oro2); }
@@ -806,8 +903,8 @@ const CSS_TM = `
 .s2b-tm-tabla td { padding:11px 0; border-bottom:1px solid rgba(167,140,255,.1); font-size:14px; color:#D8D2EC; vertical-align:middle; }
 .s2b-tm-tabla tr:last-child td { border-bottom:none; }
 .s2b-tm-tabla tr.is-ganado td { color:#fff; background:linear-gradient(90deg, rgba(127,227,168,.16), transparent); }
-.s2b-tm-tres { display:inline-flex; gap:3px; }
-.s2b-tm-tres .s2b-tm-sim { width:27px; height:27px; }
+.s2b-tm-tres { display:inline-flex; gap:2px; }
+.s2b-tm-tres .s2b-tm-sim { width:23px; height:23px; }
 .s2b-tm-nada { font-family:var(--mono); font-size:11px; color:#7E7799; }
 .s2b-tm-prob { font-family:var(--mono); font-size:13px; color:var(--oro2); white-space:nowrap; }
 .s2b-tm-bases ul { list-style:none; margin:0; padding:0; display:grid; gap:11px; }
@@ -852,16 +949,29 @@ const CSS_TM = `
   .s2b-tm-marquesina { grid-template-columns:repeat(4,1fr); }
   .s2b-tm-abajo { grid-template-columns:1.15fr .85fr; }
 }
-@media (max-width: 520px) {
+/* En el celular cinco rodillos no entran con las monedas al lado: se sacan
+   las de los costados y el boton de girar se lleva su propia fila. */
+@media (max-width: 720px) {
+  .s2b-tm-monedas { display:none; }
+  .s2b-tm-hud-jack { margin-left:0; order:3; }
+  .s2b-tm-rodillos { padding-left:15px; padding-right:15px; }
+  .s2b-tm-riel { width:5px; left:5px; }
+  .s2b-tm-riel--der { left:auto; right:5px; }
   .s2b-tm-barra { flex-wrap:wrap; }
-  .s2b .s2b-tm-spin { order:-1; width:100%; flex:none; }
-  .s2b-tm-fichas { margin-left:auto; }
-  .s2b-tm-riel { width:6px; }
-  .s2b-tm-tabla, .s2b-tm-bases { padding:16px 15px; }
-  .s2b-tm-tabla td { font-size:13px; }
+  .s2b .s2b-tm-spin { order:-1; flex:none; width:100%; }
+}
+@media (max-width: 520px) {
+  /* cinco simbolos por fila no entran al lado del texto: se achican */
+  .s2b-tm-tres .s2b-tm-sim { width:16px; height:16px; }
+  .s2b-tm-tabla td { font-size:12.5px; padding:9px 0; }
+  .s2b-tm-prob { font-size:11.5px; }
+}
+@media (max-width: 420px) {
+  .s2b-tm-hud-saldo small { display:none; }
+  .s2b-tm-tabla, .s2b-tm-bases { padding:16px 13px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .s2b-tm-luces i, .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
-  .s2b-tm-rayos, .s2b-tm-riel { animation:none !important; }
+  .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
+  .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda { animation:none !important; }
 }
 `;
