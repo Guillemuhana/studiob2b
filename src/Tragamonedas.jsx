@@ -5,6 +5,7 @@ import confetti from "canvas-confetti";
 import Tilt from "react-parallax-tilt";
 import {
   Volume2, VolumeX, X, Copy, Check, ArrowRight, ArrowLeft, Sparkles, Info, ShieldCheck, Clock,
+  RotateCw, Gift,
 } from "lucide-react";
 
 import {
@@ -495,26 +496,22 @@ export default function Tragamonedas({ t, waLink, irA }) {
                           onClick={() => resultado && setAbierto(true)}
                           disabled={!resultado}
                         >
-                          <b>{ganados.length ? t("MIS PREMIOS", "MY PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
-                          <small>{ganados.length ? t("tocá para verlos", "tap to see them") : t("volvé en otro momento", "come back another time")}</small>
+                          <Gift className="s2b-tm-spin-ico" aria-hidden="true" />
+                          <b>{ganados.length ? t("PREMIOS", "PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
                         </button>
                       ) : (
                         <motion.button
-                          className="s2b-tm-spin"
+                          className={"s2b-tm-spin" + (fase === "girando" ? " is-girando" : "")}
                           onClick={girar}
                           disabled={fase === "girando"}
-                          whileHover={reducido || fase === "girando" ? undefined : { scale: 1.03 }}
-                          whileTap={reducido || fase === "girando" ? undefined : { scale: 0.96 }}
+                          whileHover={reducido || fase === "girando" ? undefined : { scale: 1.04 }}
+                          whileTap={reducido || fase === "girando" ? undefined : { scale: 0.94 }}
                           transition={{ type: "spring", stiffness: 420, damping: 20 }}
+                          aria-label={t("Girar", "Spin")}
                         >
-                          <b>{fase === "girando" ? t("GIRANDO…", "SPINNING…") : t("GIRAR", "SPIN")}</b>
-                          <small>
-                            {libre
-                              ? t("modo prueba · sin tope", "test mode · no limit")
-                              : restantes === 1
-                                ? t("última jugada", "last spin")
-                                : t(`${restantes} jugadas gratis`, `${restantes} free spins`)}
-                          </small>
+                          {/* las flechas dan la vuelta mientras los rodillos giran */}
+                          <RotateCw className="s2b-tm-spin-ico" aria-hidden="true" />
+                          <b>{fase === "girando" ? "…" : t("GIRAR", "SPIN")}</b>
                         </motion.button>
                       )}
                     </div>
@@ -841,7 +838,9 @@ const CSS_TM = `
 
 /* ---------- la botonera de abajo ---------- */
 .s2b-tm-barra { display:flex; align-items:stretch; gap:clamp(7px,1.1vw,11px); margin-top:clamp(10px,1.5vw,15px); }
-.s2b-tm-caja { flex:1; min-width:0; display:grid; align-content:center; justify-items:center; gap:2px;
+/* las cajas no se estiran a lo ancho del mueble: quedan a la izquierda, como
+   en una maquina, y el boton redondo se va solo contra el borde derecho */
+.s2b-tm-caja { flex:0 1 210px; min-width:0; display:grid; align-content:center; justify-items:center; gap:2px;
   padding:8px 10px; border-radius:12px; text-align:center;
   border:2px solid rgba(249,216,88,.5); background:linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.42));
   box-shadow:inset 0 2px 8px rgba(0,0,0,.7); }
@@ -849,24 +848,51 @@ const CSS_TM = `
 .s2b-tm-caja b { font-family:var(--display); font-size:clamp(15px,2.1vw,20px); font-weight:700; color:#fff; line-height:1.1; }
 .s2b-tm-caja--win b { color:var(--oro1); }
 
-.s2b .s2b-tm-spin { flex:1.9; min-height:62px; border-radius:14px; position:relative; overflow:hidden;
-  display:grid; align-content:center; gap:1px; color:#fff; text-align:center;
-  border:3px solid var(--oro2);
-  background:linear-gradient(180deg,#7BE08F 0%,#35BE64 42%,#137A38 100%);
-  box-shadow:0 5px 0 #0B5327, 0 16px 34px -14px rgba(19,122,56,.9), inset 0 1px 0 rgba(255,255,255,.5);
-  transition:transform .12s, box-shadow .12s; }
-.s2b .s2b-tm-spin b { font-family:var(--display); font-size:clamp(18px,2.6vw,25px); font-weight:700; letter-spacing:.1em;
-  text-shadow:0 2px 0 rgba(0,0,0,.34); }
-.s2b .s2b-tm-spin small { font-family:var(--mono); font-size:9px; letter-spacing:.15em; text-transform:uppercase; opacity:.9; }
-.s2b .s2b-tm-spin::after { content:''; position:absolute; inset:0;
-  background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.42) 50%, transparent 64%);
-  transform:translateX(-120%); transition:transform .7s ease; }
-.s2b .s2b-tm-spin:hover::after { transform:translateX(120%); }
-.s2b .s2b-tm-spin:active { transform:translateY(4px); box-shadow:0 1px 0 #0B5327; }
-.s2b .s2b-tm-spin:disabled { opacity:.68; cursor:progress; transform:none; }
-.s2b .s2b-tm-spin--visto { background:linear-gradient(180deg,#C9A6FF 0%,#7B54F0 42%,#3F1FA8 100%);
-  box-shadow:0 5px 0 #2A1277, 0 16px 34px -14px rgba(109,74,255,.9), inset 0 1px 0 rgba(255,255,255,.5); }
-.s2b .s2b-tm-spin--visto:active { box-shadow:0 1px 0 #2A1277; }
+/* El boton redondo de las maquinas: verde vidriado con el aro de oro hecho a
+   base de box-shadow apilado -un border no da tres anillos- y la base oscura
+   de abajo, que es lo que lo hace parecer un boton fisico que se hunde. */
+.s2b .s2b-tm-spin { flex:none; margin-left:auto; width:clamp(84px,12.5vw,124px); aspect-ratio:1; border-radius:50%;
+  position:relative; display:grid; place-items:center; color:#fff; padding:0;
+  background:radial-gradient(circle at 50% 26%, #9CF0AE 0%, #4FD07C 32%, #24A755 60%, #0D6B31 100%);
+  box-shadow:
+    0 0 0 3px var(--oro3),
+    0 0 0 6px var(--oro2),
+    0 0 0 8px var(--oro4),
+    0 9px 0 -2px #083F1F,
+    0 22px 38px -12px rgba(0,0,0,.95),
+    inset 0 5px 12px rgba(255,255,255,.55),
+    inset 0 -12px 18px rgba(0,0,0,.4);
+  transition:transform .12s, box-shadow .12s, filter .2s; }
+.s2b .s2b-tm-spin b { position:relative; z-index:2; font-family:var(--display);
+  font-size:clamp(13px,1.7vw,17px); font-weight:700; letter-spacing:.09em;
+  text-shadow:0 2px 3px rgba(0,0,0,.5); }
+.s2b-tm-spin-ico { position:absolute; z-index:1; width:76%; height:76%; stroke-width:1.1;
+  color:rgba(255,255,255,.5); }
+.s2b .s2b-tm-spin.is-girando .s2b-tm-spin-ico { animation:s2b-tm-vuelta .9s linear infinite; }
+@keyframes s2b-tm-vuelta { to { transform:rotate(360deg); } }
+.s2b .s2b-tm-spin:hover { filter:brightness(1.08); }
+.s2b .s2b-tm-spin:active {
+  transform:translateY(7px);
+  box-shadow:
+    0 0 0 3px var(--oro3),
+    0 0 0 6px var(--oro2),
+    0 0 0 8px var(--oro4),
+    0 2px 0 -2px #083F1F,
+    0 8px 16px -8px rgba(0,0,0,.9),
+    inset 0 5px 12px rgba(255,255,255,.4),
+    inset 0 -12px 18px rgba(0,0,0,.45); }
+.s2b .s2b-tm-spin:disabled { cursor:progress; }
+.s2b .s2b-tm-spin--visto {
+  background:radial-gradient(circle at 50% 26%, #DCC9FF 0%, #A98BFF 32%, #7B54F0 60%, #3F1FA8 100%);
+  box-shadow:
+    0 0 0 3px var(--oro3),
+    0 0 0 6px var(--oro2),
+    0 0 0 8px var(--oro4),
+    0 9px 0 -2px #2A1277,
+    0 22px 38px -12px rgba(0,0,0,.95),
+    inset 0 5px 12px rgba(255,255,255,.55),
+    inset 0 -12px 18px rgba(0,0,0,.4); }
+.s2b .s2b-tm-spin--visto:active { transform:translateY(7px); }
 
 .s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
   color:#FFD9D9; background:rgba(255,60,60,.18); border:1px solid rgba(255,120,120,.45); }
@@ -957,8 +983,8 @@ const CSS_TM = `
   .s2b-tm-rodillos { padding-left:15px; padding-right:15px; }
   .s2b-tm-riel { width:5px; left:5px; }
   .s2b-tm-riel--der { left:auto; right:5px; }
-  .s2b-tm-barra { flex-wrap:wrap; }
-  .s2b .s2b-tm-spin { order:-1; flex:none; width:100%; }
+  /* el boton redondo ya entra al lado de las cajas, no necesita fila propia */
+  .s2b-tm-caja { padding:7px 8px; }
 }
 @media (max-width: 520px) {
   /* cinco simbolos por fila no entran al lado del texto: se achican */
@@ -972,6 +998,6 @@ const CSS_TM = `
 }
 @media (prefers-reduced-motion: reduce) {
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
-  .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda { animation:none !important; }
+  .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
 }
 `;
