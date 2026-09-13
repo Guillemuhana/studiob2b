@@ -72,7 +72,11 @@ export const PREMIOS = [
   },
   {
     id: "giro",
+    /* simbolo en null a proposito: este premio no lo paga un simbolo sino una
+       linea cruzada, y grillaDe() usa simbolo para saber que armar. Para
+       mostrarlo en pantalla va icono, que es solo dibujo. */
     simbolo: null,
+    icono: "giro",
     peso: 12,
     rango: "BONUS",
     monto: "+1",

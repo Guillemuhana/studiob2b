@@ -263,6 +263,22 @@ const DIBUJOS = {
     </svg>
   ),
 
+  /* Otro intento: la flecha que vuelve. No es un simbolo de rodillo, solo
+     sirve para mostrar el premio en la marquesina y en la tabla. */
+  giro: (
+    <svg viewBox="0 0 64 64">
+      <path d="M32 9 A23 23 0 1 1 12.5 20.5" fill="none" stroke="#7A4E04" strokeOpacity=".5"
+        strokeWidth="8.5" strokeLinecap="round" transform="translate(1.2,2)" />
+      <path d="M32 9 A23 23 0 1 1 12.5 20.5" fill="none" stroke="url(#tmOroTapa)"
+        strokeWidth="7.5" strokeLinecap="round" />
+      <path d="M32 9 A23 23 0 1 1 12.5 20.5" fill="none" stroke="#FFFDF0" strokeOpacity=".55"
+        strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M31 1 L45 9.5 L31 18 Z" fill="#7A4E04" opacity=".5" transform="translate(1.2,2)" />
+      <path d="M31 1 L45 9.5 L31 18 Z" fill="url(#tmOroTapa)" stroke="#FFF9E2" strokeOpacity=".7" strokeWidth="1.2" strokeLinejoin="round" />
+      <Destello x={48} y={44} r={5.5} o={0.85} />
+    </svg>
+  ),
+
   /* Estrella facetada: cada punta partida en dos caras, una a la luz y otra
      a la sombra. Una estrella de un solo color es una calcomania. */
   estrella: (
@@ -531,6 +547,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
     }, (reducido ? 260 : ULTIMO_FRENO) + 420));
   }, [fase, son, festejar, reducido, t]);
 
+  /* Con el premio abierto el fondo se queda quieto: en el celular, si no, el
+     dedo mueve la pagina de atras y la tarjeta parece trabada. Se guarda el
+     valor anterior en vez de asumir que era "", que es como se rompe el
+     scroll cuando dos cosas hacen lo mismo. */
+  useEffect(() => {
+    if (!abierto) return;
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = antes; };
+  }, [abierto]);
+
   const copiar = async () => {
     if (!resultado?.codigo) return;
     try {
@@ -584,7 +611,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 >
                   <span className="s2b-tm-jack-rango">{p.rango}</span>
                   <span className="s2b-tm-jack-monto">{p.monto}</span>
-                  <Simbolo id={p.simbolo} />
+                  <Simbolo id={p.simbolo || p.icono} />
                 </motion.div>
               ))}
             </div>
@@ -698,32 +725,35 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         <b>{resultado?.premio?.id ? resultado.premio.monto : "—"}</b>
                       </div>
 
-                      {restantes <= 0 && sincronizado && !sinTope ? (
-                        <button
-                          className="s2b-tm-spin s2b-tm-spin--visto"
-                          onClick={() => resultado && setAbierto(true)}
-                          disabled={!resultado}
-                        >
-                          <Gift className="s2b-tm-spin-ico" aria-hidden="true" />
-                          <b>{ganados.length ? t("PREMIOS", "PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
-                          <i className="s2b-tm-spin-vidrio" aria-hidden="true" />
-                        </button>
-                      ) : (
-                        <motion.button
-                          className={"s2b-tm-spin" + (fase === "girando" ? " is-girando" : "")}
-                          onClick={girar}
-                          disabled={fase === "girando"}
-                          whileHover={reducido || fase === "girando" ? undefined : { scale: 1.04 }}
-                          whileTap={reducido || fase === "girando" ? undefined : { scale: 0.94 }}
-                          transition={{ type: "spring", stiffness: 420, damping: 20 }}
-                          aria-label={t("Girar", "Spin")}
-                        >
-                          {/* las flechas dan la vuelta mientras los rodillos giran */}
-                          <RotateCw className="s2b-tm-spin-ico" aria-hidden="true" />
-                          <b>{fase === "girando" ? "…" : t("GIRAR", "SPIN")}</b>
-                          <i className="s2b-tm-spin-vidrio" aria-hidden="true" />
-                        </motion.button>
-                      )}
+                      {/* El boton va metido en su zocalo: el aro de oro y el
+                          pozo oscuro se quedan quietos y lo unico que baja al
+                          apretar es la tapa. Un circulo suelto que se mueve
+                          entero no parece un boton, parece una calcomania. */}
+                      <div className={"s2b-tm-zocalo" + (fase === "girando" ? " is-girando" : "")}>
+                        {restantes <= 0 && sincronizado && !sinTope ? (
+                          <button
+                            className="s2b-tm-spin s2b-tm-spin--visto"
+                            onClick={() => resultado && setAbierto(true)}
+                            disabled={!resultado}
+                          >
+                            <i className="s2b-tm-spin-brillo" aria-hidden="true" />
+                            <Gift className="s2b-tm-spin-ico" aria-hidden="true" />
+                            <b>{ganados.length ? t("PREMIOS", "PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
+                          </button>
+                        ) : (
+                          <button
+                            className={"s2b-tm-spin" + (fase === "girando" ? " is-girando" : "")}
+                            onClick={girar}
+                            disabled={fase === "girando"}
+                            aria-label={t("Girar", "Spin")}
+                          >
+                            <i className="s2b-tm-spin-brillo" aria-hidden="true" />
+                            {/* las flechas dan la vuelta mientras los rodillos giran */}
+                            <RotateCw className="s2b-tm-spin-ico" aria-hidden="true" />
+                            <b>{fase === "girando" ? "…" : t("GIRAR", "SPIN")}</b>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {error && <div className="s2b-tm-error" role="alert">{error}</div>}
@@ -862,7 +892,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                   <div className="s2b-tm-premio-in">
                   {resultado.premio.id ? (
                     <>
-                      <div className="s2b-tm-premio-sim"><Simbolo id={resultado.premio.simbolo} /></div>
+                      <div className="s2b-tm-premio-sim"><Simbolo id={resultado.premio.simbolo || resultado.premio.icono} /></div>
                       <span className="s2b-tm-premio-rango">{resultado.premio.rango}</span>
                       <h3 className="s2b-tm-premio-tit">{t(resultado.premio.es, resultado.premio.en)}</h3>
                       <p className="s2b-tm-premio-det">{t(resultado.premio.detalle_es, resultado.premio.detalle_en)}</p>
@@ -973,6 +1003,9 @@ const CSS_TM = `
   background:linear-gradient(180deg,var(--oro1) 6%,var(--oro2) 42%,var(--oro3) 74%,var(--oro1));
   -webkit-background-clip:text; background-clip:text; color:transparent;
   filter: drop-shadow(0 1px 0 rgba(0,0,0,.55)); }
+.s2b-tm-jack--giro { border-color:rgba(126,240,168,.45);
+  background:linear-gradient(160deg, rgba(20,120,64,.34), rgba(61,7,20,.78)); }
+.s2b-tm-jack--giro .s2b-tm-jack-rango { color:#8FEAB0; }
 .s2b-tm-jack--logo { border-color:var(--oro2);
   background:linear-gradient(160deg, rgba(208,154,28,.5), rgba(61,7,20,.82));
   box-shadow:inset 0 1px 0 rgba(255,246,208,.45), 0 0 26px -8px rgba(249,216,88,.6); }
@@ -999,7 +1032,7 @@ const CSS_TM = `
    El marco dorado es una capa propia y no un border-image: asi lleva bisel
    adentro, resplandor afuera y esquinas redondeadas sin cortar el degrade. */
 .s2b-tm-tilt { position:relative; z-index:2; }
-.s2b-tm-mueble { position:relative; padding:clamp(7px,1.1vw,11px); border-radius:clamp(20px,2.6vw,32px);
+.s2b-tm-mueble { position:relative; contain:paint; padding:clamp(7px,1.1vw,11px); border-radius:clamp(20px,2.6vw,32px);
   background:linear-gradient(158deg, var(--oro1) 0%, var(--oro2) 16%, var(--oro4) 38%, var(--oro2) 56%, var(--oro3) 72%, var(--oro1) 100%);
   box-shadow:
     0 0 0 1px rgba(124,78,6,.9),
@@ -1040,9 +1073,11 @@ const CSS_TM = `
 .s2b-tm-rayos { position:absolute; inset:-40%; pointer-events:none; opacity:.34;
   background:repeating-conic-gradient(from 0deg at 50% 50%,
     rgba(255,214,120,.45) 0deg 3deg, transparent 3deg 9deg);
-  animation:s2b-tm-girar 44s linear infinite; }
-@keyframes s2b-tm-girar { to { transform:rotate(360deg); } }
-.s2b-tm-mueble.is-girando .s2b-tm-rayos { opacity:.55; animation-duration:10s; }
+  transform:rotate(8deg); }
+@keyframes s2b-tm-girar { to { transform:rotate(368deg); } }
+/* gira solo mientras la maquina gira, y en su propia capa */
+.s2b-tm-mueble.is-girando .s2b-tm-rayos { opacity:.55; will-change:transform;
+  animation:s2b-tm-girar 10s linear infinite; }
 
 /* Los rieles son LEDs sueltos, no un degrade corrido: el corte duro entre
    color y color es lo que los hace leer como lamparitas. El negro de abajo es
@@ -1058,12 +1093,11 @@ const CSS_TM = `
       #A96BFF 68px 81px, transparent 81px 85px),
     linear-gradient(180deg, #16020A, #16020A);
   background-size:100% 85px, 100% 100%;
-  box-shadow:0 0 14px rgba(255,255,255,.55), 0 0 26px rgba(255,120,190,.35), inset 0 0 5px rgba(0,0,0,.6);
-  animation:s2b-tm-neon 1.9s linear infinite; }
+  box-shadow:0 0 14px rgba(255,255,255,.55), 0 0 26px rgba(255,120,190,.35), inset 0 0 5px rgba(0,0,0,.6); }
 .s2b-tm-riel--izq { left:clamp(4px,.8vw,7px); }
 .s2b-tm-riel--der { right:clamp(4px,.8vw,7px); }
 @keyframes s2b-tm-neon { to { background-position:0 -85px, 0 0; } }
-.s2b-tm-mueble.is-girando .s2b-tm-riel { animation-duration:.5s; }
+.s2b-tm-mueble.is-girando .s2b-tm-riel { animation:s2b-tm-neon .5s linear infinite; }
 
 /* sin gap: las ventanas se tocan y lo que separa es la columna dorada, como
    en el mueble de verdad */
@@ -1125,55 +1159,91 @@ const CSS_TM = `
   white-space:nowrap; text-shadow:0 0 12px rgba(255,214,120,.35); }
 .s2b-tm-caja--win b { color:var(--oro1); }
 
-/* El boton redondo de las maquinas: el aro de oro son tres box-shadow
-   apilados -un border no da tres anillos- y la base oscura de abajo es la que
-   lo hace parecer un boton fisico que se hunde. */
-.s2b .s2b-tm-spin { flex:none; margin-left:auto; width:clamp(74px,19vw,134px); aspect-ratio:1; border-radius:50%;
-  position:relative; display:grid; place-items:center; color:#fff; padding:0; overflow:hidden;
-  background:radial-gradient(circle at 50% 24%, #A9F5B9 0%, #57D684 30%, #23A755 58%, #0A5E2A 100%);
+/* ---------- el boton de girar ----------
+   Son tres piezas y no una: el aro de oro (zocalo), el pozo oscuro donde
+   apoya (::before) y la tapa (el button). Al apretar baja solo la tapa,
+   dentro del pozo, y su pared lateral se achica. Eso es lo que hace que se
+   lea como un boton fisico y no como un circulo que se mueve entero. */
+.s2b-tm-zocalo { position:relative; flex:none; margin-left:auto;
+  width:clamp(80px,20vw,146px); aspect-ratio:1; border-radius:50%;
+  padding:clamp(6px,1.1vw,10px);
+  background:linear-gradient(160deg, var(--oro1) 0%, var(--oro2) 16%, var(--oro4) 42%, var(--oro2) 62%, var(--oro3) 78%, var(--oro1) 100%);
   box-shadow:
-    0 0 0 3px var(--oro3),
-    0 0 0 6px var(--oro2),
-    0 0 0 8px var(--oro4),
-    0 9px 0 -2px #06371B,
-    0 24px 42px -12px rgba(0,0,0,.95),
-    0 0 34px -4px rgba(90,230,140,.55),
-    inset 0 -14px 20px rgba(0,0,0,.45);
-  transition:transform .12s, box-shadow .12s, filter .2s; }
+    0 0 0 1px rgba(92,58,4,.95),
+    0 3px 0 rgba(92,58,4,.7),
+    0 16px 30px -12px rgba(0,0,0,.95); }
+/* el pozo: sombra hacia adentro para que la tapa parezca metida */
+.s2b-tm-zocalo::before { content:''; position:absolute; inset:clamp(5px,.9vw,8px); border-radius:50%;
+  background:radial-gradient(circle at 50% 40%, #2A1806, #0B0602 78%);
+  box-shadow:inset 0 5px 9px rgba(0,0,0,.95), inset 0 -2px 3px rgba(255,246,208,.22); }
+
+.s2b .s2b-tm-spin { position:relative; width:100%; height:100%; border-radius:50%; padding:0;
+  display:grid; place-items:center; color:#EAFFF0; overflow:hidden;
+  background:
+    /* el rebote de luz que sube desde el borde de abajo */
+    radial-gradient(circle at 50% 116%, rgba(190,255,214,.5), transparent 46%),
+    /* la cupula */
+    radial-gradient(circle at 50% 16%, #D3FFE0 0%, #82EEA9 18%, #3FCB77 46%, #17924A 74%, #0A5A2B 100%);
+  box-shadow:
+    inset 0 -12px 18px rgba(0,0,0,.42),
+    inset 0 3px 4px rgba(255,255,255,.55),
+    0 7px 0 -1px #073F1E,
+    0 12px 20px -6px rgba(0,0,0,.85),
+    0 0 30px -6px rgba(90,230,140,.55);
+  transition:transform .1s ease-out, box-shadow .1s ease-out, filter .2s; }
 .s2b .s2b-tm-spin b { position:relative; z-index:3; font-family:var(--display);
-  font-size:clamp(11px,2.6vw,19px); font-weight:700; letter-spacing:.08em;
-  text-shadow:0 2px 4px rgba(0,0,0,.65); }
-.s2b-tm-spin-ico { position:absolute; z-index:2; width:78%; height:78%; stroke-width:1.1;
-  color:rgba(255,255,255,.55); }
+  font-size:clamp(11px,2.4vw,18px); font-weight:700; letter-spacing:.1em;
+  /* grabado: sombra arriba, luz abajo */
+  text-shadow:0 -1px 1px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.3), 0 2px 5px rgba(0,0,0,.4); }
+.s2b-tm-spin-ico { position:absolute; z-index:2; width:76%; height:76%; stroke-width:1.05;
+  color:rgba(255,255,255,.45); }
 .s2b .s2b-tm-spin.is-girando .s2b-tm-spin-ico { animation:s2b-tm-vuelta .8s linear infinite; }
 @keyframes s2b-tm-vuelta { to { transform:rotate(360deg); } }
-/* el reflejo de vidrio: una elipse clara arriba, que es lo que convierte un
-   circulo plano en un boton con volumen */
-.s2b-tm-spin-vidrio { position:absolute; z-index:1; top:5%; left:12%; right:12%; height:44%;
+
+/* el reflejo: una elipse arriba, mas angosta que el boton, con el borde
+   difuminado. Una elipse de borde duro se ve pegada encima; esta se funde. */
+.s2b-tm-spin-brillo { position:absolute; z-index:1; top:6%; left:16%; right:16%; height:38%;
   border-radius:50%; pointer-events:none;
-  background:linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.08) 70%, transparent); }
-.s2b .s2b-tm-spin:hover { filter:brightness(1.1); }
-.s2b .s2b-tm-spin:active {
-  transform:translateY(7px);
+  background:radial-gradient(ellipse at 50% 100%, rgba(255,255,255,.85), rgba(255,255,255,.28) 52%, transparent 72%);
+  filter:blur(.5px); }
+
+.s2b .s2b-tm-spin:hover { filter:brightness(1.07); }
+.s2b .s2b-tm-spin:active,
+.s2b .s2b-tm-spin.is-girando {
+  transform:translateY(6px);
   box-shadow:
-    0 0 0 3px var(--oro3),
-    0 0 0 6px var(--oro2),
-    0 0 0 8px var(--oro4),
-    0 2px 0 -2px #06371B,
-    0 8px 16px -8px rgba(0,0,0,.9),
-    inset 0 -14px 20px rgba(0,0,0,.5); }
-.s2b .s2b-tm-spin:disabled { cursor:progress; }
+    inset 0 -8px 14px rgba(0,0,0,.55),
+    inset 0 6px 12px rgba(0,0,0,.4),
+    inset 0 1px 2px rgba(255,255,255,.3),
+    0 1px 0 -1px #073F1E,
+    0 3px 7px -3px rgba(0,0,0,.9); }
+.s2b .s2b-tm-spin.is-girando { cursor:progress; }
+.s2b .s2b-tm-spin:disabled { cursor:not-allowed; }
+
+/* mientras se puede apretar, el aro respira: es la invitacion */
+.s2b-tm-zocalo::after { content:''; position:absolute; inset:-5px; border-radius:50%; pointer-events:none;
+  box-shadow:0 0 0 2px rgba(126,240,168,.5), 0 0 22px 3px rgba(90,230,140,.4);
+  opacity:0; animation:s2b-tm-respira 2.4s ease-in-out infinite; }
+.s2b-tm-zocalo.is-girando::after { animation:none; opacity:0; }
+@keyframes s2b-tm-respira { 0%,100% { opacity:0; transform:scale(.97); } 50% { opacity:.85; transform:scale(1.02); } }
+
 .s2b .s2b-tm-spin--visto {
-  background:radial-gradient(circle at 50% 24%, #E3D3FF 0%, #B197FF 30%, #7B54F0 58%, #33188C 100%);
+  background:
+    radial-gradient(circle at 50% 116%, rgba(226,210,255,.5), transparent 46%),
+    radial-gradient(circle at 50% 16%, #EFE6FF 0%, #C0A8FF 18%, #8E68F5 46%, #5730C4 74%, #2F1780 100%);
   box-shadow:
-    0 0 0 3px var(--oro3),
-    0 0 0 6px var(--oro2),
-    0 0 0 8px var(--oro4),
-    0 9px 0 -2px #24106A,
-    0 24px 42px -12px rgba(0,0,0,.95),
-    0 0 34px -4px rgba(150,110,255,.55),
-    inset 0 -14px 20px rgba(0,0,0,.45); }
-.s2b .s2b-tm-spin--visto:active { transform:translateY(7px); }
+    inset 0 -12px 18px rgba(0,0,0,.42),
+    inset 0 3px 4px rgba(255,255,255,.55),
+    0 7px 0 -1px #23106B,
+    0 12px 20px -6px rgba(0,0,0,.85),
+    0 0 30px -6px rgba(150,110,255,.55); }
+.s2b .s2b-tm-spin--visto:active {
+  box-shadow:
+    inset 0 -8px 14px rgba(0,0,0,.55),
+    inset 0 6px 12px rgba(0,0,0,.4),
+    inset 0 1px 2px rgba(255,255,255,.3),
+    0 1px 0 -1px #23106B,
+    0 3px 7px -3px rgba(0,0,0,.9); }
 
 .s2b-tm-aviso { margin-top:10px; padding:9px 14px; border-radius:11px; text-align:center;
   font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
@@ -1228,11 +1298,15 @@ const CSS_TM = `
 .s2b-tm-volver { margin-top:18px; }
 
 /* ---------- el premio ---------- */
-.s2b-tm-tras { position:fixed; inset:0; z-index:125; display:grid; place-items:center; padding:18px;
+/* align-items:start + margin:auto en la tarjeta: centrada cuando entra,
+   scrolleable cuando no. Con place-items:center una tarjeta mas alta que la
+   pantalla se corta arriba y abajo y no hay forma de llegar al boton. */
+.s2b-tm-tras { position:fixed; inset:0; z-index:125; display:grid; justify-items:center; align-items:start;
+  overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:18px;
   --title:#FFFFFF; --text:#C9C2E6; --muted:#9E97C4; color:var(--text);
   --oro1:#FFF6D0; --oro2:#F9D858; --oro3:#D09A1C; --oro4:#7C4E06;
   background:rgba(5,3,14,.76); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
-.s2b-tm-premio { position:relative; width:min(470px,100%); text-align:center; padding:38px 30px 30px; border-radius:26px;
+.s2b-tm-premio { position:relative; width:min(470px,100%); margin:auto; text-align:center; padding:38px 30px 30px; border-radius:26px;
   border:1px solid rgba(167,140,255,.3); background:linear-gradient(168deg,#1B0F44,#0A0620 70%); overflow:hidden;
   box-shadow:0 60px 140px -50px rgba(0,0,0,.95); }
 .s2b-tm-premio.is-gano { border:2px solid var(--oro2);
@@ -1275,6 +1349,10 @@ const CSS_TM = `
 
 /* Tablet y celular grande: se achica el marco y se recuperan los costados. */
 @media (max-width: 760px) {
+  /* Un filter: blur() sobre una capa del tamano de la pantalla se recalcula
+     en cada cuadro de scroll. Los degrades ya salen suaves solos; el blur
+     costaba mas de lo que aportaba. */
+  .s2b-tm-band::before { filter:none; opacity:.75; }
   .s2b-tm-monedas { display:none; }
   .s2b-tm-hud-jack { margin-left:0; order:3; }
   .s2b-tm-mueble { padding:7px; }
@@ -1285,6 +1363,15 @@ const CSS_TM = `
    rodillos entren sin quedar en miniatura. */
 @media (max-width: 560px) {
   .s2b-tm-escena { margin-left:-14px; margin-right:-14px; }
+  /* la marquesina es informacion secundaria en el celular: la maquina es lo
+     que importa, y estas cinco tarjetas se comian media pantalla */
+  .s2b-tm-marquesina { gap:6px; margin:24px 0 14px; }
+  .s2b-tm-jack { padding:6px 9px; gap:6px; border-radius:10px; }
+  .s2b-tm-jack .s2b-tm-sim { width:22px; height:22px; }
+  .s2b-tm-jack-rango { font-size:7.5px; letter-spacing:.1em; }
+  .s2b-tm-jack-monto { font-size:15px; }
+  /* con cinco tarjetas en dos columnas la ultima queda huerfana */
+  .s2b-tm-jack:last-child { grid-column:1 / -1; }
   .s2b-tm-mueble { padding:5px; border-radius:18px; }
   .s2b-tm-cuerpo { padding:7px; border-radius:14px; }
   .s2b-tm-rodillos { padding:6px 12px; }
@@ -1315,5 +1402,6 @@ const CSS_TM = `
   .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
+  .s2b-tm-zocalo::after { animation:none !important; opacity:0; }
 }
 `;
