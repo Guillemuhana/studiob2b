@@ -642,24 +642,6 @@ export default function Tragamonedas({ t, waLink, irA }) {
               </p>
             </div>
 
-            {/* la tira de premios, como el cartel de arriba de una maquina */}
-            <div className="s2b-tm-marquesina">
-              {CON_PREMIO.map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  className={"s2b-tm-jack s2b-tm-jack--" + p.id + (ganador === p.id ? " is-ganado" : "")}
-                  initial={reducido ? false : { opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 0.5, delay: i * 0.06 }}
-                >
-                  <span className="s2b-tm-jack-rango">{p.rango}</span>
-                  <span className="s2b-tm-jack-monto">{p.monto}</span>
-                  <Simbolo id={p.simbolo || p.icono} />
-                </motion.div>
-              ))}
-            </div>
-
             {/* el mueble */}
             <div className="s2b-tm-escena">
               {/* las monedas van por delante del gabinete, no adentro */}
@@ -830,6 +812,27 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 </div>
               </div>
             </div>
+
+            {/* La tabla de premios va DEBAJO de la maquina: arriba empujaba el
+                mueble fuera de la pantalla, y lo que la persona vino a hacer es
+                girar, no leer cuanto se puede ganar. */}
+            <div className="s2b-tm-marquesina">
+              {CON_PREMIO.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  className={"s2b-tm-jack s2b-tm-jack--" + p.id + (ganador === p.id ? " is-ganado" : "")}
+                  initial={reducido ? false : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.5, delay: i * 0.06 }}
+                >
+                  <span className="s2b-tm-jack-rango">{p.rango}</span>
+                  <span className="s2b-tm-jack-monto">{p.monto}</span>
+                  <Simbolo id={p.simbolo || p.icono} />
+                </motion.div>
+              ))}
+            </div>
+
 
             {/* lo que ya se gano, para que no haya que buscarlo en el chat */}
             {ganados.length > 0 && (
@@ -1049,7 +1052,7 @@ const CSS_TM = `
   filter: drop-shadow(0 0 9px rgba(255,226,160,.95)) drop-shadow(0 4px 9px rgba(0,0,0,.7)); }
 
 /* ---------- marquesina de premios ---------- */
-.s2b-tm-marquesina { position:relative; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:38px 0 24px; }
+.s2b-tm-marquesina { position:relative; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:26px 0 0; }
 .s2b-tm-jack { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px;
   padding:11px 13px; border-radius:14px;
   border:1px solid rgba(249,216,88,.38);
@@ -1456,7 +1459,7 @@ const CSS_TM = `
   .s2b-tm-escena { margin-left:-14px; margin-right:-14px; }
   /* la marquesina es informacion secundaria en el celular: la maquina es lo
      que importa, y estas cinco tarjetas se comian media pantalla */
-  .s2b-tm-marquesina { gap:6px; margin:24px 0 14px; }
+  .s2b-tm-marquesina { gap:6px; margin:16px 0 0; }
   .s2b-tm-jack { padding:6px 9px; gap:6px; border-radius:10px; }
   .s2b-tm-jack .s2b-tm-sim { width:22px; height:22px; }
   .s2b-tm-jack-rango { font-size:7.5px; letter-spacing:.1em; }
