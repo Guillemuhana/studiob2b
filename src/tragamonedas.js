@@ -18,8 +18,13 @@
    jugadas perdedoras se arman siempre con dos iguales y uno distinto. */
 export const SIMBOLOS = ["logo", "diamante", "lingote", "moneda", "rayo", "chip", "estrella"];
 
-/* Los pesos suman 100, asi que cada uno se lee directo como porcentaje.
-   Tocar estos numeros es tocar la promocion entera: es el unico lugar. */
+/* Todos los premios son porcentajes de descuento sobre el presupuesto, no
+   montos fijos: asi el premio acompana al tamano del proyecto en vez de
+   perder valor con la inflacion.
+
+   Los pesos suman 100, asi que cada uno se lee directo como probabilidad.
+   Tocar estos numeros es tocar la promocion entera, y hay que tocarlos
+   tambien en la funcion sb2b_jugar de Postgres, que es la que sortea. */
 export const PREMIOS = [
   {
     id: "logo",
@@ -37,33 +42,33 @@ export const PREMIOS = [
     simbolo: "diamante",
     peso: 5,
     rango: "MAYOR",
-    monto: "$100.000",
-    es: "$100.000 de descuento",
-    en: "$100,000 ARS off",
-    detalle_es: "Se descuenta del presupuesto final de tu proyecto.",
-    detalle_en: "Taken off the final quote of your project.",
+    monto: "20%",
+    es: "20% de descuento en tu proyecto",
+    en: "20% off your project",
+    detalle_es: "Sobre el presupuesto final del primer proyecto que hagamos juntos.",
+    detalle_en: "Off the final quote of the first project we build together.",
   },
   {
     id: "lingote",
     simbolo: "lingote",
     peso: 8,
     rango: "MENOR",
-    monto: "$50.000",
-    es: "$50.000 de descuento",
-    en: "$50,000 ARS off",
-    detalle_es: "Se descuenta del presupuesto final de tu proyecto.",
-    detalle_en: "Taken off the final quote of your project.",
+    monto: "15%",
+    es: "15% de descuento en tu proyecto",
+    en: "15% off your project",
+    detalle_es: "Sobre el presupuesto final del primer proyecto que hagamos juntos.",
+    detalle_en: "Off the final quote of the first project we build together.",
   },
   {
     id: "moneda",
     simbolo: "moneda",
     peso: 15,
     rango: "MINI",
-    monto: "$25.000",
-    es: "$25.000 de descuento",
-    en: "$25,000 ARS off",
-    detalle_es: "Se descuenta del presupuesto final de tu proyecto.",
-    detalle_en: "Taken off the final quote of your project.",
+    monto: "10%",
+    es: "10% de descuento en tu proyecto",
+    en: "10% off your project",
+    detalle_es: "Sobre el presupuesto final del primer proyecto que hagamos juntos.",
+    detalle_en: "Off the final quote of the first project we build together.",
   },
   {
     id: null,

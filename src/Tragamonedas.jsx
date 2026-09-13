@@ -438,7 +438,11 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         transition={{ type: "spring", stiffness: 420, damping: 20 }}
                       >
                         <b>{fase === "girando" ? t("GIRANDO…", "SPINNING…") : t("GIRAR", "SPIN")}</b>
-                        <small>{t("una sola jugada", "one spin only")}</small>
+                        <small>
+                          {restantes === 1
+                            ? t("última jugada", "last spin")
+                            : t(`${restantes} jugadas`, `${restantes} spins`)}
+                        </small>
                       </motion.button>
                     )}
                   </div>
