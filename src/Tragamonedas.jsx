@@ -9,13 +9,31 @@ import {
 
 import {
   PREMIOS, CON_PREMIO, PARADA,
-  sortearPremio, lineaDe, armarTira, generarCodigo,
+  lineaDe, armarTira,
   jugadaGuardada, guardarJugada, crearSonido,
 } from "./tragamonedas.js";
 
 /* Los tres rodillos paran escalonados: el ultimo tarda casi el doble que el
    primero, que es de donde sale el suspenso de una maquina de verdad. */
 const FRENOS = [2400, 3150, 3950];
+
+/* El premio y el codigo los decide el servidor (api/jugar.js -> Postgres).
+   Aca solo se pide y se muestra: si el sorteo viviera en el navegador,
+   cualquiera se fabrica el premio mayor desde el inspector. */
+const API = "/api/jugar";
+
+async function pedirJugada(metodo) {
+  const r = await fetch(API, {
+    method: metodo,
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error("api " + r.status);
+  return r.json();
+}
+
+const premioDe = (id) => PREMIOS.find((p) => (p.id || "nada") === id) || PREMIOS[PREMIOS.length - 1];
+const TOPE = 3;
 const COLORES = ["#6D4AFF", "#A78CFF", "#C9B6FF", "#FFC53D", "#FFFFFF"];
 
 /* ================= los simbolos =================
@@ -125,13 +143,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [pos, setPos] = useState([PARADA, PARADA, PARADA]);
   const [anim, setAnim] = useState(false);
   const [rodando, setRodando] = useState([false, false, false]);
-  const [fase, setFase] = useState(premioGuardado ? "hecho" : "listo");
+  const [fase, setFase] = useState("listo");
+  const [restantes, setRestantes] = useState(TOPE);
+  const [ganados, setGanados] = useState([]);
   const [resultado, setResultado] = useState(
     premioGuardado ? { premio: premioGuardado, codigo: guardada.codigo } : null
   );
+  const [sincronizado, setSincronizado] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [sonando, setSonando] = useState(true);
+  const [error, setError] = useState("");
 
   const relojes = useRef([]);
   const audio = useRef(null);
@@ -143,6 +165,34 @@ export default function Tragamonedas({ t, waLink, irA }) {
       montado.current = false;
       relojes.current.forEach(clearTimeout);
     };
+  }, []);
+
+  /* La copia de localStorage sirve para pintar rapido, pero la verdad la tiene
+     el servidor: si ahi no consta la jugada -otro navegador, otra maquina- la
+     persona puede jugar, y si consta, no importa lo que diga el navegador. */
+  useEffect(() => {
+    let vivo = true;
+    pedirJugada("GET")
+      .then((d) => {
+        if (!vivo || !montado.current) return;
+        setSincronizado(true);
+        setRestantes(typeof d.restantes === "number" ? d.restantes : TOPE);
+        setGanados((d.jugadas || []).filter((j) => j.codigo));
+        const ultima = (d.jugadas || [])[d.jugadas.length - 1];
+        if (ultima) {
+          const premio = premioDe(ultima.premio);
+          setResultado({ premio, codigo: ultima.codigo });
+          setTiras(lineaDe(premio).map((c) => armarTira(c)));
+          setPos([PARADA, PARADA, PARADA]);
+          guardarJugada(premio, ultima.codigo);
+        }
+        setFase("listo");
+      })
+      .catch(() => {
+        /* sin API la maquina sigue jugable, pero el premio no queda
+           registrado: se avisa recien si falla el giro */
+      });
+    return () => { vivo = false; };
   }, []);
 
   const son = useCallback((fn, ...args) => {
@@ -168,20 +218,50 @@ export default function Tragamonedas({ t, waLink, irA }) {
     if (alto) setTimeout(() => tiro(0.5, 90, 120), 420);
   }, [reducido]);
 
-  const girar = useCallback(() => {
+  const girar = useCallback(async () => {
     if (fase !== "listo") return;
-
-    const premio = sortearPremio();
-    const codigo = premio.id ? generarCodigo(premio) : null;
-    const nuevas = lineaDe(premio).map((c) => armarTira(c));
 
     setFase("girando");
     setResultado(null);
+    setError("");
+    son("palanca");
+
+    /* Se le pide el resultado al servidor antes de mover nada: los rodillos
+       tienen que frenar donde diga la base, no al reves. El viaje es corto y
+       el boton ya dice GIRANDO, asi que no se siente la espera. */
+    let datos;
+    try {
+      datos = await pedirJugada("POST");
+    } catch {
+      if (!montado.current) return;
+      setFase("listo");
+      setError(t(
+        "No pudimos conectar con la máquina. Probá de nuevo en un momento.",
+        "We couldn't reach the machine. Please try again in a moment."
+      ));
+      return;
+    }
+    if (!montado.current) return;
+
+    if (datos.agotado) {
+      setFase("listo");
+      setRestantes(0);
+      setError(t(
+        "Ya usaste las 3 jugadas de esta conexión.",
+        "You've used all 3 spins from this connection."
+      ));
+      return;
+    }
+
+    const premio = premioDe(datos.premio);
+    const codigo = datos.codigo || null;
+    setRestantes(typeof datos.restantes === "number" ? datos.restantes : 0);
+    const nuevas = lineaDe(premio).map((c) => armarTira(c));
+
     setTiras(nuevas);
     setAnim(false);
     setPos([0, 0, 0]);
     setRodando([true, true, true]);
-    son("palanca");
     son("giro");
 
     /* dos cuadros de espera: uno para que el navegador pinte los rodillos
@@ -204,13 +284,14 @@ export default function Tragamonedas({ t, waLink, irA }) {
     relojes.current.push(setTimeout(() => {
       if (!montado.current) return;
       setResultado({ premio, codigo });
-      setFase("hecho");
+      setFase("listo");
       setAbierto(true);
       guardarJugada(premio, codigo);
+      if (codigo) setGanados((g) => [...g, { premio: premio.id, codigo, canjeado: false }]);
       if (premio.id) { son("gano", premio.id === "logo"); festejar(premio.id === "logo" || premio.id === "diamante"); }
       else son("perdio");
     }, (reducido ? 260 : FRENOS[2]) + 420));
-  }, [fase, son, festejar, reducido]);
+  }, [fase, son, festejar, reducido, t]);
 
   const copiar = async () => {
     if (!resultado?.codigo) return;
@@ -242,12 +323,12 @@ export default function Tragamonedas({ t, waLink, irA }) {
             <div className="s2b-tm-top">
               <div className="s2b-eyebrow">{t("Casino Studio B2B", "Studio B2B Casino")}</div>
               <h2 className="s2b-h2 s2b-tm-h2">
-                {t("Girá una vez y", "Spin once and")} <b>{t("llevate tu descuento", "take your discount")}</b>
+                {t("Girá y", "Spin and")} <b>{t("llevate tu descuento", "take your discount")}</b>
               </h2>
               <p className="s2b-lead s2b-tm-lead">
                 {t(
-                  "Una jugada por persona, sin registro y sin pagar nada. Si salen tres iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
-                  "One spin per person, no sign-up and nothing to pay. Three matching symbols on the middle line and the prize is yours, to use on your next project with us."
+                  "Tres jugadas por persona, sin registro y sin pagar nada. Si salen tres iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
+                  "Three spins per person, no sign-up and nothing to pay. Three matching symbols on the middle line and the prize is yours, to use on your next project with us."
                 )}
               </p>
             </div>
@@ -284,65 +365,114 @@ export default function Tragamonedas({ t, waLink, irA }) {
               glareBorderRadius="28px"
             >
               <div className={"s2b-tm-mueble" + (fase === "girando" ? " is-girando" : "")}>
-                <div className="s2b-tm-luces" aria-hidden="true">
-                  {Array.from({ length: 22 }).map((_, i) => <i key={i} style={{ animationDelay: i * 90 + "ms" }} />)}
-                </div>
+                {/* el marco dorado es una capa aparte: un border-image no deja
+                    poner el bisel de adentro ni el resplandor de afuera */}
+                <div className="s2b-tm-cuerpo">
+                  <div className="s2b-tm-luces" aria-hidden="true">
+                    {Array.from({ length: 26 }).map((_, i) => <i key={i} style={{ animationDelay: i * 80 + "ms" }} />)}
+                  </div>
 
-                <div className="s2b-tm-rodillos">
-                  <div className="s2b-tm-linea" aria-hidden="true" />
-                  {tiras.map((tira, i) => (
-                    <div className="s2b-tm-ventana" key={i}>
-                      <div
-                        className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
-                        style={{
-                          transform: `translateY(calc(var(--celda) * -${pos[i]}))`,
-                          transition: anim
-                            ? `transform ${(reducido ? 120 : FRENOS[i]) / 1000}s cubic-bezier(.16,.72,.24,1)`
-                            : "none",
-                        }}
-                      >
-                        {tira.map((s, k) => (
-                          <div className="s2b-tm-celda" key={k}><Simbolo id={s} /></div>
-                        ))}
-                      </div>
+                  <div className="s2b-tm-rodillos">
+                    <div className="s2b-tm-rayos" aria-hidden="true" />
+                    <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
+                    <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
+                    <div className="s2b-tm-linea" aria-hidden="true" />
+
+                    <div className="s2b-tm-ventanas">
+                      {tiras.map((tira, i) => (
+                        <div className="s2b-tm-ventana" key={i}>
+                          <div
+                            className={"s2b-tm-tira" + (rodando[i] ? " is-rodando" : "")}
+                            style={{
+                              transform: `translateY(calc(var(--celda) * -${pos[i]}))`,
+                              transition: anim
+                                ? `transform ${(reducido ? 120 : FRENOS[i]) / 1000}s cubic-bezier(.16,.72,.24,1)`
+                                : "none",
+                            }}
+                          >
+                            {tira.map((s, k) => (
+                              <div className="s2b-tm-celda" key={k}><Simbolo id={s} /></div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
 
-                <div className="s2b-tm-barra">
-                  <button
-                    className="s2b-tm-son"
-                    onClick={() => setSonando((s) => !s)}
-                    aria-pressed={sonando}
-                    aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
-                  >
-                    {sonando ? <Volume2 size={17} /> : <VolumeX size={17} />}
-                  </button>
-
-                  {fase === "hecho" ? (
-                    <button className="s2b-tm-spin s2b-tm-spin--visto" onClick={() => setAbierto(true)}>
-                      {resultado?.codigo ? t("Ver mi premio", "See my prize") : t("Ver resultado", "See result")}
-                    </button>
-                  ) : (
-                    <motion.button
-                      className="s2b-tm-spin"
-                      onClick={girar}
-                      disabled={fase === "girando"}
-                      whileHover={reducido || fase === "girando" ? undefined : { scale: 1.04 }}
-                      whileTap={reducido || fase === "girando" ? undefined : { scale: 0.96 }}
-                      transition={{ type: "spring", stiffness: 420, damping: 20 }}
+                  <div className="s2b-tm-barra">
+                    <button
+                      className="s2b-tm-son"
+                      onClick={() => setSonando((s) => !s)}
+                      aria-pressed={sonando}
+                      aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
                     >
-                      {fase === "girando" ? t("GIRANDO…", "SPINNING…") : t("GIRAR", "SPIN")}
-                    </motion.button>
-                  )}
+                      {sonando ? <Volume2 size={17} /> : <VolumeX size={17} />}
+                    </button>
 
-                  <span className="s2b-tm-fichas">
-                    <Sparkles size={14} />
-                    {fase === "hecho" ? t("Jugada usada", "Spin used") : t("1 jugada", "1 spin")}
-                  </span>
+                    <span className="s2b-tm-fichas" title={t("Jugadas que te quedan", "Spins left")}>
+                      <Sparkles size={14} />
+                      <b>{restantes}</b> / {TOPE}
+                      <i className="s2b-tm-creditos" aria-hidden="true">
+                        {Array.from({ length: TOPE }).map((_, i) => (
+                          <em key={i} className={i < restantes ? "is-on" : ""} />
+                        ))}
+                      </i>
+                    </span>
+
+                    {restantes <= 0 && sincronizado ? (
+                      <button
+                        className="s2b-tm-spin s2b-tm-spin--visto"
+                        onClick={() => resultado && setAbierto(true)}
+                        disabled={!resultado}
+                      >
+                        <b>{ganados.length ? t("MIS PREMIOS", "MY PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
+                        <small>{ganados.length ? t("tocá para verlos", "tap to see them") : t("volvé en otro momento", "come back another time")}</small>
+                      </button>
+                    ) : (
+                      <motion.button
+                        className="s2b-tm-spin"
+                        onClick={girar}
+                        disabled={fase === "girando"}
+                        whileHover={reducido || fase === "girando" ? undefined : { scale: 1.04 }}
+                        whileTap={reducido || fase === "girando" ? undefined : { scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 20 }}
+                      >
+                        <b>{fase === "girando" ? t("GIRANDO…", "SPINNING…") : t("GIRAR", "SPIN")}</b>
+                        <small>{t("una sola jugada", "one spin only")}</small>
+                      </motion.button>
+                    )}
+                  </div>
+
+                  {error && <div className="s2b-tm-error" role="alert">{error}</div>}
                 </div>
               </div>
             </Tilt>
+
+            {/* lo que ya se gano, para que no haya que buscarlo en el chat */}
+            {ganados.length > 0 && (
+              <div className="s2b-tm-billetera">
+                <h3><Sparkles size={15} /> {t("Tus códigos", "Your codes")}</h3>
+                <ul>
+                  {ganados.map((g) => {
+                    const p = premioDe(g.premio);
+                    return (
+                      <li key={g.codigo}>
+                        <Simbolo id={p.simbolo} />
+                        <span className="s2b-tm-billetera-txt">
+                          <b>{t(p.es, p.en)}</b>
+                          <code>{g.codigo}</code>
+                        </span>
+                        {g.canjeado
+                          ? <span className="s2b-tm-usado">{t("canjeado", "redeemed")}</span>
+                          : <a className="s2b-tm-pedir" href={waLink(`Hola Studio B2B, gané ${p.es} y mi código es ${g.codigo}.`)} target="_blank" rel="noopener noreferrer">
+                              {t("Reclamar", "Claim")} <ArrowRight size={14} />
+                            </a>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
 
             {/* la tabla, a la vista y no escondida en un pie de pagina */}
             <div className="s2b-tm-abajo">
@@ -375,8 +505,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
               <div className="s2b-tm-bases">
                 <h3><ShieldCheck size={16} /> {t("Cómo funciona", "How it works")}</h3>
                 <ul>
-                  <li><Clock size={14} /> {t("Una jugada por persona. El resultado queda guardado en tu navegador.", "One spin per person. The result is saved in your browser.")}</li>
-                  <li><ShieldCheck size={14} /> {t("El sorteo usa el generador criptográfico del navegador y las probabilidades son exactamente las de la tabla.", "The draw uses the browser's cryptographic generator and the odds are exactly the ones in the table.")}</li>
+                  <li><Clock size={14} /> {t("Tres jugadas por conexión. Se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Three spins per connection. They are counted on our server, so opening another window or clearing your history won't add more.")}</li>
+                  <li><ShieldCheck size={14} /> {t("El sorteo y el código se generan en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the code are generated on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
+                  <li><Sparkles size={14} /> {t("Cada código es único y se puede canjear una sola vez.", "Every code is unique and can be redeemed only once.")}</li>
                   <li><Sparkles size={14} /> {t("Los descuentos se aplican sobre el presupuesto final de un proyecto nuevo y no se acumulan entre sí.", "Discounts apply to the final quote of a new project and cannot be combined.")}</li>
                   <li><ArrowRight size={14} /> {t("Para reclamarlo, mandanos el código por WhatsApp. Vale 30 días desde la jugada.", "To claim it, send us the code on WhatsApp. Valid for 30 days from the spin.")}</li>
                 </ul>
@@ -435,20 +566,32 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       >
                         {t("Reclamar por WhatsApp", "Claim on WhatsApp")} <ArrowRight size={16} />
                       </a>
-                      <span className="s2b-tm-chico">{t("Guardá el código: vale 30 días.", "Keep the code: valid for 30 days.")}</span>
+                      <span className="s2b-tm-chico">
+                        {t("Guardá el código: vale 30 días.", "Keep the code: valid for 30 days.")}
+                        {restantes > 0 && " · " + t(`Te quedan ${restantes} jugadas`, `${restantes} spins left`)}
+                      </span>
                     </>
                   ) : (
                     <>
                       <div className="s2b-tm-premio-sim s2b-tm-premio-sim--nada"><Simbolo id="chip" /></div>
                       <h3 className="s2b-tm-premio-tit">{t(resultado.premio.es, resultado.premio.en)}</h3>
                       <p className="s2b-tm-premio-det">{t(resultado.premio.detalle_es, resultado.premio.detalle_en)}</p>
-                      <a
-                        className="s2b-btn s2b-btn--chrome s2b-btn--aura s2b-tm-reclamar"
-                        href={waLink(mensajeWa(resultado))}
-                        target="_blank" rel="noopener noreferrer"
-                      >
-                        {t("Quiero mi diagnóstico gratis", "I want my free diagnosis")} <ArrowRight size={16} />
-                      </a>
+                      {restantes > 0 ? (
+                        <button
+                          className="s2b-btn s2b-btn--primary s2b-btn--aura s2b-tm-reclamar"
+                          onClick={() => setAbierto(false)}
+                        >
+                          {t(`Probar de nuevo · te quedan ${restantes}`, `Try again · ${restantes} left`)} <ArrowRight size={16} />
+                        </button>
+                      ) : (
+                        <a
+                          className="s2b-btn s2b-btn--chrome s2b-btn--aura s2b-tm-reclamar"
+                          href={waLink(mensajeWa(resultado))}
+                          target="_blank" rel="noopener noreferrer"
+                        >
+                          {t("Quiero mi diagnóstico gratis", "I want my free diagnosis")} <ArrowRight size={16} />
+                        </a>
+                      )}
                     </>
                   )}
                   </div>
@@ -469,12 +612,20 @@ const CSS_TM = `
 .s2b-tm-portal { display: contents; }
 .s2b-tm-defs { position:absolute; width:0; height:0; overflow:hidden; }
 
-.s2b-tm-band { overflow:hidden; }
+/* La paleta de casino: oro de verdad -cuatro paradas, no un amarillo plano- y
+   el terciopelo rojo del gabinete. El violeta de la marca queda de fondo, para
+   que la pagina siga siendo de Studio B2B y no de otro lado. */
+.s2b-tm-band {
+  overflow:hidden;
+  --oro1:#FFF6D0; --oro2:#F9D858; --oro3:#D09A1C; --oro4:#7C4E06;
+  --rojo1:#A81D33; --rojo2:#6B0F20; --rojo3:#370713; --rojo4:#1E040B;
+}
 .s2b-tm-band::before {
   content:''; position:absolute; inset:-20% -10% auto -10%; height:130%; pointer-events:none;
   background:
-    radial-gradient(620px circle at 18% 12%, rgba(255,197,61,.16), transparent 62%),
-    conic-gradient(from 200deg at 70% 30%, transparent 0 44%, rgba(109,74,255,.32) 60%, rgba(167,140,255,.18) 74%, transparent 90%);
+    radial-gradient(680px circle at 50% 34%, rgba(255,190,60,.2), transparent 62%),
+    radial-gradient(520px circle at 14% 8%, rgba(216,40,70,.18), transparent 64%),
+    conic-gradient(from 200deg at 72% 28%, transparent 0 44%, rgba(109,74,255,.3) 60%, rgba(167,140,255,.16) 74%, transparent 90%);
   filter: blur(54px);
 }
 .s2b-tm-top { position:relative; text-align:center; display:grid; justify-items:center; }
@@ -487,150 +638,226 @@ const CSS_TM = `
    y el simbolo terminaba midiendo 326 px en una celda de 116. */
 .s2b-tm-sim { position:relative; display:grid; place-items:center; flex:none; }
 .s2b-tm-sim > svg, .s2b-tm-sim > img { width:100%; height:100%; object-fit:contain; display:block; }
-.s2b-tm-sim > svg { filter: drop-shadow(0 6px 12px rgba(0,0,0,.5)); }
+.s2b-tm-sim > svg { filter: drop-shadow(0 5px 10px rgba(0,0,0,.6)); }
 
-/* el logo es el premio mayor: sobre fondo oscuro se perdia, asi que va con
-   halo dorado propio y ocupa toda la celda */
 .s2b-tm-sim--logo::before {
-  content:''; position:absolute; inset:-14%; border-radius:50%; pointer-events:none;
-  background: radial-gradient(circle at 50% 44%, rgba(255,214,138,.55), rgba(109,74,255,.3) 52%, transparent 72%);
+  content:''; position:absolute; inset:-16%; border-radius:50%; pointer-events:none;
+  background: radial-gradient(circle at 50% 44%, rgba(255,226,150,.75), rgba(255,170,40,.32) 48%, transparent 72%);
 }
-.s2b-tm-sim--logo > img { position:relative; z-index:1; filter: drop-shadow(0 0 10px rgba(255,222,160,.9)) drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+.s2b-tm-sim--logo > img { position:relative; z-index:1;
+  filter: drop-shadow(0 0 9px rgba(255,226,160,.95)) drop-shadow(0 4px 9px rgba(0,0,0,.7)); }
 
-/* ---------- marquesina ---------- */
-.s2b-tm-marquesina { position:relative; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:38px 0 26px; }
+/* ---------- marquesina de premios ---------- */
+.s2b-tm-marquesina { position:relative; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:38px 0 24px; }
 .s2b-tm-jack { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px;
-  padding:12px 14px; border-radius:16px; border:1px solid rgba(167,140,255,.24);
-  background:linear-gradient(150deg, rgba(255,255,255,.08), rgba(255,255,255,.02)); }
+  padding:11px 13px; border-radius:14px;
+  border:1px solid rgba(249,216,88,.38);
+  background:linear-gradient(160deg, rgba(168,29,51,.5), rgba(55,7,19,.72));
+  box-shadow:inset 0 1px 0 rgba(255,246,208,.28), 0 10px 26px -16px rgba(0,0,0,.9); }
 .s2b-tm-jack .s2b-tm-sim { width:36px; height:36px; grid-row:span 2; }
-.s2b-tm-jack-rango { grid-column:1; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:#9E97C4; }
-.s2b-tm-jack-monto { grid-column:1; font-family:var(--display); font-size:clamp(17px,2.6vw,23px); font-weight:600; color:#fff; line-height:1.1; }
-.s2b-tm-jack--logo { border-color:rgba(255,197,61,.5); background:linear-gradient(150deg, rgba(255,197,61,.18), rgba(109,74,255,.14)); }
-.s2b-tm-jack--logo .s2b-tm-jack-rango { color:#FFD98A; }
+.s2b-tm-jack-rango { grid-column:1; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:var(--oro2); }
+.s2b-tm-jack-monto { grid-column:1; font-family:var(--display); font-size:clamp(17px,2.6vw,23px); font-weight:600; line-height:1.1;
+  background:linear-gradient(180deg,var(--oro1) 6%,var(--oro2) 42%,var(--oro3) 74%,var(--oro1));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.55)); }
+.s2b-tm-jack--logo { border-color:var(--oro2);
+  background:linear-gradient(160deg, rgba(208,154,28,.45), rgba(55,7,19,.8));
+  box-shadow:inset 0 1px 0 rgba(255,246,208,.45), 0 0 26px -8px rgba(249,216,88,.55); }
 .s2b-tm-jack--logo::after {
   content:''; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.3) 50%, transparent 64%);
+  background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.34) 50%, transparent 64%);
   transform:translateX(-120%); animation:s2b-tm-brillo 3.6s ease-in-out infinite;
 }
 @keyframes s2b-tm-brillo { 0%,55%{transform:translateX(-120%)} 85%,100%{transform:translateX(120%)} }
 .s2b-tm-jack.is-ganado { border-color:#7FE3A8; box-shadow:0 0 0 1px #7FE3A8, 0 14px 40px -18px rgba(127,227,168,.8); }
 
-/* ---------- el mueble ---------- */
+/* ---------- el mueble ----------
+   El marco dorado es una capa propia y no un border-image: asi lleva bisel
+   adentro, resplandor afuera y esquinas redondeadas sin cortar el degrade. */
 .s2b-tm-tilt { position:relative; }
-.s2b-tm-mueble { position:relative; border-radius:28px; padding:clamp(14px,2.6vw,24px);
-  border:1px solid rgba(167,140,255,.3);
-  background:linear-gradient(168deg, #221248 0%, #0C0722 62%);
-  box-shadow:0 60px 130px -50px rgba(109,74,255,.85), inset 0 1px 0 rgba(255,255,255,.07); }
+.s2b-tm-mueble { position:relative; padding:clamp(8px,1.2vw,12px); border-radius:clamp(20px,2.6vw,30px);
+  background:linear-gradient(158deg, var(--oro1) 0%, var(--oro2) 18%, var(--oro4) 40%, var(--oro2) 58%, var(--oro3) 74%, var(--oro1) 100%);
+  box-shadow:
+    0 0 0 1px rgba(124,78,6,.85),
+    0 22px 60px -22px rgba(255,170,40,.5),
+    0 60px 130px -50px rgba(0,0,0,.95); }
+.s2b-tm-cuerpo { position:relative; border-radius:clamp(14px,2vw,22px); padding:clamp(12px,2vw,20px);
+  background:linear-gradient(180deg, var(--rojo2) 0%, var(--rojo3) 58%, var(--rojo4) 100%);
+  box-shadow:inset 0 2px 0 rgba(0,0,0,.55), inset 0 -2px 0 rgba(255,246,208,.12); }
 
-.s2b-tm-luces { position:absolute; inset:6px; border-radius:24px; pointer-events:none; display:flex; justify-content:space-between; padding:0 18px; }
-.s2b-tm-luces i { width:5px; height:5px; border-radius:50%; margin-top:-2px; background:#C9B6FF; opacity:.28;
-  animation:s2b-tm-luz 1.8s ease-in-out infinite; }
-@keyframes s2b-tm-luz { 50% { opacity:1; box-shadow:0 0 10px #C9B6FF; } }
+.s2b-tm-luces { position:absolute; left:14px; right:14px; top:6px; pointer-events:none; display:flex; justify-content:space-between; }
+.s2b-tm-luces i { width:5px; height:5px; border-radius:50%; background:var(--oro1); opacity:.35;
+  animation:s2b-tm-luz 1.6s ease-in-out infinite; }
+@keyframes s2b-tm-luz { 50% { opacity:1; box-shadow:0 0 9px var(--oro2), 0 0 16px rgba(249,216,88,.7); } }
 
+/* el fieltro rojo, con el estallido de luz atras de los rodillos */
 .s2b-tm-rodillos { --celda: clamp(74px, 19vw, 116px);
-  position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(8px,1.4vw,14px);
-  padding:clamp(10px,1.6vw,16px); border-radius:20px;
-  background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.34));
-  border:1px solid rgba(167,140,255,.18); }
-.s2b-tm-ventana { position:relative; height:calc(var(--celda) * 3); overflow:hidden; border-radius:14px;
-  background:linear-gradient(180deg,#16103A,#0A0620 52%,#16103A);
-  box-shadow:inset 0 18px 26px -18px #000, inset 0 -18px 26px -18px #000; }
+  position:relative; margin-top:14px; padding:clamp(9px,1.4vw,14px) clamp(22px,3.4vw,34px);
+  border-radius:16px; overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 42%, var(--rojo1) 0%, var(--rojo2) 46%, var(--rojo4) 100%);
+  box-shadow:inset 0 0 0 2px rgba(208,154,28,.55), inset 0 6px 22px rgba(0,0,0,.7); }
+.s2b-tm-rayos { position:absolute; inset:-40%; pointer-events:none; opacity:.3;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+    rgba(255,214,120,.42) 0deg 3deg, transparent 3deg 9deg);
+  animation:s2b-tm-girar 44s linear infinite; }
+@keyframes s2b-tm-girar { to { transform:rotate(360deg); } }
+.s2b-tm-mueble.is-girando .s2b-tm-rayos { opacity:.5; animation-duration:11s; }
+
+/* los rieles de neon de los costados */
+.s2b-tm-riel { position:absolute; top:10px; bottom:10px; width:9px; border-radius:99px; pointer-events:none; z-index:1;
+  background:linear-gradient(180deg,#FF3D7F,#FFD54A 22%,#7FE3A8 44%,#57C7F7 64%,#A78CFF 84%,#FF3D7F);
+  background-size:100% 220%; box-shadow:0 0 12px rgba(255,255,255,.5), inset 0 0 6px rgba(0,0,0,.4);
+  animation:s2b-tm-neon 2.6s linear infinite; }
+.s2b-tm-riel--izq { left:8px; }
+.s2b-tm-riel--der { right:8px; }
+@keyframes s2b-tm-neon { to { background-position:0 -220%; } }
+.s2b-tm-mueble.is-girando .s2b-tm-riel { animation-duration:.7s; }
+
+.s2b-tm-ventanas { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(6px,1vw,10px); }
+.s2b-tm-ventana { position:relative; height:calc(var(--celda) * 3); overflow:hidden; border-radius:10px;
+  background:linear-gradient(180deg,#2B0610,#13030A 50%,#2B0610);
+  box-shadow:inset 0 0 0 1px rgba(249,216,88,.35), inset 0 20px 26px -20px #000, inset 0 -20px 26px -20px #000; }
 .s2b-tm-tira { display:block; will-change:transform; }
-.s2b-tm-tira.is-rodando { filter:blur(1.4px); }
+.s2b-tm-tira.is-rodando { filter:blur(1.5px); }
 .s2b-tm-celda { height:var(--celda); display:grid; place-items:center; }
 .s2b-tm-celda .s2b-tm-sim { width:calc(var(--celda) * .72); height:calc(var(--celda) * .72); }
-.s2b-tm-linea { position:absolute; left:6px; right:6px; top:50%; height:calc(var(--celda) + 4px); transform:translateY(-50%);
-  border-top:1px solid rgba(255,197,61,.42); border-bottom:1px solid rgba(255,197,61,.42);
-  background:linear-gradient(90deg, rgba(255,197,61,.1), transparent 22%, transparent 78%, rgba(255,197,61,.1));
-  pointer-events:none; z-index:2; border-radius:8px; }
-.s2b-tm-mueble.is-girando .s2b-tm-linea { animation:s2b-tm-late 1.1s ease-in-out infinite; }
-@keyframes s2b-tm-late { 50% { border-color:rgba(255,197,61,.95); } }
 
-.s2b-tm-barra { display:flex; align-items:center; gap:12px; margin-top:clamp(12px,1.8vw,18px); }
-.s2b .s2b-tm-son { width:42px; height:42px; flex:none; border-radius:14px; display:grid; place-items:center; color:#9E97C4;
-  border:1px solid rgba(167,140,255,.24); background:rgba(255,255,255,.04); transition:color .2s, border-color .2s; }
-.s2b-tm-son:hover { color:#fff; border-color:var(--lilac); }
-.s2b .s2b-tm-spin { flex:1; min-height:58px; border-radius:999px; color:#fff; position:relative; overflow:hidden;
-  font-family:var(--display); font-size:clamp(16px,2.4vw,20px); font-weight:600; letter-spacing:.1em;
-  background:linear-gradient(120deg,#7FE3A8 0%,#35C77E 46%,#128A4E 100%);
-  box-shadow:0 16px 38px -14px rgba(53,199,126,.85), inset 0 1px 0 rgba(255,255,255,.35); }
-.s2b-tm-spin::after { content:''; position:absolute; inset:0;
-  background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.4) 50%, transparent 64%);
+/* la linea que paga, en oro y por encima de todo */
+.s2b-tm-linea { position:absolute; left:clamp(14px,2.6vw,24px); right:clamp(14px,2.6vw,24px); top:50%;
+  height:calc(var(--celda) + 6px); transform:translateY(-50%); z-index:2; pointer-events:none; border-radius:8px;
+  border-top:2px solid var(--oro2); border-bottom:2px solid var(--oro2);
+  box-shadow:0 0 14px rgba(249,216,88,.55), inset 0 0 30px rgba(249,216,88,.1); }
+.s2b-tm-mueble.is-girando .s2b-tm-linea { animation:s2b-tm-late 1s ease-in-out infinite; }
+@keyframes s2b-tm-late { 50% { box-shadow:0 0 26px rgba(255,214,120,.95), inset 0 0 40px rgba(249,216,88,.22); } }
+
+/* ---------- la botonera ---------- */
+.s2b-tm-barra { display:flex; align-items:center; gap:clamp(8px,1.4vw,14px); margin-top:clamp(12px,1.8vw,18px); }
+.s2b .s2b-tm-son { width:48px; height:48px; flex:none; border-radius:12px; display:grid; place-items:center;
+  color:#3A0B14; border:2px solid var(--oro4);
+  background:linear-gradient(180deg,var(--oro1),var(--oro2) 45%,var(--oro3));
+  box-shadow:0 4px 0 var(--oro4), 0 10px 20px -10px rgba(0,0,0,.9);
+  transition:transform .12s, box-shadow .12s; }
+.s2b .s2b-tm-son:hover { transform:translateY(-1px); }
+.s2b .s2b-tm-son:active { transform:translateY(3px); box-shadow:0 1px 0 var(--oro4); }
+
+.s2b .s2b-tm-spin { flex:1; min-height:64px; border-radius:16px; position:relative; overflow:hidden;
+  display:grid; align-content:center; gap:1px; color:#fff; text-align:center;
+  border:3px solid var(--oro2);
+  background:linear-gradient(180deg,#7BE08F 0%,#35BE64 42%,#137A38 100%);
+  box-shadow:0 5px 0 #0B5327, 0 16px 34px -14px rgba(19,122,56,.9), inset 0 1px 0 rgba(255,255,255,.5);
+  transition:transform .12s, box-shadow .12s; }
+.s2b .s2b-tm-spin b { font-family:var(--display); font-size:clamp(19px,2.8vw,26px); font-weight:700; letter-spacing:.08em;
+  text-shadow:0 2px 0 rgba(0,0,0,.32); }
+.s2b .s2b-tm-spin small { font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; opacity:.85; }
+.s2b .s2b-tm-spin::after { content:''; position:absolute; inset:0;
+  background:linear-gradient(100deg, transparent 36%, rgba(255,255,255,.42) 50%, transparent 64%);
   transform:translateX(-120%); transition:transform .7s ease; }
-.s2b-tm-spin:hover::after { transform:translateX(120%); }
-.s2b-tm-spin:disabled { opacity:.62; cursor:progress; }
-.s2b-tm-spin--visto { background:linear-gradient(120deg, var(--violet), #8B6BFF 55%, #4B2FD6); box-shadow:0 16px 38px -14px rgba(109,74,255,.8); }
-.s2b-tm-fichas { display:inline-flex; align-items:center; gap:7px; flex:none; font-family:var(--mono); font-size:10.5px;
-  letter-spacing:.12em; text-transform:uppercase; color:#9E97C4; }
-.s2b-tm-fichas svg { color:var(--lilac); }
+.s2b .s2b-tm-spin:hover::after { transform:translateX(120%); }
+.s2b .s2b-tm-spin:active { transform:translateY(4px); box-shadow:0 1px 0 #0B5327; }
+.s2b .s2b-tm-spin:disabled { opacity:.68; cursor:progress; transform:none; }
+.s2b .s2b-tm-spin--visto { background:linear-gradient(180deg,#C9A6FF 0%,#7B54F0 42%,#3F1FA8 100%);
+  box-shadow:0 5px 0 #2A1277, 0 16px 34px -14px rgba(109,74,255,.9), inset 0 1px 0 rgba(255,255,255,.5); }
+.s2b .s2b-tm-spin--visto:active { box-shadow:0 1px 0 #2A1277; }
+
+.s2b-tm-fichas { display:inline-flex; align-items:center; gap:7px; flex:none; padding:9px 14px; border-radius:10px;
+  border:1px solid rgba(249,216,88,.4); background:rgba(0,0,0,.35);
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--oro2); }
+.s2b-tm-fichas svg { color:var(--oro1); }
+.s2b-tm-fichas b { color:var(--oro1); font-size:13px; font-weight:600; }
+.s2b-tm-creditos { display:inline-flex; gap:3px; margin-left:3px; font-style:normal; }
+.s2b-tm-creditos em { width:7px; height:7px; border-radius:50%; background:rgba(249,216,88,.22); }
+.s2b-tm-creditos em.is-on { background:var(--oro2); box-shadow:0 0 7px var(--oro2); }
+
+/* ---------- los codigos ganados ---------- */
+.s2b-tm-billetera { position:relative; margin-top:26px; padding:18px 20px; border-radius:20px;
+  border:1px solid rgba(249,216,88,.35); background:linear-gradient(160deg, rgba(168,29,51,.24), rgba(0,0,0,.28)); }
+.s2b .s2b-tm-billetera h3 { display:flex; align-items:center; gap:9px; margin:0 0 14px; font-family:var(--mono);
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; }
+.s2b-tm-billetera h3 svg { color:var(--oro2); }
+.s2b-tm-billetera ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.s2b-tm-billetera li { display:flex; align-items:center; gap:13px; padding:11px 14px; border-radius:14px;
+  border:1px solid rgba(249,216,88,.22); background:rgba(0,0,0,.3); flex-wrap:wrap; }
+.s2b-tm-billetera li .s2b-tm-sim { width:34px; height:34px; }
+.s2b-tm-billetera-txt { display:grid; gap:2px; flex:1; min-width:150px; }
+.s2b-tm-billetera-txt b { font-size:14px; color:#fff; font-weight:600; }
+.s2b-tm-billetera-txt code { font-family:var(--mono); font-size:13px; letter-spacing:.08em; color:var(--oro1); }
+.s2b-tm-pedir { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:999px;
+  border:1px solid var(--oro2); color:var(--oro1); font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; transition:background .2s, color .2s; }
+.s2b-tm-pedir:hover { background:var(--oro2); color:#3A0B14; }
+.s2b-tm-usado { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#7FE3A8; }
+.s2b-tm-error { margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
+  color:#FFD9D9; background:rgba(255,60,60,.16); border:1px solid rgba(255,120,120,.45); }
 
 /* ---------- tabla y bases ---------- */
 .s2b-tm-abajo { position:relative; display:grid; gap:20px; margin-top:34px; }
-.s2b-tm-tabla, .s2b-tm-bases { border:1px solid rgba(167,140,255,.2); border-radius:20px; padding:20px 22px;
-  background:rgba(255,255,255,.04); }
+.s2b-tm-tabla, .s2b-tm-bases { border:1px solid rgba(249,216,88,.22); border-radius:20px; padding:20px 22px;
+  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(0,0,0,.2)); }
 .s2b .s2b-tm-tabla h3, .s2b .s2b-tm-bases h3 { display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px;
-  letter-spacing:.16em; text-transform:uppercase; color:#9E97C4; font-weight:400; margin:0 0 14px; }
-.s2b-tm-tabla h3 svg, .s2b-tm-bases h3 svg { color:var(--lilac); }
+  letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; margin:0 0 14px; }
+.s2b-tm-tabla h3 svg, .s2b-tm-bases h3 svg { color:var(--oro2); }
 .s2b-tm-tabla table { width:100%; border-collapse:collapse; }
 .s2b-tm-tabla th { text-align:left; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
-  color:#7E7799; font-weight:400; padding-bottom:9px; border-bottom:1px solid rgba(167,140,255,.16); }
-.s2b-tm-tabla td { padding:11px 0; border-bottom:1px solid rgba(167,140,255,.1); font-size:14px; color:#C9C2E6; vertical-align:middle; }
+  color:#9E97C4; font-weight:400; padding-bottom:9px; border-bottom:1px solid rgba(249,216,88,.24); }
+.s2b-tm-tabla td { padding:11px 0; border-bottom:1px solid rgba(167,140,255,.1); font-size:14px; color:#D8D2EC; vertical-align:middle; }
 .s2b-tm-tabla tr:last-child td { border-bottom:none; }
 .s2b-tm-tabla tr.is-ganado td { color:#fff; background:linear-gradient(90deg, rgba(127,227,168,.16), transparent); }
 .s2b-tm-tres { display:inline-flex; gap:3px; }
 .s2b-tm-tres .s2b-tm-sim { width:27px; height:27px; }
 .s2b-tm-nada { font-family:var(--mono); font-size:11px; color:#7E7799; }
-.s2b-tm-prob { font-family:var(--mono); font-size:13px; color:#fff; white-space:nowrap; }
+.s2b-tm-prob { font-family:var(--mono); font-size:13px; color:var(--oro2); white-space:nowrap; }
 .s2b-tm-bases ul { list-style:none; margin:0; padding:0; display:grid; gap:11px; }
 .s2b-tm-bases li { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#BDB4E4; line-height:1.55; }
-.s2b-tm-bases li svg { flex:none; margin-top:4px; color:var(--lilac); }
+.s2b-tm-bases li svg { flex:none; margin-top:4px; color:var(--oro2); }
 .s2b-tm-volver { margin-top:18px; }
 
 /* ---------- el premio ---------- */
-/* El modal sale por un portal al body, o sea fuera de la banda oscura: sin
-   esto hereda los tokens del tema claro y .s2b h3 le pinta el titulo de gris
-   oscuro sobre fondo oscuro. Se los vuelve a declarar aca. */
 .s2b-tm-tras { position:fixed; inset:0; z-index:125; display:grid; place-items:center; padding:18px;
   --title:#FFFFFF; --text:#C9C2E6; --muted:#9E97C4; color:var(--text);
-  background:rgba(5,3,14,.74); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  --oro1:#FFF6D0; --oro2:#F9D858; --oro3:#D09A1C; --oro4:#7C4E06;
+  background:rgba(5,3,14,.76); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
 .s2b-tm-premio { position:relative; width:min(470px,100%); text-align:center; padding:38px 30px 30px; border-radius:26px;
   border:1px solid rgba(167,140,255,.3); background:linear-gradient(168deg,#1B0F44,#0A0620 70%); overflow:hidden;
   box-shadow:0 60px 140px -50px rgba(0,0,0,.95); }
-.s2b-tm-premio.is-gano { border-color:rgba(255,197,61,.42); }
+.s2b-tm-premio.is-gano { border:2px solid var(--oro2);
+  background:linear-gradient(168deg,#4A1024 0%,#25091C 52%,#0A0620 100%);
+  box-shadow:0 0 40px -6px rgba(249,216,88,.45), 0 60px 140px -50px rgba(0,0,0,.95); }
 .s2b-tm-halo { position:absolute; inset:-50% -20% auto -20%; height:130%;
-  background:conic-gradient(from 0deg, transparent 0 30%, rgba(255,197,61,.3) 42%, rgba(109,74,255,.42) 58%, transparent 72%);
-  filter:blur(40px); animation:s2b-tm-rot 9s linear infinite; pointer-events:none; }
+  background:conic-gradient(from 0deg, transparent 0 28%, rgba(255,214,120,.42) 42%, rgba(216,40,70,.4) 58%, transparent 72%);
+  filter:blur(38px); animation:s2b-tm-rot 9s linear infinite; pointer-events:none; }
 @keyframes s2b-tm-rot { to { transform:rotate(360deg); } }
 .s2b .s2b-tm-x { position:absolute; top:12px; right:12px; z-index:3; width:34px; height:34px; border-radius:11px; display:grid;
-  place-items:center; color:#9E97C4; border:1px solid rgba(167,140,255,.2); transition:color .2s, transform .2s; }
-.s2b-tm-x:hover { color:#fff; transform:rotate(90deg); }
+  place-items:center; color:#E4D9C0; border:1px solid rgba(249,216,88,.35); transition:color .2s, transform .2s; }
+.s2b .s2b-tm-x:hover { color:#fff; transform:rotate(90deg); }
 .s2b-tm-premio-in { position:relative; z-index:2; }
 .s2b-tm-premio-sim { display:grid; place-items:center; margin:0 auto 16px; }
 .s2b-tm-premio-sim .s2b-tm-sim { width:112px; height:112px; }
 .s2b-tm-premio-sim--nada { opacity:.4; }
 .s2b-tm-premio-sim--nada .s2b-tm-sim { width:78px; height:78px; }
-.s2b-tm-premio-rango { display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.24em; color:#FFD98A; margin-bottom:10px; }
+.s2b-tm-premio-rango { display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.24em; color:var(--oro2); margin-bottom:10px; }
 .s2b .s2b-tm-premio-tit { font-size:clamp(23px,4vw,31px); color:#fff; margin:0 0 10px; }
-.s2b-tm-premio-det { font-size:14.5px; color:#BDB4E4; max-width:38ch; margin:0 auto; line-height:1.6; }
+.s2b-tm-premio-det { font-size:14.5px; color:#D8D2EC; max-width:38ch; margin:0 auto; line-height:1.6; }
 .s2b .s2b-tm-codigo { display:inline-flex; align-items:center; gap:12px; margin:22px 0 18px; padding:13px 20px; border-radius:14px;
-  border:1px dashed rgba(255,197,61,.5); background:rgba(255,197,61,.09); color:#FFE3A6;
+  border:2px dashed var(--oro2); background:rgba(249,216,88,.12); color:var(--oro1);
   font-family:var(--mono); font-size:16px; letter-spacing:.1em; transition:background .2s, border-color .2s; }
-.s2b-tm-codigo:hover { background:rgba(255,197,61,.16); border-color:#FFD98A; }
+.s2b .s2b-tm-codigo:hover { background:rgba(249,216,88,.22); }
 .s2b-tm-reclamar { width:100%; justify-content:center; margin-top:6px; }
-.s2b-tm-chico { display:block; margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:#7E7799; }
+.s2b-tm-chico { display:block; margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:#9E97C4; }
 
 @media (min-width: 760px) {
-  .s2b-tm-marquesina { grid-template-columns:repeat(5,1fr); }
+  .s2b-tm-marquesina { grid-template-columns:repeat(4,1fr); }
   .s2b-tm-abajo { grid-template-columns:1.15fr .85fr; }
 }
 @media (max-width: 520px) {
   .s2b-tm-barra { flex-wrap:wrap; }
   .s2b .s2b-tm-spin { order:-1; width:100%; flex:none; }
   .s2b-tm-fichas { margin-left:auto; }
+  .s2b-tm-riel { width:6px; }
   .s2b-tm-tabla, .s2b-tm-bases { padding:16px 15px; }
   .s2b-tm-tabla td { font-size:13px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .s2b-tm-luces i, .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea { animation:none !important; }
+  .s2b-tm-luces i, .s2b-tm-jack--logo::after, .s2b-tm-halo, .s2b-tm-linea,
+  .s2b-tm-rayos, .s2b-tm-riel { animation:none !important; }
 }
 `;

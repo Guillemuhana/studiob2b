@@ -1,17 +1,21 @@
 /* ==================================================================
-   TRAGAMONEDAS — el motor
-   Aca vive todo lo que decide: los premios, las probabilidades, el
-   sorteo y el codigo que se lleva el ganador. La pantalla no decide
-   nada, solo muestra lo que sale de aca.
+   TRAGAMONEDAS — la tabla de premios y las piezas de la pantalla
 
-   El sorteo es al reves de lo que parece: primero se sortea el premio
-   con los pesos de la tabla y despues se arman los rodillos para que
-   den ese resultado. Es como funciona cualquier promocion seria -las
-   probabilidades son exactamente las publicadas, no el producto de
-   tres giros sueltos que nadie puede calcular- y por eso la tabla de
-   abajo se muestra tal cual en las bases.
+   El sorteo NO esta aca: lo hace el servidor, en Postgres. Este archivo
+   tiene la tabla de premios que se muestra al visitante, el armado de
+   los rodillos y el sonido.
+
+   Los rodillos van al reves de lo que parece: primero se sabe que
+   premio salio -lo dice el servidor- y despues se arman las tiras para
+   que frenen en ese resultado. Es como funciona cualquier promocion
+   seria; las probabilidades son exactamente las publicadas, no el
+   producto de tres giros sueltos que nadie puede calcular, y por eso
+   la tabla se muestra entera en la pagina.
    ================================================================== */
 
+/* El rayo quedo en los rodillos pero ya no paga: es un simbolo bajo, de los
+   que rellenan. Tres iguales en la linea nunca le pueden tocar, porque las
+   jugadas perdedoras se arman siempre con dos iguales y uno distinto. */
 export const SIMBOLOS = ["logo", "diamante", "lingote", "moneda", "rayo", "chip", "estrella"];
 
 /* Los pesos suman 100, asi que cada uno se lee directo como porcentaje.
@@ -62,20 +66,9 @@ export const PREMIOS = [
     detalle_en: "Taken off the final quote of your project.",
   },
   {
-    id: "rayo",
-    simbolo: "rayo",
-    peso: 20,
-    rango: "EXTRA",
-    monto: "1 h",
-    es: "Una hora de consultoría, gratis",
-    en: "One hour of consulting, free",
-    detalle_es: "Una videollamada de una hora con un desarrollador, sin compromiso.",
-    detalle_en: "A one hour call with a developer, no strings attached.",
-  },
-  {
     id: null,
     simbolo: null,
-    peso: 50,
+    peso: 70,
     rango: "",
     monto: "",
     es: "Esta vez no salió",
@@ -86,11 +79,10 @@ export const PREMIOS = [
 ];
 
 export const CON_PREMIO = PREMIOS.filter((p) => p.id);
-const TOTAL_PESO = PREMIOS.reduce((a, p) => a + p.peso, 0);
 
-/* Math.random() alcanza de sobra para esto, pero cuando el navegador tiene
-   crypto no hay razon para usar algo peor: el sorteo de un premio real
-   merece la fuente buena. */
+/* Los pesos de arriba son los que publica la pagina, pero el sorteo no pasa
+   por aca: lo hace Postgres (ver api/jugar.js y la funcion sb2b_jugar). En el
+   navegador solo se elige el relleno de los rodillos, que no decide nada. */
 function azar() {
   try {
     if (typeof crypto !== "undefined" && crypto.getRandomValues) {
@@ -103,15 +95,6 @@ function azar() {
 }
 
 const unoDe = (lista) => lista[Math.floor(azar() * lista.length)];
-
-export function sortearPremio() {
-  let r = azar() * TOTAL_PESO;
-  for (const p of PREMIOS) {
-    r -= p.peso;
-    if (r <= 0) return p;
-  }
-  return PREMIOS[PREMIOS.length - 1];
-}
 
 /* Los tres simbolos de la linea de pago. Si hay premio, van los tres iguales;
    si no, dos iguales y uno distinto: perder de un pelo se mira, perder con
@@ -139,19 +122,13 @@ export function armarTira(centro) {
 
 export const PARADA = TIRA_LARGO - 3;
 
-const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // sin I, O, 0, 1: se confunden al dictarlos
-
-export function generarCodigo(premio) {
-  let cola = "";
-  for (let i = 0; i < 4; i++) cola += ALFABETO[Math.floor(azar() * ALFABETO.length)];
-  const raiz = { logo: "30OFF", diamante: "100K", lingote: "50K", moneda: "25K", rayo: "1HORA" }[premio.id];
-  return "SB2B-" + raiz + "-" + cola;
-}
-
 /* ================= la jugada guardada =================
-   Una jugada por persona: el resultado queda en el navegador para que al
-   volver vea su premio y no una maquina nueva. Con ?jugar=reset se limpia,
-   que es como se muestra la maquina en una reunion sin quedarse sin fichas. */
+   Copia local de lo que dijo el servidor, para pintar la pantalla sin esperar
+   el viaje de ida y vuelta. No es la autoridad: el limite de una jugada lo
+   pone la base, contra la huella de IP + navegador, asi que borrar esto o
+   abrir una ventana de incognito no da una jugada nueva.
+   Con ?jugar=reset se limpia la copia local, util para mostrar la maquina en
+   una reunion sin tocar la base. */
 
 const LLAVE = "s2b-jugada";
 
