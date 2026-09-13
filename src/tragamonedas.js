@@ -257,6 +257,46 @@ export function guardarJugada(premio, codigo) {
    corre aunque el navegador se distraiga. El contexto se crea en el primer
    clic, que es cuando el navegador deja. */
 
+/* ================= muestras grabadas =================
+   La sintesis tiene techo: por mas parciales y reverb que se le pongan, no
+   suena igual que una maquina grabada. Asi que la maquina usa archivos si
+   estan, y sintesis si no.
+
+   Los archivos van en public/sonidos/ con estos nombres exactos. Cada uno que
+   aparezca reemplaza a su sonido sintetico; los que falten siguen sonando
+   sintetizados, asi que se pueden ir agregando de a uno y la maquina nunca
+   queda muda.
+
+   Lo que se busca de cada uno:
+
+     boton.mp3   el clac al apretar. Corto, seco, menos de medio segundo.
+     giro.mp3    el rodillo girando. Tiene que poder repetirse sin que se note
+                 el corte, porque se pone en loop mientras dura la jugada.
+     freno.mp3   un rodillo que para. Corto y con cuerpo, suena cinco veces
+                 por jugada.
+     moneda.mp3  UNA sola moneda cayendo. No una lluvia: la lluvia se arma
+                 aca, repitiendo esta con tono y posicion distintos cada vez.
+                 Una lluvia grabada puesta en loop se nota enseguida.
+     premio.mp3  la fanfarria de un premio comun. Uno o dos segundos.
+     mayor.mp3   la del premio mayor, con campana. Puede durar mas.
+     bonus.mp3   el aviso de "otro intento".
+     perdio.mp3  el sonido corto de cuando no sale nada. Opcional.
+
+   Todo pasa igual por la cadena de audio -sala, compresor, estereo- y cada
+   repeticion sale con el tono corrido al azar, que es lo que evita que cinco
+   frenadas seguidas suenen calcadas. */
+
+const MUESTRAS = {
+  boton: "/sonidos/boton.mp3",
+  giro: "/sonidos/giro.mp3",
+  freno: "/sonidos/freno.mp3",
+  moneda: "/sonidos/moneda.mp3",
+  premio: "/sonidos/premio.mp3",
+  mayor: "/sonidos/mayor.mp3",
+  bonus: "/sonidos/bonus.mp3",
+  perdio: "/sonidos/perdio.mp3",
+};
+
 export function crearSonido() {
   let ctx = null;
   let ruido = null;
@@ -336,6 +376,44 @@ export function crearSonido() {
     return salida;
   };
 
+  /* ---- muestras grabadas ----
+     Se piden una sola vez, al primer sonido, y en paralelo. El que no este
+     queda en null y su evento sigue sonando sintetizado. Un 404 no rompe
+     nada: la maquina no puede quedarse muda por un archivo que falta. */
+  const buffers = {};
+  let pedidas = false;
+
+  const pedirMuestras = (c) => {
+    if (pedidas) return;
+    pedidas = true;
+    Object.entries(MUESTRAS).forEach(([nombre, url]) => {
+      buffers[nombre] = null;
+      fetch(url)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("sin archivo"))))
+        .then((b) => c.decodeAudioData(b))
+        .then((buf) => { buffers[nombre] = buf; })
+        .catch(() => { buffers[nombre] = null; });
+    });
+  };
+
+  const hay = (nombre) => !!buffers[nombre];
+
+  /* Toca una muestra por la misma cadena que el resto, con el tono corrido al
+     azar: cinco frenadas con el mismo archivo y el mismo tono se escuchan
+     como un loop, no como una maquina. */
+  const tocar = (c, nombre, cuando = 0, vol = 1, pan = 0, tono = 1, destino = null) => {
+    const buf = buffers[nombre];
+    if (!buf) return null;
+    const s = c.createBufferSource();
+    s.buffer = buf;
+    s.playbackRate.value = tono;
+    const g = c.createGain();
+    g.gain.value = vol;
+    s.connect(g).connect(destino || punto(c, pan, 0.26));
+    s.start(c.currentTime + cuando);
+    return s;
+  };
+
   const alAzar = (a, b) => a + Math.random() * (b - a);
 
   /* el transitorio: ruido corto por un pasabanda */
@@ -389,6 +467,10 @@ export function crearSonido() {
 
   /* MONEDA: cuatro parciales corridos que caen de tono, cada una distinta */
   const moneda = (c, cuando, vol = 0.075, pan = alAzar(-0.75, 0.75)) => {
+    /* con archivo: la misma moneda con el tono corrido en cada caida. Una
+       lluvia GRABADA puesta en loop se nota; una moneda sola repetida con
+       variacion, no. */
+    if (buffers.moneda) { tocar(c, "moneda", cuando, vol * 9, pan, alAzar(0.82, 1.25)); return; }
     const d = punto(c, pan, 0.42);
     const base = alAzar(1500, 3100);
     const ratios = [1, alAzar(1.6, 1.9), alAzar(2.3, 2.7), alAzar(3.1, 3.6)];
@@ -446,6 +528,8 @@ export function crearSonido() {
     palanca() {
       const c = arrancar();
       if (!c) return;
+      pedirMuestras(c);
+      if (hay("boton")) { tocar(c, "boton", 0, 0.9, 0, alAzar(0.97, 1.03)); return; }
       const d = punto(c, 0, 0.22);
       /* un boton real son dos ruidos: el contacto y el tope de abajo */
       chasquido(c, 0, 0.32, 3200, d, 0.018, 1.5);
@@ -468,6 +552,35 @@ export function crearSonido() {
       const frenos = frenosMs.map((x) => x / 1000);
       const fin = Math.max(...frenos);
       const t0 = c.currentTime;
+
+      /* con archivos: el giro va en loop y cada frenada toca su golpe */
+      if (hay("giro") || hay("freno")) {
+        let bucle = null;
+        if (hay("giro")) {
+          bucle = c.createBufferSource();
+          bucle.buffer = buffers.giro;
+          bucle.loop = true;
+          const gl = c.createGain();
+          gl.gain.setValueAtTime(0.0001, t0);
+          gl.gain.linearRampToValueAtTime(0.75, t0 + 0.1);
+          frenos.forEach((x, i) => gl.gain.linearRampToValueAtTime(0.75 * (1 - (i + 1) / frenos.length), t0 + x));
+          bucle.connect(gl).connect(corte);
+          bucle.start(t0);
+          bucle.stop(t0 + fin + 0.25);
+        }
+        frenos.forEach((x, i) => {
+          if (hay("freno")) tocar(c, "freno", x, i === frenos.length - 1 ? 1 : 0.8, -0.6 + i * 0.3, alAzar(0.94, 1.07), corte);
+          else golpe(c, x, i === frenos.length - 1 ? 1.3 : 0.85, -0.6 + i * 0.3);
+        });
+        return () => {
+          try {
+            const ahora = c.currentTime;
+            corte.gain.cancelScheduledValues(ahora);
+            corte.gain.setTargetAtTime(0, ahora, 0.02);
+            setTimeout(() => { try { corte.disconnect(); } catch {} }, 400);
+          } catch {}
+        };
+      }
 
       /* el motor: ruido grave con una resonancia que baja al frenar */
       const motor = c.createBufferSource();
@@ -526,6 +639,12 @@ export function crearSonido() {
     gano(nivel) {
       const c = arrancar();
       if (!c) return;
+      const cual = nivel >= 2 ? "mayor" : "premio";
+      if (hay(cual)) {
+        tocar(c, cual, 0, 1, 0, alAzar(0.99, 1.01));
+        if (hay("moneda")) bandeja(c, nivel >= 2 ? 44 : 18, 0.35, nivel >= 2 ? 2.6 : 1.1, 1);
+        return;
+      }
       const notas = nivel >= 2 ? FANFARRIA : FANFARRIA.slice(0, 4);
 
       notas.forEach((f, i) => {
@@ -549,6 +668,7 @@ export function crearSonido() {
     bonus() {
       const c = arrancar();
       if (!c) return;
+      if (hay("bonus")) { tocar(c, "bonus", 0, 0.95, 0, alAzar(0.98, 1.02)); return; }
       nota(659.25, 0, 0.22, "triangle", 0.11, -0.2);
       nota(987.77, 0.115, 0.4, "triangle", 0.11, 0.2);
       campana(c, 1318.5, 0.115, 0.85, 0.075);
@@ -556,6 +676,8 @@ export function crearSonido() {
     },
 
     perdio() {
+      const c = arrancar();
+      if (c && hay("perdio")) { tocar(c, "perdio", 0, 0.8, 0, alAzar(0.97, 1.03)); return; }
       nota(330, 0, 0.15, "triangle", 0.07);
       nota(247, 0.125, 0.28, "triangle", 0.06);
     },
