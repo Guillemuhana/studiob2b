@@ -17,6 +17,10 @@ import Tilt from "react-parallax-tilt";
    termino de pintar lo importante -y solo el dia que la seccion existe. */
 const DiaDelProgramador = lazy(() => import("./DiaDelProgramador.jsx"));
 
+/* El casino vive en su propia pagina y se lleva el confeti y el motor de
+   animacion, asi que tambien va aparte: quien no entra a /jugar no lo baja. */
+const Tragamonedas = lazy(() => import("./Tragamonedas.jsx"));
+
 /* El saludo dura un dia: el 13 de septiembre esta, el 14 la pagina vuelve a
    ser la de siempre. Con ?dia=1 en la URL se puede abrir fuera de fecha, para
    mostrarsela a alguien o revisarla sin esperar un ano. */
@@ -2457,6 +2461,7 @@ const navLinks = (t) => [
   { id: "proceso", label: t("Proceso", "Process") },
   { id: "clientes", label: t("Clientes", "Clients") },
   { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
+  { id: "jugar", label: t("Jugar", "Play") },
 ];
 
 /* ================= utilidades ================= */
@@ -4004,7 +4009,7 @@ function UiFlujo({ pasos = [] }) {
   );
 }
 
-const RUTAS = { proceso: "/proceso", preguntas: "/preguntas" };
+const RUTAS = { proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
    cliente decide, y de paso el home queda mas liviano. */
@@ -4157,6 +4162,7 @@ export default function StudioB2B() {
     document.title =
       vista === "proceso" ? t("El Proceso Studio B2B, paso a paso | Studio B2B", "The Studio B2B Process, step by step | Studio B2B") :
       vista === "preguntas" ? t("Preguntas frecuentes | Studio B2B", "Frequently asked questions | Studio B2B") :
+      vista === "jugar" ? t("Jugá y ganá tu descuento | Studio B2B", "Spin and win your discount | Studio B2B") :
       t("Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial",
         "Studio B2B | Custom Software, Apps & AI Solutions");
     const d = document.querySelector('meta[name="description"]');
@@ -4621,6 +4627,13 @@ export default function StudioB2B() {
           </div>
         </div>
       </section>}
+
+      {/* ============ JUGAR (pagina aparte) ============ */}
+      {vista === "jugar" && (
+        <Suspense fallback={<div style={{ minHeight: 620 }} aria-hidden="true" />}>
+          <Tragamonedas t={t} waLink={waLink} irA={irA} />
+        </Suspense>
+      )}
 
       {vista === "home" && <>
       {/* ============ CÓMO PODEMOS AYUDARTE ============ */}
