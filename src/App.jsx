@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import {
   ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, MapPin, Check, Database, Users,
@@ -11,6 +11,21 @@ import {
   KeyRound, Network, Globe, Handshake,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
+/* La seccion del Dia del Programador se lleva el resaltador de sintaxis, el
+   motor de animacion y el confeti: casi 80 kB comprimidos para algo que vive
+   abajo de todo. Va en su propio archivo, que el navegador busca cuando ya
+   termino de pintar lo importante -y solo el dia que la seccion existe. */
+const DiaDelProgramador = lazy(() => import("./DiaDelProgramador.jsx"));
+
+/* El saludo dura un dia: el 13 de septiembre esta, el 14 la pagina vuelve a
+   ser la de siempre. Con ?dia=1 en la URL se puede abrir fuera de fecha, para
+   mostrarsela a alguien o revisarla sin esperar un ano. */
+const DIA_PROG = { mes: 8, dia: 13 };   // los meses de Date empiezan en cero
+const esDiaDelProgramador = () => {
+  try { if (new URLSearchParams(location.search).has("dia")) return true; } catch {}
+  const hoy = new Date();
+  return hoy.getMonth() === DIA_PROG.mes && hoy.getDate() === DIA_PROG.dia;
+};
 import {
   siReact, siNextdotjs, siAstro, siVuedotjs, siJavascript, siTypescript,
   siNodedotjs, siNestjs, siPython, siPhp, siLaravel, siWordpress,
@@ -4186,6 +4201,21 @@ export default function StudioB2B() {
      es justo cuando React pudo haber reemplazado un bloque */
   useEffect(revelar);
 
+  /* el chunk del Dia del Programador se baja solo cuando el navegador ya no
+     tiene nada urgente: asi la seccion esta lista antes de que nadie llegue a
+     ella, sin pelearle ancho de banda al hero */
+  const esDiaProg = useMemo(esDiaDelProgramador, []);
+  useEffect(() => {
+    if (!esDiaProg) return;
+    const traer = () => import("./DiaDelProgramador.jsx");
+    if (typeof requestIdleCallback === "function") {
+      const id = requestIdleCallback(traer, { timeout: 4000 });
+      return () => cancelIdleCallback(id);
+    }
+    const id = setTimeout(traer, 2200);
+    return () => clearTimeout(id);
+  }, [esDiaProg]);
+
   const goTo = useCallback((id) => {
     setDrawer(false); setPop(false);
     if (RUTAS[id]) { irA(id); return; }
@@ -5130,6 +5160,16 @@ export default function StudioB2B() {
           </div>
         </div>
       </section>
+
+      {/* ============ DIA DEL PROGRAMADOR ============ */}
+      {/* El script que corre en nuestras terminales, puesto a la vista: se
+          ejecuta en pantalla y al lado se lee el archivo que lo hace. Solo el
+          13 de septiembre; el resto del ano ni se descarga. */}
+      {esDiaProg && (
+        <Suspense fallback={<div style={{ minHeight: 520 }} aria-hidden="true" />}>
+          <DiaDelProgramador t={t} />
+        </Suspense>
+      )}
 
       {/* ============ PREGUNTAS FRECUENTES (resumen) ============ */}
       {/* Las mas frecuentes quedan a mano en el home; el listado completo sigue
