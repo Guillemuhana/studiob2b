@@ -234,15 +234,23 @@ export function guardarJugada(premio, codigo) {
 
 /* ================= sonido =================
    Sin archivos: todo se genera con Web Audio en el momento. Un paquete de
-   mp3 de maquinita son 200 kB y suena a otra marca; esto pesa cero.
+   mp3 de maquinita son 200 kB, suena a otra marca y hay que servirlo; esto
+   pesa cero.
 
-   El giro no es un tono: es una tanda de chasquidos programados de una vez,
-   uno por cada muesca de rodillo, mas una capa de ruido filtrado que hace el
-   zumbido. Como se sabe de antemano cuando frena cada rodillo, se puede
-   programar todo junto al arrancar y queda perfectamente en tiempo con lo que
-   se ve -si se disparara desde un setInterval, el audio se correria cada vez
-   que el navegador se distrae-.
+   Las piezas son cuatro, y con esas cuatro se arma todo lo que suena:
 
+   - chasquido: ruido corto por un pasabanda. Es la muesca del rodillo, el
+     clic del boton y el ataque metalico de cada moneda.
+   - campana: parciales INARMONICOS (1, 2.76, 5.4, 8.93). Un metal no suena
+     con armonicos enteros como una cuerda; por eso una campana hecha con
+     octavas suena a organo y no a campana. Esos numeros son los de una barra
+     circular y son los que hacen que el oido diga "metal".
+   - moneda: dos parciales agudos que caen de tono, con el ataque de ruido.
+     Cayendo de tono es como se lee "algo que rebota".
+   - nota: el oscilador simple, para las melodias.
+
+   Todo lo largo -la corrida, la lluvia de monedas- se programa de una vez
+   contra el reloj del audio, que no se corre aunque el navegador se distraiga.
    El contexto se crea en el primer clic, que es cuando el navegador deja. */
 
 export function crearSonido() {
@@ -259,7 +267,6 @@ export function crearSonido() {
     return ctx;
   };
 
-  /* un segundo de ruido blanco, reutilizado por todos los chasquidos */
   const bufferRuido = (c) => {
     if (ruido) return ruido;
     const n = Math.floor(c.sampleRate * 1);
@@ -268,6 +275,8 @@ export function crearSonido() {
     for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     return ruido;
   };
+
+  const salida = () => arrancar();
 
   const nota = (freq, cuando, largo, tipo = "triangle", vol = 0.16, destino = null) => {
     const c = arrancar();
@@ -285,7 +294,6 @@ export function crearSonido() {
     osc.stop(t0 + largo + 0.03);
   };
 
-  /* el chasquido de una muesca: ruido corto pasado por un pasabanda */
   const chasquido = (c, cuando, vol, frec, destino) => {
     const s = c.createBufferSource();
     s.buffer = bufferRuido(c);
@@ -301,42 +309,93 @@ export function crearSonido() {
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.035);
     s.connect(f).connect(g).connect(destino);
     /* cada chasquido entra por un punto distinto del ruido: arrancando todos
-       en cero suenan calcados y el oido lo lee como un loop, no como una
-       maquina */
+       en cero suenan calcados y el oido lo lee como un loop */
     s.start(t0, Math.random() * 0.9);
     s.stop(t0 + 0.05);
   };
 
-  /* el golpe seco de un rodillo al frenar: un tono que cae mas el chasquido */
+  /* campana: los parciales van inarmonicos a proposito */
+  const PARCIALES = [1, 2.76, 5.4, 8.93];
+  const PESOS = [1, 0.5, 0.28, 0.15];
+  const campana = (c, f0, cuando, largo, vol, destino) => {
+    PARCIALES.forEach((r, i) => {
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      const t0 = c.currentTime + cuando;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(f0 * r, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol * PESOS[i]), t0 + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + largo * (1 - i * 0.16));
+      osc.connect(g).connect(destino);
+      osc.start(t0);
+      osc.stop(t0 + largo + 0.06);
+    });
+    chasquido(c, cuando, vol * 0.35, 4200, destino);
+  };
+
+  /* una moneda que cae y rebota */
+  const moneda = (c, cuando, destino, vol = 0.09) => {
+    const base = 1650 + Math.random() * 1500;
+    [1, 1.87].forEach((r, i) => {
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      const t0 = c.currentTime + cuando;
+      const largo = 0.16 + Math.random() * 0.14;
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(base * r, t0);
+      osc.frequency.exponentialRampToValueAtTime(base * r * 0.8, t0 + largo);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol * (i ? 0.45 : 1), t0 + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + largo);
+      osc.connect(g).connect(destino);
+      osc.start(t0);
+      osc.stop(t0 + largo + 0.05);
+    });
+    chasquido(c, cuando, vol * 0.5, 5400, destino);
+  };
+
+  /* la lluvia: monedas al azar con el volumen cayendo, como la bandeja que
+     se llena y despues se vacia */
+  const lluvia = (c, destino, cuantas, desde, largo, fuerza = 1) => {
+    for (let i = 0; i < cuantas; i++) {
+      const t = desde + (i / cuantas) * largo + Math.random() * 0.05;
+      const caida = 1 - (i / cuantas) * 0.45;
+      moneda(c, t, destino, 0.085 * fuerza * caida);
+    }
+  };
+
+  /* el golpe de un rodillo al frenar: cuerpo grave, chasquido seco y el
+     timbre metalico del tope */
   const golpe = (c, cuando, destino, fuerza = 1) => {
     const osc = c.createOscillator();
     const g = c.createGain();
     const t0 = c.currentTime + cuando;
     osc.type = "sine";
     osc.frequency.setValueAtTime(190 * fuerza, t0);
-    osc.frequency.exponentialRampToValueAtTime(58, t0 + 0.16);
+    osc.frequency.exponentialRampToValueAtTime(56, t0 + 0.17);
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.linearRampToValueAtTime(0.3 * fuerza, t0 + 0.006);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24);
     osc.connect(g).connect(destino);
     osc.start(t0);
-    osc.stop(t0 + 0.26);
-    chasquido(c, cuando, 0.22 * fuerza, 1800, destino);
+    osc.stop(t0 + 0.28);
+    chasquido(c, cuando, 0.24 * fuerza, 1900, destino);
+    campana(c, 760 + Math.random() * 180, cuando + 0.005, 0.16, 0.05 * fuerza, destino);
   };
 
+  /* escala mayor, que es la que suena a premio en cualquier maquina */
+  const FANFARRIA = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568];
+
   return {
-    /* el clac del boton al hundirse */
     palanca() {
       const c = arrancar();
       if (!c) return;
       chasquido(c, 0, 0.3, 2600, c.destination);
-      nota(150, 0.01, 0.1, "square", 0.12);
-      nota(70, 0.03, 0.16, "sine", 0.16);
+      nota(155, 0.008, 0.07, "square", 0.13);
+      nota(66, 0.03, 0.15, "sine", 0.18);
     },
 
-    /* Toda la corrida de una: chasquidos mientras haya rodillos girando, el
-       zumbido de fondo, el golpe de cada frenada y el subidon antes del
-       ultimo. Devuelve como cortarlo si la persona se va de la pagina. */
     rodando(frenosMs) {
       const c = arrancar();
       if (!c) return () => {};
@@ -347,17 +406,17 @@ export function crearSonido() {
 
       const frenos = frenosMs.map((m) => m / 1000);
       const fin = Math.max(...frenos);
+      const t0 = c.currentTime;
 
-      /* el zumbido: ruido grave que se va apagando a medida que frenan */
+      /* el zumbido del motor: ruido grave que se apaga con cada frenada */
       const zumbido = c.createBufferSource();
       zumbido.buffer = bufferRuido(c);
       zumbido.loop = true;
       const filtro = c.createBiquadFilter();
       filtro.type = "lowpass";
-      filtro.frequency.setValueAtTime(900, c.currentTime);
+      filtro.frequency.setValueAtTime(900, t0);
       filtro.Q.value = 1.2;
       const gz = c.createGain();
-      const t0 = c.currentTime;
       gz.gain.setValueAtTime(0.0001, t0);
       gz.gain.linearRampToValueAtTime(0.05, t0 + 0.12);
       frenos.forEach((f, i) => {
@@ -368,7 +427,7 @@ export function crearSonido() {
       zumbido.start(t0);
       zumbido.stop(t0 + fin + 0.3);
 
-      /* las muescas: una cada 55 ms, mas fuertes cuantos mas rodillos queden */
+      /* las muescas, mas fuertes cuantos mas rodillos queden girando */
       const paso = 0.055;
       for (let t = 0; t < fin; t += paso) {
         const activos = frenos.filter((f) => f > t).length;
@@ -376,11 +435,9 @@ export function crearSonido() {
         chasquido(c, t, 0.035 + 0.022 * activos, 2400 + (activos % 2) * 500, bus);
       }
 
-      /* el golpe de cada frenada; el ultimo pega mas fuerte */
-      frenos.forEach((f, i) => golpe(c, f, bus, i === frenos.length - 1 ? 1.25 : 0.85));
+      frenos.forEach((f, i) => golpe(c, f, bus, i === frenos.length - 1 ? 1.3 : 0.85));
 
-      /* el subidon antes de que pare el ultimo rodillo: es el momento en que
-         la persona ya sabe si gano o no */
+      /* el subidon antes del ultimo rodillo: el momento en que ya se sabe */
       const previo = frenos[frenos.length - 2] ?? 0;
       const largo = Math.max(0.25, fin - previo);
       const osc = c.createOscillator();
@@ -405,17 +462,46 @@ export function crearSonido() {
       };
     },
 
-    gano(alto) {
-      const escala = alto ? [523, 659, 784, 1047, 1319] : [440, 554, 659];
-      escala.forEach((f, i) => nota(f, i * 0.1, 0.34, "triangle", 0.15));
-      if (alto) {
-        escala.forEach((f, i) => nota(f * 2, 0.5 + i * 0.07, 0.5, "sine", 0.09));
-        /* la lluvia de monedas del premio mayor */
-        const c = arrancar();
-        if (c) for (let i = 0; i < 26; i++) chasquido(c, 0.25 + i * 0.045, 0.1, 2600 + Math.random() * 2200, c.destination);
+    /* nivel 1: descuento. nivel 2: el premio mayor, con campana y bandeja. */
+    gano(nivel) {
+      const c = arrancar();
+      if (!c) return;
+      const d = c.destination;
+      const notas = nivel >= 2 ? FANFARRIA : FANFARRIA.slice(0, 4);
+
+      notas.forEach((f, i) => {
+        nota(f, i * 0.085, 0.3, "square", 0.075);
+        nota(f, i * 0.085, 0.42, "triangle", 0.12);
+      });
+      /* el acorde que cierra */
+      const cierre = notas.length * 0.085;
+      [notas[0], notas[2], notas[notas.length - 1]].forEach((f) => nota(f, cierre, 0.9, "triangle", 0.1));
+
+      if (nivel >= 2) {
+        /* la campana del premio mayor, tres golpes */
+        [0, 0.34, 0.68].forEach((t) => campana(c, 1046.5, cierre + t, 1.5, 0.16, d));
+        lluvia(c, d, 64, cierre + 0.1, 2.6, 1.1);
+        /* brillo sostenido arriba */
+        FANFARRIA.forEach((f, i) => nota(f * 2, cierre + 0.5 + i * 0.06, 0.6, "sine", 0.05));
+      } else {
+        campana(c, 880, cierre, 1.1, 0.11, d);
+        lluvia(c, d, 22, cierre + 0.06, 1.1, 0.9);
       }
     },
 
-    perdio() { nota(300, 0, 0.18, "triangle", 0.09); nota(220, 0.14, 0.3, "triangle", 0.08); },
+    /* otro intento: dos notas que suben y unas pocas monedas */
+    bonus() {
+      const c = arrancar();
+      if (!c) return;
+      nota(659.25, 0, 0.24, "triangle", 0.13);
+      nota(987.77, 0.12, 0.42, "triangle", 0.13);
+      campana(c, 1318.5, 0.12, 0.8, 0.08, c.destination);
+      lluvia(c, c.destination, 8, 0.2, 0.5, 0.7);
+    },
+
+    perdio() {
+      nota(330, 0, 0.16, "triangle", 0.08);
+      nota(247, 0.13, 0.3, "triangle", 0.07);
+    },
   };
 }

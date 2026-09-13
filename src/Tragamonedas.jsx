@@ -531,13 +531,15 @@ export default function Tragamonedas({ t, waLink, irA }) {
       if (premio.id === "giro") {
         /* devolver la jugada no merece frenar la maquina con una ventana:
            alcanza con el cartel y la linea cruzada encendida */
-        son("gano", false);
+        son("bonus");
         festejar(false);
         setAviso(t("¡Otro intento! Esta jugada no te la contamos.", "Another spin! This one is on us."));
         relojes.current.push(setTimeout(() => montado.current && setAviso(""), 4200));
       } else if (premio.id) {
         setAbierto(true);
-        son("gano", premio.id === "logo");
+        /* el premio mayor se lleva campana, bandeja de monedas y fanfarria
+           larga; el resto, una version corta */
+        son("gano", premio.id === "logo" ? 2 : 1);
         festejar(premio.id === "logo" || premio.id === "diamante");
       } else {
         son("perdio");
