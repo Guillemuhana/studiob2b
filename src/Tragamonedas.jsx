@@ -73,77 +73,217 @@ const COLORES = ["#6D4AFF", "#A78CFF", "#C9B6FF", "#FFC53D", "#FFFFFF"];
 /* ================= los simbolos =================
    Dibujados como vectores en vez de fotos bajadas de algun lado: pesan cero,
    se ven nitidos en cualquier pantalla, entran en la paleta del sitio y no
-   arrastran la licencia de nadie. El unico bitmap es el logo, que es tuyo. */
+   arrastran la licencia de nadie. El unico bitmap es el logo, que es tuyo.
+
+   Lo que los hace parecer objetos y no iconos son tres cosas, y estan en los
+   seis: la pieza se parte en caras con luz distinta -no un relleno plano-,
+   cada cara lleva su brillo especular arriba a la izquierda, que es de donde
+   viene la luz, y los bordes tienen un filo claro contra el fondo oscuro. */
 
 function Defs() {
   return (
     <svg className="s2b-tm-defs" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id="tmDia" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#D9F6FF" /><stop offset=".42" stopColor="#57C7F7" /><stop offset="1" stopColor="#6D4AFF" />
+        {/* diamante: mesa, corona y pabellon, cada uno con su luz */}
+        <linearGradient id="tmDiaMesa" x1="0" y1="0" x2=".4" y2="1">
+          <stop offset="0" stopColor="#FFFFFF" /><stop offset=".5" stopColor="#C9F3FF" /><stop offset="1" stopColor="#7FD8FA" />
         </linearGradient>
-        <linearGradient id="tmOro" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFF0BD" /><stop offset=".5" stopColor="#F5B942" /><stop offset="1" stopColor="#A96C14" />
+        <linearGradient id="tmDiaCorona" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#A6E6FF" /><stop offset="1" stopColor="#3E9FE0" />
         </linearGradient>
-        <linearGradient id="tmOroClaro" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FFF7D8" /><stop offset="1" stopColor="#F2C75C" />
+        <linearGradient id="tmDiaCoronaB" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#63BEF0" /><stop offset="1" stopColor="#2A6FC4" />
         </linearGradient>
-        <linearGradient id="tmRayo" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFFBE0" /><stop offset=".55" stopColor="#FFD54A" /><stop offset="1" stopColor="#FF8A2B" />
+        <linearGradient id="tmDiaPabCentro" x1=".5" y1="0" x2=".5" y2="1">
+          <stop offset="0" stopColor="#BEEDFF" /><stop offset=".55" stopColor="#4EA8E8" /><stop offset="1" stopColor="#1B4FA8" />
         </linearGradient>
-        <linearGradient id="tmChip" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#CFC0FF" /><stop offset="1" stopColor="#5B38E8" />
+        <linearGradient id="tmDiaPabLado" x1=".5" y1="0" x2=".5" y2="1">
+          <stop offset="0" stopColor="#4C9EDC" /><stop offset="1" stopColor="#12337A" />
         </linearGradient>
-        <linearGradient id="tmEstrella" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FFFFFF" /><stop offset="1" stopColor="#B49CFF" />
+
+        {/* oro: tres caras del lingote y el metal de la moneda */}
+        <linearGradient id="tmOroTapa" x1="0" y1="0" x2=".7" y2="1">
+          <stop offset="0" stopColor="#FFF9DF" /><stop offset=".45" stopColor="#FFDE7A" /><stop offset="1" stopColor="#E8AE2E" />
+        </linearGradient>
+        <linearGradient id="tmOroFrente" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#F0C24F" /><stop offset="1" stopColor="#9A6208" />
+        </linearGradient>
+        <linearGradient id="tmOroLado" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#C98F18" /><stop offset="1" stopColor="#6E4204" />
+        </linearGradient>
+        <radialGradient id="tmMonMetal" cx=".34" cy=".28" r=".82">
+          <stop offset="0" stopColor="#FFF6CE" /><stop offset=".42" stopColor="#F7CF62" /><stop offset=".78" stopColor="#D3980F" /><stop offset="1" stopColor="#8C5C05" />
+        </radialGradient>
+        <radialGradient id="tmMonCara" cx=".36" cy=".3" r=".8">
+          <stop offset="0" stopColor="#FFF3C0" /><stop offset=".6" stopColor="#F0C24F" /><stop offset="1" stopColor="#B87D0C" />
+        </radialGradient>
+
+        {/* rayo: cuerpo caliente y nucleo casi blanco */}
+        <linearGradient id="tmRayoCuerpo" x1=".2" y1="0" x2=".8" y2="1">
+          <stop offset="0" stopColor="#FFF7CB" /><stop offset=".38" stopColor="#FFD23D" /><stop offset=".75" stopColor="#FF9A1C" /><stop offset="1" stopColor="#E5560B" />
+        </linearGradient>
+        <linearGradient id="tmRayoNucleo" x1=".5" y1="0" x2=".5" y2="1">
+          <stop offset="0" stopColor="#FFFFFF" /><stop offset="1" stopColor="#FFE9A0" />
+        </linearGradient>
+
+        {/* chip: cuerpo, patas metalicas y el nucleo encendido */}
+        <linearGradient id="tmChipCuerpo" x1=".1" y1="0" x2=".9" y2="1">
+          <stop offset="0" stopColor="#4C3A86" /><stop offset=".5" stopColor="#2A1D5C" /><stop offset="1" stopColor="#150E36" />
+        </linearGradient>
+        <linearGradient id="tmChipPata" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#F2ECFF" /><stop offset=".5" stopColor="#B9A7E8" /><stop offset="1" stopColor="#6A5AA0" />
+        </linearGradient>
+        <radialGradient id="tmChipNucleo" cx=".35" cy=".3" r=".8">
+          <stop offset="0" stopColor="#E7DBFF" /><stop offset=".5" stopColor="#9A72FF" /><stop offset="1" stopColor="#4B21C9" />
+        </radialGradient>
+
+        {/* estrella: dos caras por punta, para que tenga arista */}
+        <linearGradient id="tmEstClara" x1="0" y1="0" x2=".6" y2="1">
+          <stop offset="0" stopColor="#FFFFFF" /><stop offset="1" stopColor="#FFE27A" />
+        </linearGradient>
+        <linearGradient id="tmEstOscura" x1="0" y1="0" x2=".6" y2="1">
+          <stop offset="0" stopColor="#F3BE3C" /><stop offset="1" stopColor="#B4740A" />
         </linearGradient>
       </defs>
     </svg>
   );
 }
 
+/* el destello que llevan casi todos: cruz de cuatro puntas, el guino que
+   usan los juegos para decir "esto brilla" */
+const Destello = ({ x, y, r, o = 0.95 }) => (
+  <path
+    d={`M${x} ${y - r} Q${x + r * 0.18} ${y - r * 0.18} ${x + r} ${y} Q${x + r * 0.18} ${y + r * 0.18} ${x} ${y + r} Q${x - r * 0.18} ${y + r * 0.18} ${x - r} ${y} Q${x - r * 0.18} ${y - r * 0.18} ${x} ${y - r} Z`}
+    fill="#FFFFFF"
+    opacity={o}
+  />
+);
+
 const DIBUJOS = {
+  /* Brillante de talla redonda: mesa arriba, corona en el medio y pabellon
+     bajando a la punta. Las caras del pabellon alternan claro y oscuro, que
+     es lo que hace que se lea como piedra y no como triangulo celeste. */
   diamante: (
     <svg viewBox="0 0 64 64">
-      <path d="M16 12h32l14 15-30 35L2 27z" fill="url(#tmDia)" />
-      <path d="M16 12l8 15H2zM48 12l-8 15h22zM24 27h16l-8 35z" fill="#FFFFFF" opacity=".22" />
-      <path d="M16 12l8 15 8-15 8 15 8-15M2 27h60M24 27l8 35 8-35" fill="none" stroke="#04122B" strokeOpacity=".35" strokeWidth="1.6" />
+      <path d="M4 24 L14 11 H50 L60 24 L32 61 Z" fill="#0B2B52" />
+      <path d="M4 24 L20 24 L32 61 Z" fill="url(#tmDiaPabLado)" />
+      <path d="M44 24 L60 24 L32 61 Z" fill="url(#tmDiaPabLado)" />
+      <path d="M20 24 H44 L32 61 Z" fill="url(#tmDiaPabCentro)" />
+      <path d="M4 24 L14 11 L26 11 L20 24 Z" fill="url(#tmDiaCorona)" />
+      <path d="M60 24 L50 11 L38 11 L44 24 Z" fill="url(#tmDiaCoronaB)" />
+      <path d="M20 24 L26 11 H38 L44 24 Z" fill="url(#tmDiaMesa)" />
+      <path d="M4 24 H60" stroke="#EAF9FF" strokeOpacity=".75" strokeWidth="1.6" fill="none" />
+      <path d="M4 24 L14 11 H50 L60 24 L32 61 Z" fill="none" stroke="#DFF6FF" strokeOpacity=".5" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M26 13.5 h9 l-2.5 7 h-9 Z" fill="#FFFFFF" opacity=".55" />
+      <Destello x={47} y={17} r={6} o={0.9} />
     </svg>
   ),
+
+  /* Lingote de verdad: el frente se ensancha hacia abajo. Con el frente
+     recto parecia una caja de carton; es esa inclinacion, y no el color, lo
+     que dice "lingote". */
   lingote: (
     <svg viewBox="0 0 64 64">
-      <path d="M12 24h40l8 22H4z" fill="url(#tmOro)" />
-      <path d="M18 16h28l6 8H12z" fill="url(#tmOroClaro)" />
-      <path d="M12 24h40M18 16h28" fill="none" stroke="#7A4A08" strokeOpacity=".45" strokeWidth="1.5" />
-      <rect x="20" y="31" width="24" height="3" rx="1.5" fill="#FFF6D4" opacity=".65" />
+      <path d="M18 27 L46 27 L54 49 L10 49 Z" fill="#5A3703" opacity=".5" transform="translate(1.5,2)" />
+      <path d="M18 27 L28 18 L56 18 L46 27 Z" fill="url(#tmOroTapa)" />
+      <path d="M18 27 L46 27 L54 49 L10 49 Z" fill="url(#tmOroFrente)" />
+      <path d="M46 27 L56 18 L60 38 L54 49 Z" fill="url(#tmOroLado)" />
+      <path d="M18 27 L28 18 L56 18 L46 27 Z" fill="none" stroke="#FFF9E2" strokeOpacity=".85" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M18 27 L46 27 L56 18" fill="none" stroke="#7A4A08" strokeOpacity=".5" strokeWidth="1.2" />
+      <path d="M22 25.5 L30 20 L48 20 L41 25.5 Z" fill="#FFFEF4" opacity=".6" />
+      <path d="M20 31 L45 31 L46.6 36 L18.6 36 Z" fill="#FFF3CC" opacity=".28" />
+      <rect x="23" y="39" width="18" height="3.6" rx="1.8" fill="#8A5A08" opacity=".45" />
+      <rect x="23" y="38.4" width="18" height="2.4" rx="1.2" fill="#FFF3CC" opacity=".45" />
+      <Destello x={52} y={24} r={5.5} o={0.85} />
     </svg>
   ),
+
+  /* Moneda con canto: el anillo exterior mas oscuro le da espesor, las
+     muescas del borde la vuelven metal y el signo va estampado -sombra
+     abajo, luz arriba- en vez de dibujado encima. */
   moneda: (
     <svg viewBox="0 0 64 64">
-      <circle cx="32" cy="32" r="26" fill="url(#tmOro)" />
-      <circle cx="32" cy="32" r="20" fill="none" stroke="#FFF3C9" strokeOpacity=".8" strokeWidth="2" />
-      <path d="M32 17v30M39 24c-2-3-5-4-8-4-4 0-7 2-7 5.5 0 7 15 5 15 12 0 3.5-3 5.5-7 5.5-3.5 0-6.5-1.5-8-4"
-        fill="none" stroke="#6B3F06" strokeOpacity=".75" strokeWidth="3.4" strokeLinecap="round" />
+      <circle cx="32" cy="33.5" r="27" fill="#7A4E04" opacity=".55" />
+      <circle cx="32" cy="32" r="27" fill="url(#tmMonMetal)" />
+      <circle cx="32" cy="32" r="27" fill="none" stroke="#8C5C05" strokeOpacity=".6" strokeWidth="1.4" />
+      <circle cx="32" cy="32" r="24.4" fill="none" stroke="#6E4204" strokeOpacity=".55" strokeWidth="4"
+        strokeDasharray="2.2 3.4" />
+      <circle cx="32" cy="32" r="21.5" fill="url(#tmMonCara)" />
+      <circle cx="32" cy="32" r="21.5" fill="none" stroke="#FFF6CE" strokeOpacity=".65" strokeWidth="1.2" />
+      <circle cx="32" cy="32" r="17.5" fill="none" stroke="#8C5C05" strokeOpacity=".35" strokeWidth="1.1" />
+      <g strokeLinecap="round" fill="none">
+        <path d="M32 18.5v27M38.6 25c-1.8-2.7-4.4-3.8-7.2-3.8-3.6 0-6.3 1.9-6.3 5 0 6.3 13.5 4.5 13.5 10.8 0 3.2-2.7 5-6.3 5-3.1 0-5.8-1.4-7.2-3.8"
+          stroke="#6B3F06" strokeOpacity=".7" strokeWidth="4.6" transform="translate(0,1.3)" />
+        <path d="M32 18.5v27M38.6 25c-1.8-2.7-4.4-3.8-7.2-3.8-3.6 0-6.3 1.9-6.3 5 0 6.3 13.5 4.5 13.5 10.8 0 3.2-2.7 5-6.3 5-3.1 0-5.8-1.4-7.2-3.8"
+          stroke="#FFF4CE" strokeWidth="4.2" />
+      </g>
+      <path d="M14 24 A21.5 21.5 0 0 1 30 13" fill="none" stroke="#FFFFFF" strokeOpacity=".6" strokeWidth="3.4" strokeLinecap="round" />
+      <Destello x={49} y={16} r={6} o={0.9} />
     </svg>
   ),
+
+  /* Rayo con nucleo: el cuerpo caliente afuera y una veta casi blanca
+     adentro, que es lo que lo hace ver encendido y no amarillo. */
   rayo: (
     <svg viewBox="0 0 64 64">
-      <path d="M37 3L13 35h13l-5 26 25-33H32z" fill="url(#tmRayo)" />
-      <path d="M37 3L13 35h13l-5 26 25-33H32z" fill="none" stroke="#8A4A00" strokeOpacity=".4" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M38 2 L12 35 h13.5 L20 62 L52 27 H36 Z" fill="#7A2B00" opacity=".5" transform="translate(1.5,2)" />
+      <path d="M38 2 L12 35 h13.5 L20 62 L52 27 H36 Z" fill="url(#tmRayoCuerpo)" />
+      <path d="M38 2 L12 35 h13.5 L20 62 L52 27 H36 Z" fill="none" stroke="#FFF6CF" strokeOpacity=".75" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M36.5 10 L20.5 31 h9 L25 52 L44 29.5 h-11 Z" fill="url(#tmRayoNucleo)" opacity=".9" />
+      <Destello x={45} y={12} r={5.5} o={0.9} />
     </svg>
   ),
+
+  /* Chip: cuerpo con bisel, patas metalicas de verdad -degrade vertical, no
+     una linea- y el nucleo encendido adentro. */
   chip: (
     <svg viewBox="0 0 64 64">
-      <rect x="16" y="16" width="32" height="32" rx="6" fill="url(#tmChip)" />
-      <rect x="24" y="24" width="16" height="16" rx="3" fill="#0B0718" opacity=".45" />
-      <g stroke="#CFC0FF" strokeWidth="3" strokeLinecap="round">
-        <path d="M24 16V8M32 16V8M40 16V8M24 56v-8M32 56v-8M40 56v-8M16 24H8M16 32H8M16 40H8M56 24h-8M56 32h-8M56 40h-8" />
+      <g fill="url(#tmChipPata)">
+        <rect x="21" y="5" width="5" height="12" rx="2" />
+        <rect x="29.5" y="5" width="5" height="12" rx="2" />
+        <rect x="38" y="5" width="5" height="12" rx="2" />
+        <rect x="21" y="47" width="5" height="12" rx="2" />
+        <rect x="29.5" y="47" width="5" height="12" rx="2" />
+        <rect x="38" y="47" width="5" height="12" rx="2" />
+        <rect x="5" y="21" width="12" height="5" rx="2" />
+        <rect x="5" y="29.5" width="12" height="5" rx="2" />
+        <rect x="5" y="38" width="12" height="5" rx="2" />
+        <rect x="47" y="21" width="12" height="5" rx="2" />
+        <rect x="47" y="29.5" width="12" height="5" rx="2" />
+        <rect x="47" y="38" width="12" height="5" rx="2" />
       </g>
+      <rect x="13" y="13" width="38" height="38" rx="7" fill="#0A0620" opacity=".6" transform="translate(1.5,2)" />
+      <rect x="13" y="13" width="38" height="38" rx="7" fill="url(#tmChipCuerpo)" />
+      <rect x="13" y="13" width="38" height="38" rx="7" fill="none" stroke="#CFC0FF" strokeOpacity=".55" strokeWidth="1.4" />
+      <path d="M16 20 a4 4 0 0 1 4-4 h24" fill="none" stroke="#FFFFFF" strokeOpacity=".35" strokeWidth="2" strokeLinecap="round" />
+      <rect x="23" y="23" width="18" height="18" rx="4" fill="url(#tmChipNucleo)" />
+      <rect x="23" y="23" width="18" height="18" rx="4" fill="none" stroke="#E7DBFF" strokeOpacity=".6" strokeWidth="1" />
+      <circle cx="19" cy="19" r="1.8" fill="#CFC0FF" opacity=".8" />
+      <Destello x={44} y={19} r={4.5} o={0.75} />
     </svg>
   ),
+
+  /* Estrella facetada: cada punta partida en dos caras, una a la luz y otra
+     a la sombra. Una estrella de un solo color es una calcomania. */
   estrella: (
     <svg viewBox="0 0 64 64">
-      <path d="M32 4l8.4 17.6L59 24.4 45.5 38l3.2 19.2L32 48.1 15.3 57.2 18.5 38 5 24.4l18.6-2.8z" fill="url(#tmEstrella)" />
+      <path d="M32 4 L39.1 22.3 L58.6 23.3 L43.4 35.7 L48.5 54.7 L32 44 L15.5 54.7 L20.6 35.7 L5.4 23.3 L24.9 22.3 Z"
+        fill="#7A4E04" opacity=".5" transform="translate(1.2,2)" />
+      <g>
+        <path d="M32 32 L32 4 L39.1 22.3 Z" fill="url(#tmEstClara)" />
+        <path d="M32 32 L39.1 22.3 L58.6 23.3 Z" fill="url(#tmEstOscura)" />
+        <path d="M32 32 L58.6 23.3 L43.4 35.7 Z" fill="url(#tmEstClara)" />
+        <path d="M32 32 L43.4 35.7 L48.5 54.7 Z" fill="url(#tmEstOscura)" />
+        <path d="M32 32 L48.5 54.7 L32 44 Z" fill="url(#tmEstClara)" />
+        <path d="M32 32 L32 44 L15.5 54.7 Z" fill="url(#tmEstOscura)" />
+        <path d="M32 32 L15.5 54.7 L20.6 35.7 Z" fill="url(#tmEstClara)" />
+        <path d="M32 32 L20.6 35.7 L5.4 23.3 Z" fill="url(#tmEstOscura)" />
+        <path d="M32 32 L5.4 23.3 L24.9 22.3 Z" fill="url(#tmEstClara)" />
+        <path d="M32 32 L24.9 22.3 L32 4 Z" fill="url(#tmEstOscura)" />
+      </g>
+      <path d="M32 4 L39.1 22.3 L58.6 23.3 L43.4 35.7 L48.5 54.7 L32 44 L15.5 54.7 L20.6 35.7 L5.4 23.3 L24.9 22.3 Z"
+        fill="none" stroke="#FFF6D2" strokeOpacity=".7" strokeWidth="1.3" strokeLinejoin="round" />
+      <Destello x={48} y={14} r={5} o={0.85} />
     </svg>
   ),
 };
