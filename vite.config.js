@@ -27,8 +27,8 @@ function apiEnDesarrollo(env) {
   const simularJugada = (metodo) => {
     if (metodo !== "POST") return { jugadas: [], restantes: 9999, libre: false, simulado: true };
     const r = Math.random() * 100;
-    const premio = r < 8 ? "logo" : r < 18 ? "diamante" : r < 31 ? "lingote"
-      : r < 48 ? "moneda" : r < 57 ? "bonus3" : r < 62 ? "bonus4" : "nada";
+    const premio = r < 10 ? "logo" : r < 22 ? "diamante" : r < 36 ? "lingote"
+      : r < 52 ? "moneda" : r < 61 ? "bonus3" : r < 66 ? "bonus4" : "nada";
     const raiz = { logo: "30OFF", diamante: "20OFF", lingote: "15OFF", moneda: "10OFF" }[premio];
     const cola = Array.from({ length: 5 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]).join("");
     return {
