@@ -427,15 +427,19 @@ function Bonus({ t, premio, reducido, son, alTerminar }) {
   );
 }
 
-/* La lluvia del premio mayor: en vez de papelitos caen logos, que es el
-   simbolo que lo pago. Va en position fixed sobre toda la pantalla y se
-   mueve solo con transform, asi que el navegador la compone en la placa y no
-   repinta nada. Cada gota trae su tamano, su demora, su giro y su deriva:
-   sin eso caen las veinticuatro en fila y se ve como una cortina. */
-function LluviaLogos({ cantidad = 26 }) {
+/* La lluvia del festejo. Con monedas cuando algo pago y con logos cuando lo
+   pago el logo, que es el premio mas alto de la maquina: el simbolo que
+   gano es el que cae.
+
+   Va en position fixed sobre toda la pantalla y se mueve solo con
+   transform, asi que el navegador la compone en la placa y no repinta nada.
+   Cada gota trae su tamano, su demora, su giro y su deriva: sin eso caen
+   las veintipico en fila y se ve como una cortina. */
+function Lluvia({ tipo = "moneda", cantidad }) {
+  const cuantas = cantidad ?? (tipo === "logo" ? 26 : 22);
   const gotas = useMemo(
     () =>
-      Array.from({ length: cantidad }, () => ({
+      Array.from({ length: cuantas }, () => ({
         left: (Math.random() * 100).toFixed(1) + "%",
         "--tam": (26 + Math.random() * 36).toFixed(0) + "px",
         "--dur": (1.7 + Math.random() * 1.5).toFixed(2) + "s",
@@ -443,13 +447,19 @@ function LluviaLogos({ cantidad = 26 }) {
         "--giro": (Math.random() * 900 - 450).toFixed(0) + "deg",
         "--deriva": (Math.random() * 80 - 40).toFixed(0) + "px",
       })),
-    [cantidad]
+    [cuantas]
   );
   return (
     <div className="s2b-tm-lluvia" aria-hidden="true">
-      {gotas.map((g, i) => (
-        <img key={i} src="/logo.png" alt="" style={g} />
-      ))}
+      {gotas.map((g, i) =>
+        tipo === "logo" ? (
+          <img key={i} src="/logo.png" alt="" style={g} />
+        ) : (
+          <span key={i} className="s2b-tm-gota" style={g}>
+            <Simbolo id="moneda" />
+          </span>
+        )
+      )}
     </div>
   );
 }
@@ -525,7 +535,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [golpe, setGolpe] = useState(false);
   const [bonus, setBonus] = useState(null);
   const [cartel, setCartel] = useState(null);
-  const [lluvia, setLluvia] = useState(false);
+  /* null, "moneda" o "logo": que cae en el festejo */
+  const [lluvia, setLluvia] = useState(null);
 
   const relojes = useRef([]);
   const cortarSonido = useRef(null);
@@ -607,7 +618,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setCuantasGanan(0);
     setBonus(null);
     setCartel(null);
-    setLluvia(false);
+    setLluvia(null);
     son("palanca");
 
     /* Se le pide el resultado al servidor antes de mover nada: los rodillos
@@ -715,11 +726,15 @@ export default function Tragamonedas({ t, waLink, irA }) {
         });
         son("gano", cuatro);
         festejar(cuatro);
+        if (!reducido) {
+          setLluvia("moneda");
+          relojes.current.push(setTimeout(() => montado.current && setLluvia(null), 3000));
+        }
         relojes.current.push(setTimeout(() => montado.current && setCartel(null), 2600));
       } else if (premio.id) {
         /* Cinco iguales. Los cinco del logo son el premio mayor de la maquina
            y se anuncian distinto: cartel propio y lluvia de logos en vez de
-           papelitos, que es lo que hacen las maquinas cuando cae el jackpot. */
+           monedas, que es lo que hacen las maquinas cuando cae el jackpot. */
         const mayor = premio.id === "logo";
         setCartel({
           nivel: mayor ? "mayor" : "grande",
@@ -730,11 +745,11 @@ export default function Tragamonedas({ t, waLink, irA }) {
         });
         son("gano", true);
         festejar(true);
-        if (mayor && !reducido) {
-          setLluvia(true);
-          relojes.current.push(setTimeout(() => montado.current && setLluvia(false), 3600));
+        if (!reducido) {
+          setLluvia(mayor ? "logo" : "moneda");
+          relojes.current.push(setTimeout(() => montado.current && setLluvia(null), mayor ? 3600 : 3000));
           /* una segunda tanda de papelitos para que el mayor se sienta mas */
-          relojes.current.push(setTimeout(() => montado.current && festejar(true), 900));
+          if (mayor) relojes.current.push(setTimeout(() => montado.current && festejar(true), 900));
         }
         relojes.current.push(setTimeout(() => {
           if (!montado.current) return;
@@ -1149,6 +1164,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     : t("Tres jugadas por conexión. Se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Three spins per connection. They are counted on our server, so opening another window or clearing your history won't add more.")}</li>
                   <li><ShieldCheck size={14} /> {t("El sorteo y el código se generan en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the code are generated on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
                   <li><Layers size={14} /> {t("Los descuentos NO son acumulables: si ganás más de uno, se usa uno solo. Al canjear el que elijas, los demás quedan anulados.", "Discounts are NOT cumulative: if you win more than one, only one is used. When you redeem the one you pick, the rest are voided.")}</li>
+                  <li><Sparkles size={14} /> {t("El descuento se canjea por diseño web profesional, una app a medida o un sistema a medida: lo que necesites construir.", "The discount can be redeemed for professional web design, a custom app or a custom system: whatever you need built.")}</li>
                   <li><Sparkles size={14} /> {t("Cada código es único, se aplica sobre el presupuesto final de un proyecto nuevo y se canjea una sola vez.", "Every code is unique, applies to the final quote of a new project and can be redeemed only once.")}</li>
                   <li><RotateCw size={14} /> {t("Se paga de izquierda a derecha en las cinco líneas: la del medio, la de arriba, la de abajo y las dos diagonales.", "Wins pay left to right on all five lines: middle, top, bottom and both diagonals.")}</li>
                   <li><ArrowRight size={14} /> {t("Para reclamarlo, mandanos el código por WhatsApp. Vale 30 días desde la jugada.", "To claim it, send us the code on WhatsApp. Valid for 30 days from the spin.")}</li>
@@ -1199,7 +1215,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
       {typeof document !== "undefined" && createPortal(
         <div className="s2b s2b-tm-portal">
-          {lluvia && <LluviaLogos />}
+          {lluvia && <Lluvia tipo={lluvia} />}
           <AnimatePresence>
             {abierto && resultado && (
               <motion.div
@@ -1522,10 +1538,14 @@ const CSS_TM = `
    que se trabe. z-index 124: encima de la maquina pero debajo de la ventana
    del premio, que es 125. */
 .s2b-tm-lluvia { position:fixed; inset:0; z-index:124; pointer-events:none; overflow:hidden; }
-.s2b-tm-lluvia img { position:absolute; top:-16vh; width:var(--tam); height:auto; opacity:0;
+.s2b-tm-lluvia img, .s2b-tm-gota { position:absolute; top:-16vh; width:var(--tam); height:auto; opacity:0;
   will-change:transform;
   filter:drop-shadow(0 0 12px rgba(255,226,160,.85)) drop-shadow(0 4px 10px rgba(0,0,0,.6));
   animation:s2b-tm-caer var(--dur) cubic-bezier(.32,.08,.52,1) var(--demora) forwards; }
+/* la moneda es un svg y no una imagen: se le fija el alto para que no herede
+   el de la celda de los rodillos */
+.s2b-tm-gota { display:block; height:var(--tam); }
+.s2b-tm-gota .s2b-tm-sim { width:100%; height:100%; }
 @keyframes s2b-tm-caer {
   0%   { transform:translate3d(0,0,0) rotate(0deg); opacity:0; }
   7%   { opacity:1; }
@@ -1539,17 +1559,21 @@ const CSS_TM = `
 .s2b-tm-cartel { position:absolute; inset:0; z-index:8; display:grid; align-content:center; justify-items:center;
   gap:4px; pointer-events:none; text-align:center;
   background:radial-gradient(closest-side, rgba(12,2,8,.82), rgba(12,2,8,.35) 70%, transparent); }
-.s2b-tm-cartel b { font-family:var(--display); font-weight:700; letter-spacing:.04em; line-height:1;
+/* max-width y line-height algo mayor que 1: las letras crecieron bastante y
+   "¡SÚPER GRAN PREMIO!" tiene que poder cortarse en dos renglones en vez de
+   salirse del mueble. */
+.s2b-tm-cartel b { font-family:var(--display); font-weight:700; letter-spacing:.03em; line-height:1.02;
+  max-width:94%; text-wrap:balance;
   background:linear-gradient(180deg,#FFF9DF 4%,var(--oro2) 38%,var(--oro3) 66%,#FFF6D0 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 2px 0 rgba(92,58,4,.9)) drop-shadow(0 0 26px rgba(249,216,88,.85)); }
-.s2b-tm-cartel small { font-family:var(--mono); font-size:clamp(9px,1.5vw,11.5px); letter-spacing:.16em;
-  text-transform:uppercase; color:#FFE9A8; }
+  filter:drop-shadow(0 2px 0 rgba(92,58,4,.9)) drop-shadow(0 0 30px rgba(249,216,88,.9)); }
+.s2b-tm-cartel small { font-family:var(--mono); font-size:clamp(10px,1.9vw,14px); letter-spacing:.16em;
+  text-transform:uppercase; color:#FFE9A8; max-width:92%; }
 
-.s2b-tm-cartel--bonus b { font-size:clamp(30px,7vw,64px); }
-.s2b-tm-cartel--super b { font-size:clamp(34px,8vw,74px); }
-.s2b-tm-cartel--grande b { font-size:clamp(30px,7.4vw,68px); }
-.s2b-tm-cartel--mayor b { font-size:clamp(26px,6.2vw,58px); animation:s2b-tm-pulso .8s ease-in-out infinite; }
+.s2b-tm-cartel--bonus b { font-size:clamp(38px,9vw,84px); }
+.s2b-tm-cartel--super b { font-size:clamp(40px,9.6vw,92px); }
+.s2b-tm-cartel--grande b { font-size:clamp(38px,9.2vw,88px); }
+.s2b-tm-cartel--mayor b { font-size:clamp(32px,7.6vw,76px); animation:s2b-tm-pulso .8s ease-in-out infinite; }
 .s2b-tm-cartel--mayor { background:radial-gradient(closest-side, rgba(60,6,20,.9), rgba(12,2,8,.5) 70%, transparent); }
 /* el mas grande late, los otros no: si laten los tres se pierde la jerarquia */
 .s2b-tm-cartel--grande b { animation:s2b-tm-pulso 1s ease-in-out infinite; }
