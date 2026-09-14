@@ -706,7 +706,11 @@ const CSS = `
 .s2b-formerr a { color:#fff; text-decoration:underline; }
 
 /* ---------- footer ---------- */
-.s2b-foot { border-top:1px solid rgba(167,140,255,.16); padding:56px 0 34px; }
+/* El pie termina 100 px antes del borde y no 34: abajo de todo flotan dos
+   cosas fijas -la burbuja de WhatsApp a la derecha, el cambio de idioma a
+   la izquierda- y al llegar al final de la pagina tapaban la ultima linea.
+   Con el contador de visitas ahi, eso pasa de feo a ilegible. */
+.s2b-foot { border-top:1px solid rgba(167,140,255,.16); padding:56px 0 100px; }
 .s2b-foot-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:36px; }
 .s2b-foot h5 { font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#9E97C4; margin:0 0 16px; font-weight:400; }
 .s2b-foot ul { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
