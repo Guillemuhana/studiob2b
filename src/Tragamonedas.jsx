@@ -871,31 +871,16 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     {/* la barra de arriba, como el HUD de una maquina: en vez de
                         saldo y apuesta -que aca no existen- lleva las jugadas
                         que quedan y el premio mayor */}
+                    {/* Arriba va solo el saldo, como la barra de creditos de
+                        una maquina de sala. Los botones bajaron a la consola:
+                        en una maquina de verdad no hay nada que apretar arriba
+                        de los rodillos, todo esta abajo, al alcance del pulgar. */}
                     <div className="s2b-tm-hud">
-                      <button className="s2b-tm-hud-btn" onClick={() => irA("home")}>{t("INICIO", "HOME")}</button>
                       <span className="s2b-tm-hud-saldo">
                         <Simbolo id="moneda" />
                         <b>{sinTope ? "∞" : restantes}</b>
                         <small>{libre ? t("modo prueba", "test mode") : t("jugadas", "spins")}</small>
                       </span>
-                      <button
-                        className="s2b-tm-hud-ico"
-                        onClick={() => setSonando((v) => {
-                          if (v && cortarSonido.current) cortarSonido.current();
-                          return !v;
-                        })}
-                        aria-pressed={sonando}
-                        aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
-                      >
-                        {sonando ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                      </button>
-                      <button
-                        className="s2b-tm-hud-ico"
-                        onClick={() => document.querySelector(".s2b-tm-tabla")?.scrollIntoView({ behavior: "smooth", block: "center" })}
-                        aria-label={t("Ver la tabla de premios", "See the prize table")}
-                      >
-                        <Info size={16} />
-                      </button>
                     </div>
 
                     <div className="s2b-tm-rodillos">
@@ -995,17 +980,43 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       </div>
                     </div>
 
-                    {/* la botonera de abajo: las mismas cajas que una maquina,
-                        pero diciendo la verdad, porque aca no hay apuesta ni
-                        saldo que mover */}
+                    {/* La consola, como la de la maquina de sala: primero la
+                        franja de marcadores -que ahi dice APUESTA, GANANCIA y
+                        RECORD- y debajo la fila de botones. Aca los
+                        marcadores dicen la verdad: no hay apuesta ni saldo
+                        que mover, hay jugadas que quedan y lo que salio. */}
                     <div className="s2b-tm-barra">
-                      <div className="s2b-tm-caja">
-                        <small>{t("JUGADAS", "SPINS")}</small>
-                        <b>{sinTope ? "∞" : `${restantes} / ${TOPE}`}</b>
+                      <div className="s2b-tm-marcadores">
+                        <div className="s2b-tm-caja">
+                          <small>{t("JUGADAS", "SPINS")}</small>
+                          <b>{sinTope ? "∞" : `${restantes} / ${TOPE}`}</b>
+                        </div>
+                        <div className={"s2b-tm-caja s2b-tm-caja--win" + (resultado?.premio?.id ? " is-pago" : "")}>
+                          <small>{t("PREMIO", "WIN")}</small>
+                          <b>{resultado?.premio?.id ? resultado.premio.monto : "—"}</b>
+                        </div>
                       </div>
-                      <div className="s2b-tm-caja s2b-tm-caja--win">
-                        <small>{t("PREMIO", "WIN")}</small>
-                        <b>{resultado?.premio?.id ? resultado.premio.monto : "—"}</b>
+
+                      <div className="s2b-tm-mandos">
+                        <button className="s2b-tm-hud-btn" onClick={() => irA("home")}>{t("INICIO", "HOME")}</button>
+                        <button
+                          className="s2b-tm-hud-ico"
+                          onClick={() => setSonando((v) => {
+                            if (v && cortarSonido.current) cortarSonido.current();
+                            return !v;
+                          })}
+                          aria-pressed={sonando}
+                          aria-label={sonando ? t("Silenciar", "Mute") : t("Activar sonido", "Unmute")}
+                        >
+                          {sonando ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                        </button>
+                        <button
+                          className="s2b-tm-hud-ico"
+                          onClick={() => document.querySelector(".s2b-tm-tabla")?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                          aria-label={t("Ver la tabla de premios", "See the prize table")}
+                        >
+                          <Info size={16} />
+                        </button>
                       </div>
 
                       {/* El boton va metido en su zocalo: el aro de oro y el
@@ -1374,7 +1385,7 @@ const CSS_TM = `
 
 /* ---------- la barra de arriba ---------- */
 .s2b-tm-hud { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:clamp(9px,1.3vw,13px); }
-.s2b .s2b-tm-hud-btn { padding:7px 14px; border-radius:9px; border:2px solid var(--oro4); color:#40100A;
+.s2b .s2b-tm-hud-btn { min-height:36px; padding:0 14px; border-radius:9px; border:2px solid var(--oro4); color:#40100A;
   font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.14em;
   background:linear-gradient(180deg,var(--oro1),var(--oro2) 48%,var(--oro3));
   box-shadow:0 3px 0 var(--oro4); transition:transform .12s, box-shadow .12s; }
@@ -1384,10 +1395,15 @@ const CSS_TM = `
 .s2b-tm-hud-saldo .s2b-tm-sim { width:20px; height:20px; }
 .s2b-tm-hud-saldo b { font-family:var(--display); font-size:15px; font-weight:700; color:var(--oro1); }
 .s2b-tm-hud-saldo small { font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:#D9B98A; }
-.s2b .s2b-tm-hud-ico { width:32px; height:32px; flex:none; border-radius:9px; display:grid; place-items:center;
-  color:var(--oro2); border:1px solid rgba(249,216,88,.4); background:rgba(0,0,0,.42);
-  transition:color .2s, border-color .2s; }
-.s2b .s2b-tm-hud-ico:hover { color:#fff; border-color:var(--oro2); }
+/* dorados y en relieve como el resto de la botonera, no cuadraditos oscuros:
+   en la consola de una maquina todos los botones son del mismo material */
+.s2b .s2b-tm-hud-ico { min-width:36px; min-height:36px; border-radius:9px; display:grid; place-items:center;
+  color:#40100A; border:2px solid var(--oro4);
+  background:linear-gradient(180deg,var(--oro1),var(--oro2) 48%,var(--oro3));
+  box-shadow:0 3px 0 var(--oro4);
+  transition:transform .12s, box-shadow .12s, filter .2s; }
+.s2b .s2b-tm-hud-ico:hover { filter:brightness(1.08); }
+.s2b .s2b-tm-hud-ico:active { transform:translateY(2px); box-shadow:0 1px 0 var(--oro4); }
 
 /* ---------- el fieltro rojo y los rodillos ----------
    Nada mide en px aca: el ancho de columna lo reparte el grid y el alto sale
@@ -1615,19 +1631,43 @@ const CSS_TM = `
 /* ---------- la botonera de abajo ----------
    Va en su propio panel oscuro, como la consola de una maquina: sobre el
    fieltro rojo las cajas flotaban y parecian pegadas encima. */
-.s2b-tm-barra { display:flex; align-items:center; gap:clamp(6px,1.2vw,12px);
+/* Dos filas, como la consola de la maquina de sala: arriba los marcadores a
+   lo ancho, abajo los botones con el de girar al fondo a la derecha. Antes
+   iba todo en una sola fila y las cajas quedaban espachurradas al lado del
+   boton, que es el doble de alto que ellas. */
+.s2b-tm-barra { display:grid; gap:clamp(7px,1.1vw,11px);
   margin-top:clamp(8px,1.3vw,13px); padding:clamp(8px,1.2vw,13px);
+  /* Los marcadores y los botones se apilan a la izquierda y el de girar va
+     al costado abarcando las dos filas. Con el boton en su propia fila
+     quedaba media consola vacia, porque es cuatro veces mas alto que un
+     boton comun. */
+  grid-template-columns:1fr auto; grid-template-areas:"marcadores girar" "mandos girar";
+  align-items:center;
   border-radius:14px; border:1px solid rgba(249,216,88,.3);
   background:linear-gradient(180deg,#1C0912 0%,#0A0407 100%);
   box-shadow:inset 0 1px 0 rgba(249,216,88,.28), inset 0 10px 22px rgba(0,0,0,.75); }
-.s2b-tm-caja { flex:1 1 0; min-width:0; max-width:200px; display:grid; align-content:center; justify-items:center; gap:2px;
-  padding:8px 6px; border-radius:11px; text-align:center;
+.s2b-tm-marcadores { grid-area:marcadores; display:flex; align-items:stretch; gap:clamp(6px,1.2vw,12px); }
+/* Los botones se reparten el ancho, como la fila de la maquina de sala:
+   sueltos y chiquitos a la izquierda dejaban un hueco muerto al lado. */
+.s2b-tm-mandos { grid-area:mandos; display:flex; align-items:stretch; gap:clamp(6px,1.1vw,10px); }
+.s2b-tm-mandos > * { flex:1 1 0; min-width:0; }
+.s2b-tm-zocalo { grid-area:girar; }
+
+.s2b-tm-caja { flex:1 1 0; min-width:0; display:grid; align-content:center; justify-items:center; gap:2px;
+  padding:8px 10px; border-radius:11px; text-align:center;
   border:2px solid rgba(249,216,88,.55); background:linear-gradient(180deg, rgba(0,0,0,.75), rgba(30,6,14,.6));
   box-shadow:inset 0 3px 9px rgba(0,0,0,.8); }
 .s2b-tm-caja small { font-family:var(--mono); font-size:clamp(7.5px,1.5vw,8.5px); letter-spacing:.14em; color:#E0BE8C; }
 .s2b-tm-caja b { font-family:var(--display); font-size:clamp(14px,3.4vw,21px); font-weight:700; color:#fff; line-height:1.1;
   white-space:nowrap; text-shadow:0 0 12px rgba(255,214,120,.35); }
-.s2b-tm-caja--win b { color:var(--oro1); }
+/* el marcador de lo que se gano es el que manda, como en la maquina de la
+   foto: ocupa el doble y el numero va en oro encendido */
+.s2b-tm-caja--win { flex:2 1 0; }
+.s2b-tm-caja--win b { color:var(--oro1); font-size:clamp(17px,4.4vw,28px); }
+.s2b-tm-caja--win.is-pago { border-color:var(--oro2);
+  background:linear-gradient(180deg, rgba(62,32,0,.85), rgba(30,6,14,.7));
+  box-shadow:inset 0 3px 9px rgba(0,0,0,.8), 0 0 22px -6px rgba(249,216,88,.7); }
+.s2b-tm-caja--win.is-pago b { text-shadow:0 0 16px rgba(255,214,120,.9), 0 0 34px rgba(255,170,40,.55); }
 
 /* ---------- el boton de girar ----------
    Son tres piezas y no una: el aro de oro (zocalo), el pozo oscuro donde
@@ -1922,11 +1962,11 @@ const CSS_TM = `
   .s2b-tm-cuerpo { padding:7px; border-radius:14px; }
   .s2b-tm-rodillos { padding:6px 12px; }
   .s2b-tm-hud { gap:5px; margin-bottom:7px; }
-  .s2b .s2b-tm-hud-btn { padding:6px 10px; font-size:9px; }
+  .s2b .s2b-tm-hud-btn { min-height:31px; padding:0 10px; font-size:9px; }
   .s2b-tm-hud-saldo { padding:5px 9px; gap:5px; }
   .s2b-tm-hud-saldo .s2b-tm-sim { width:16px; height:16px; }
   .s2b-tm-hud-saldo b { font-size:13px; }
-  .s2b .s2b-tm-hud-ico { width:28px; height:28px; }
+  .s2b .s2b-tm-hud-ico { min-width:31px; min-height:31px; }
   .s2b-tm-barra { padding:7px; gap:6px; }
   .s2b-tm-caja { padding:6px 4px; border-width:1px; }
   .s2b-tm-lineas figure { flex-basis:calc(33.333% - 6.7px); }
@@ -1936,10 +1976,11 @@ const CSS_TM = `
   .s2b-tm-prob { font-size:11.5px; }
 }
 
-/* Celular angosto: la marquesina pasa a una sola columna y el HUD deja de
-   repetir lo que ya dice la botonera. */
+/* Celular angosto: el HUD entero se va, porque ahora solo lleva el saldo y
+   eso ya lo dice el marcador de JUGADAS de la consola. Ocultar el saldo
+   solo dejaba una franja vacia arriba de los rodillos. */
 @media (max-width: 400px) {
-  .s2b-tm-hud-saldo { display:none; }
+  .s2b-tm-hud { display:none; }
   .s2b-tm-tabla, .s2b-tm-bases { padding:16px 13px; }
 }
 
