@@ -1013,6 +1013,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
                           apretar es la tapa. Un circulo suelto que se mueve
                           entero no parece un boton, parece una calcomania. */}
                       <div className={"s2b-tm-zocalo" + (fase === "girando" ? " is-girando" : "")}>
+                        {/* las lamparitas que corren por el aro, como en las
+                            maquinas de sala: lentas esperando, disparadas
+                            mientras los rodillos estan en movimiento */}
+                        <i className="s2b-tm-zocalo-luz" aria-hidden="true" />
                         {restantes <= 0 && sincronizado && !sinTope ? (
                           <button
                             className="s2b-tm-spin s2b-tm-spin--visto"
@@ -1630,9 +1634,12 @@ const CSS_TM = `
    apoya (::before) y la tapa (el button). Al apretar baja solo la tapa,
    dentro del pozo, y su pared lateral se achica. Eso es lo que hace que se
    lea como un boton fisico y no como un circulo que se mueve entero. */
+/* Mas grande que antes -80 a 101 px en el celular, 146 a 168 en escritorio-:
+   en una maquina de verdad el boton de girar es la pieza mas grande de la
+   botonera, y este quedaba del mismo tamano que los carteles de al lado. */
 .s2b-tm-zocalo { position:relative; flex:none; margin-left:auto;
-  width:clamp(80px,20vw,146px); aspect-ratio:1; border-radius:50%;
-  padding:clamp(6px,1.1vw,10px);
+  width:clamp(96px,26vw,168px); aspect-ratio:1; border-radius:50%;
+  padding:clamp(7px,1.3vw,11px);
   /* Oro TORNEADO, no una rampa. Un aro de metal refleja por bandas segun el
      angulo de cada punto del anillo, y eso es un degrade conico, no uno
      lineal. Con el lineal el aro parecia plastico amarillo pintado. */
@@ -1648,6 +1655,25 @@ const CSS_TM = `
     0 16px 30px -12px rgba(0,0,0,.95); }
 /* el filo de luz del borde de afuera, donde el metal se dobla */
 .s2b-tm-zocalo::before, .s2b-tm-zocalo::after { pointer-events:none; }
+
+/* Las lamparitas del aro. Cuatro puntos calientes en un degrade conico que
+   da vueltas; la mascara recorta todo menos el anillo de afuera, asi la luz
+   corre por el borde del metal y no le pinta el centro. */
+.s2b-tm-zocalo-luz { position:absolute; inset:-1px; border-radius:50%; pointer-events:none; z-index:2;
+  background:conic-gradient(from 0deg,
+    rgba(255,246,208,.95) 0deg, rgba(255,246,208,0) 26deg,
+    rgba(255,246,208,0) 64deg, rgba(255,246,208,.95) 90deg, rgba(255,246,208,0) 116deg,
+    rgba(255,246,208,0) 154deg, rgba(255,246,208,.95) 180deg, rgba(255,246,208,0) 206deg,
+    rgba(255,246,208,0) 244deg, rgba(255,246,208,.95) 270deg, rgba(255,246,208,0) 296deg,
+    rgba(255,246,208,0) 360deg);
+  -webkit-mask:radial-gradient(circle, transparent 60%, #000 68%, #000 100%);
+  mask:radial-gradient(circle, transparent 60%, #000 68%, #000 100%);
+  mix-blend-mode:screen; opacity:.55;
+  animation:s2b-tm-ronda 4.2s linear infinite; }
+/* mientras gira, la ronda se dispara y se pone verde como la tapa */
+.s2b-tm-zocalo.is-girando .s2b-tm-zocalo-luz { opacity:.95; animation-duration:.85s;
+  filter:hue-rotate(70deg) saturate(1.4); }
+@keyframes s2b-tm-ronda { to { transform:rotate(360deg); } }
 /* el pozo: sombra hacia adentro para que la tapa parezca metida */
 .s2b-tm-zocalo::before { content:''; position:absolute; inset:clamp(5px,.9vw,8px); border-radius:50%;
   background:radial-gradient(circle at 50% 40%, #2A1806, #0B0602 78%);
@@ -1677,11 +1703,13 @@ const CSS_TM = `
   background:radial-gradient(circle at 50% 58%, rgba(190,255,214,.5), rgba(120,240,170,.14) 55%, transparent 74%);
   mix-blend-mode:screen; }
 .s2b .s2b-tm-spin b { position:relative; z-index:3; font-family:var(--display);
-  font-size:clamp(11px,2.4vw,18px); font-weight:700; letter-spacing:.1em;
+  font-size:clamp(12px,2.9vw,21px); font-weight:700; letter-spacing:.1em;
   /* grabado: sombra arriba, luz abajo */
   text-shadow:0 -1px 1px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.3), 0 2px 5px rgba(0,0,0,.4); }
-.s2b-tm-spin-ico { position:absolute; z-index:2; width:76%; height:76%; stroke-width:1.05;
-  color:rgba(255,255,255,.45); }
+/* La flecha va de aro, no de fondo: al 76% cruzaba justo por encima de la
+   palabra GIRAR y no se leia ninguna de las dos. Al 92% rodea al texto. */
+.s2b-tm-spin-ico { position:absolute; z-index:2; width:92%; height:92%; stroke-width:.85;
+  color:rgba(255,255,255,.42); }
 .s2b .s2b-tm-spin.is-girando .s2b-tm-spin-ico { animation:s2b-tm-vuelta .8s linear infinite; }
 @keyframes s2b-tm-vuelta { to { transform:rotate(360deg); } }
 
@@ -1928,5 +1956,6 @@ const CSS_TM = `
   .s2b-tm-ventana.is-ansia,
   .s2b-tm-mueble.is-golpe .s2b-tm-cuerpo { animation:none !important; }
   .s2b-tm-zocalo::after { animation:none !important; opacity:0; }
+  .s2b-tm-zocalo-luz { animation:none !important; opacity:.4; }
 }
 `;
