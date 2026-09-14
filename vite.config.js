@@ -24,10 +24,11 @@ function apiEnDesarrollo(env) {
   const hayBase = !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY && env.SB2B_SECRETO && env.SB2B_SAL);
 
   /* sorteo local, con los mismos pesos que publica la pagina */
-  const simular = (metodo) => {
+  const simularJugada = (metodo) => {
     if (metodo !== "POST") return { jugadas: [], restantes: 9999, libre: false, simulado: true };
     const r = Math.random() * 100;
-    const premio = r < 2 ? "logo" : r < 7 ? "diamante" : r < 15 ? "lingote" : r < 30 ? "moneda" : r < 42 ? "giro" : "nada";
+    const premio = r < 2 ? "logo" : r < 7 ? "diamante" : r < 15 ? "lingote"
+      : r < 30 ? "moneda" : r < 38 ? "bonus3" : r < 42 ? "bonus4" : "nada";
     const raiz = { logo: "30OFF", diamante: "20OFF", lingote: "15OFF", moneda: "10OFF" }[premio];
     const cola = Array.from({ length: 5 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]).join("");
     return {
@@ -41,13 +42,24 @@ function apiEnDesarrollo(env) {
     };
   };
 
+  /* el contador en local: numeros de mentira, pero que se mueven, para poder
+     mirar como queda el cartel sin tocar los de verdad */
+  let visitasFalsas = 1234;
+  const simularVisitas = (metodo) => {
+    if (metodo === "POST") visitasFalsas += 1;
+    return { total: visitasFalsas, personas: Math.round(visitasFalsas * 0.62), hoy: 17, simulado: true };
+  };
+
+  const simular = (nombre, metodo) =>
+    nombre === "visitas" ? simularVisitas(metodo) : simularJugada(metodo);
+
   return {
     name: "sb2b-api-en-desarrollo",
     apply: "serve",
     configureServer(server) {
       if (hayBase) Object.assign(process.env, env);
       else server.config.logger.warn(
-        "\n  [casino] Sin variables de entorno: /api/jugar responde jugadas simuladas.\n" +
+        "\n  [casino] Sin variables de entorno: /api/jugar y /api/visitas responden datos simulados.\n" +
         "           Para probar contra la base real: npx vercel env pull .env.local\n"
       );
 
@@ -63,7 +75,7 @@ function apiEnDesarrollo(env) {
           res.end(JSON.stringify(cuerpo));
         };
 
-        if (!hayBase) return responder(200, simular(req.method));
+        if (!hayBase) return responder(200, simular(nombre, req.method));
 
         try {
           const mod = await server.ssrLoadModule(`/api/${nombre}.js`);

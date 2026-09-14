@@ -8,7 +8,7 @@ import {
   ClipboardList, FileSpreadsheet, ShoppingCart, CalendarCheck, Store,
   GraduationCap, Truck, CreditCard, ShieldCheck, Headphones, TrendingUp,
   Target, Palette, FlaskConical, Send, Sprout, Blocks,
-  KeyRound, Network, Globe, Handshake,
+  KeyRound, Network, Globe, Handshake, Eye,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
 /* La seccion del Dia del Programador se lleva el resaltador de sintaxis, el
@@ -716,6 +716,26 @@ const CSS = `
 .s2b-social a { width:38px; height:38px; border-radius:11px; border:1px solid rgba(167,140,255,.22); display:grid; place-items:center; color:#9E97C4; transition:color .2s,border-color .2s,transform .2s; }
 .s2b-social a:hover { color:#fff; border-color:var(--lilac); transform:translateY(-2px); }
 .s2b-foot-bot { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; margin-top:44px; padding-top:22px; border-top:1px solid rgba(167,140,255,.14); font-family:var(--mono); font-size:11.5px; color:#7E7799; }
+
+/* ---------- contador de visitas ----------
+   Casillas separadas, como el cuentakilometros de un tablero: cada digito
+   en su ventanita hundida. Cinco fijas, asi el cartel no se ensancha de
+   golpe cuando el numero pasa de 999 a 1000. */
+.s2b-visitas { display:inline-flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.s2b-visitas > svg { color:var(--lilac); opacity:.75; flex:none; }
+.s2b-visitas b { display:inline-flex; gap:3px; }
+.s2b-visitas b i { display:grid; place-items:center; min-width:15px; padding:3px 0 4px;
+  border-radius:4px; font-style:normal; font-size:12px; line-height:1; font-weight:600;
+  color:#E4DEFA; background:rgba(255,255,255,.05);
+  border:1px solid rgba(167,140,255,.2);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.45); }
+.s2b-visitas-txt { letter-spacing:.13em; text-transform:uppercase; }
+.s2b-visitas-txt em { font-style:normal; color:#9E8FD6; }
+
+@media (max-width: 640px) {
+  /* en el celular el pie queda en una columna: el contador debajo del (c) */
+  .s2b-foot-bot { justify-content:flex-start; gap:12px; }
+}
 
 /* ==================================================================
    SECCIONES DEL HOME NUEVO
@@ -3917,6 +3937,56 @@ function Terminal({ lineas }) {
   );
 }
 
+/* ---------- contador de visitas ----------
+   El numero lo lleva Postgres, no el navegador: uno guardado en
+   localStorage lo sube cualquiera con F12, y uno que arranca de cero en
+   cada maquina no es un contador, es un adorno.
+
+   Una visita es una sesion: recargar la pagina no suma, volver despues de
+   media hora si. Por eso el numero de al lado dice "personas" y no
+   "visitantes unicos hoy" ni ninguna de esas cuentas que no cierran.
+
+   Si el contador falla, no se dibuja nada. Un pie de pagina no se puede
+   romper porque un numero decorativo no llego. */
+function Visitas({ t }) {
+  const [datos, setDatos] = useState(null);
+
+  useEffect(() => {
+    let vivo = true;
+    /* POST y no GET: esto no es una lectura, suma la visita */
+    fetch("/api/visitas", { method: "POST" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (vivo && d && typeof d.total === "number") setDatos(d); })
+      .catch(() => {});
+    return () => { vivo = false; };
+  }, []);
+
+  if (!datos) return null;
+
+  /* cinco casillas fijas: el cartel no cambia de ancho cuando el numero
+     pasa de 999 a 1000 */
+  const digitos = String(datos.total).padStart(5, "0").split("");
+
+  return (
+    <span
+      className="s2b-visitas"
+      title={t(
+        `${datos.total} visitas · ${datos.personas} personas · ${datos.hoy} hoy`,
+        `${datos.total} visits · ${datos.personas} people · ${datos.hoy} today`
+      )}
+    >
+      <Eye size={13} aria-hidden="true" />
+      <b aria-hidden="true">
+        {digitos.map((d, i) => <i key={i}>{d}</i>)}
+      </b>
+      <span className="s2b-visitas-txt">
+        {t("visitas", "visits")}
+        {datos.hoy > 0 && <em> · {datos.hoy} {t("hoy", "today")}</em>}
+      </span>
+    </span>
+  );
+}
+
 function WhatsappGlyph() {
   return (
     <svg className="s2b-wa-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -5416,6 +5486,7 @@ export default function StudioB2B() {
             </div>
             <div className="s2b-foot-bot">
               <span>© {new Date().getFullYear()} Studio B2B · {t("Todos los derechos reservados", "All rights reserved")}</span>
+              <Visitas t={t} />
             </div>
           </div>
         </footer>
