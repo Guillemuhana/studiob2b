@@ -13,9 +13,9 @@
    la tabla se muestra entera en la pagina.
    ================================================================== */
 
-/* El rayo quedo en los rodillos pero ya no paga: es un simbolo bajo, de los
-   que rellenan. Tres iguales en la linea nunca le pueden tocar, porque las
-   jugadas perdedoras se arman siempre con dos iguales y uno distinto. */
+/* Cualquiera de los siete puede pagar: lo que manda es cuantos iguales salen
+   al hilo, no cual simbolo. El logo es el unico con premio propio -los cinco
+   logos son el mayor-; los demas pagan por cantidad. */
 export const SIMBOLOS = ["logo", "diamante", "lingote", "moneda", "rayo", "chip", "estrella"];
 
 /* Todos los premios son porcentajes de descuento sobre el presupuesto, no
@@ -141,9 +141,9 @@ export const FILAS = 3;
 /* Las cinco lineas de pago, como en cualquier maquina. Cada una dice, para
    cada rodillo, en que fila mira: 0 arriba, 1 medio, 2 abajo.
 
-   La del medio paga los descuentos. Las otras cuatro pagan "otro intento":
-   devuelven la jugada. Asi el cartel cruzado tambien sirve de algo, que es lo
-   que hace que una maquina se sienta viva en vez de un boton de si o no. */
+   Las cinco pagan igual: lo que decide el premio es cuantos iguales salen al
+   hilo desde la izquierda, no en que linea. Tres pagan BONUS, cuatro SUPER
+   BONUS y cinco el descuento, caiga donde caiga. */
 export const LINEAS = [
   { id: "centro", filas: [1, 1, 1, 1, 1], es: "Línea del medio", en: "Middle line" },
   { id: "arriba", filas: [0, 0, 0, 0, 0], es: "Línea de arriba", en: "Top line" },
@@ -151,13 +151,6 @@ export const LINEAS = [
   { id: "uve",    filas: [0, 1, 2, 1, 0], es: "Diagonal en V",   en: "V diagonal" },
   { id: "cuna",   filas: [2, 1, 0, 1, 2], es: "Diagonal invertida", en: "Inverted V" },
 ];
-
-const LINEA_PAGA = "centro";
-
-const completa = (grilla, linea) => {
-  const s = grilla[0][linea.filas[0]];
-  return linea.filas.every((f, i) => grilla[i][f] === s);
-};
 
 /* La grilla de 5x3 que van a mostrar los rodillos.
 
@@ -170,76 +163,73 @@ export function grillaDe(premio) {
     Array.from({ length: FILAS }, () => unoDe(SIMBOLOS))
   );
 
-  /* Las celdas que forman el premio no se tocan mas. El repaso de abajo rompe
+  /* Las celdas que forman el premio no se tocan mas: el repaso de abajo rompe
      lineas que salieron de casualidad, y sin esta lista podia romper justo la
-     que paga: bonus4 salia a veces con tres iguales, o con uno. */
+     que paga. */
   const intocables = new Set();
   const proteger = (i, f) => intocables.add(i + "," + f);
 
-  let buena = null;
-  const paga = LINEAS.find((l) => l.id === LINEA_PAGA);
-
-  /* cuantos iguales trae la linea que paga, contados desde la izquierda */
-  const corrida = () => {
+  /* cuantos iguales al hilo trae una linea, contados desde la izquierda, que
+     es como se paga en cualquier maquina */
+  const corrida = (l) => {
     let n = 1;
-    while (n < RODILLOS && grilla[n][1] === grilla[0][1]) n++;
+    while (n < RODILLOS && grilla[n][l.filas[n]] === grilla[0][l.filas[0]]) n++;
     return n;
   };
 
+  let linea = null;
+
   if (premio.iguales >= 3) {
-    /* Se paga de izquierda a derecha: los primeros n rodillos con el mismo
-       simbolo. El que sigue TIENE que ser distinto, o tres iguales se
-       convierten en cuatro sin querer. */
+    /* El premio cae en CUALQUIERA de las cinco lineas: la del medio, la de
+       arriba, la de abajo o las dos diagonales. Antes siempre pagaba la del
+       medio y se notaba enseguida que las otras cuatro eran decorado. */
+    linea = unoDe(LINEAS);
     const simbolo = premio.simbolo || unoDe(SIMBOLOS);
     const otros = SIMBOLOS.filter((x) => x !== simbolo);
-    for (let i = 0; i < premio.iguales; i++) { grilla[i][1] = simbolo; proteger(i, 1); }
-    for (let i = premio.iguales; i < RODILLOS; i++) { grilla[i][1] = unoDe(otros); proteger(i, 1); }
-    if (premio.iguales === RODILLOS) buena = paga;
+    linea.filas.forEach((f, i) => {
+      /* los primeros n iguales; el que sigue distinto, o tres se convierten
+         en cuatro sin querer */
+      grilla[i][f] = i < premio.iguales ? simbolo : unoDe(otros);
+      proteger(i, f);
+    });
   } else {
     /* Perder con cinco simbolos sueltos no se mira: la jugada se termina en el
-       segundo rodillo. Casi la mitad de las veces se arma un casi-premio.
-
-       La racha ARRANCA EN EL SEGUNDO RODILLO, nunca en el primero. Como se
-       paga de izquierda a derecha, tres iguales empezando en el primero YA son
-       un BONUS, y una jugada perdida que los muestre deja al que la mira
-       sintiendose estafado, con razon. Empezando en el segundo se ve igual de
-       cerca y no paga. */
+       segundo rodillo. Casi la mitad de las veces se arma un casi-premio en
+       una linea al azar, ARRANCANDO EN EL SEGUNDO RODILLO. Como se paga de
+       izquierda a derecha, tres iguales empezando en el primero YA son un
+       BONUS, y una jugada perdida que los muestre deja al que la mira
+       sintiendose estafado, con razon. */
     if (azar() < 0.45) {
+      const l = unoDe(LINEAS);
       const base = unoDe(SIMBOLOS);
       const otros = SIMBOLOS.filter((x) => x !== base);
       const desde = azar() < 0.5 ? 1 : 2;
       const hasta = Math.min(RODILLOS, desde + (azar() < 0.5 ? 4 : 3));
-      for (let i = 0; i < desde; i++) grilla[i][1] = unoDe(otros);
-      for (let i = desde; i < hasta; i++) grilla[i][1] = base;
-      for (let i = hasta; i < RODILLOS; i++) grilla[i][1] = unoDe(otros);
+      l.filas.forEach((f, i) => {
+        grilla[i][f] = i >= desde && i < hasta ? base : unoDe(otros);
+      });
     }
-
-    /* El control que cierra la puerta: cinco simbolos al azar arman tres
-       iguales al hilo una de cada cincuenta veces por pura probabilidad, y eso
-       seria un BONUS que el servidor nunca dio. Se corta en el tercero. */
-    let vueltas = 0;
-    while (corrida() >= 3 && vueltas++ < 20) {
-      grilla[2][1] = unoDe(SIMBOLOS.filter((x) => x !== grilla[0][1]));
-    }
-    for (let i = 0; i < RODILLOS; i++) proteger(i, 1);
   }
 
-  /* Repaso: ninguna linea de cinco completa que no sea la que corresponde.
-     Cinco simbolos al azar arman una linea mas seguido de lo que parece. */
-  for (let vuelta = 0; vuelta < 60; vuelta++) {
-    const sobrante = LINEAS.find((l) => (!buena || l.id !== buena.id) && completa(grilla, l));
+  /* Repaso. Ninguna linea que no sea la premiada puede llegar a tres iguales
+     desde la izquierda: con cinco lineas pagando, tres simbolos al azar la
+     arman bastante seguido, y eso seria un BONUS que el servidor nunca dio.
+     Se corrige el tercer rodillo de la linea sobrante, que es el que cierra
+     la corrida mas corta que paga. */
+  for (let vuelta = 0; vuelta < 80; vuelta++) {
+    const sobrante = LINEAS.find(
+      (l) => (!linea || l.id !== linea.id) && corrida(l) >= 3
+    );
     if (!sobrante) break;
-    /* se cambia una celda de la linea sobrante que no este protegida: tocar
-       una del premio lo borraria */
-    const libres = sobrante.filas
-      .map((f, i) => ({ i, f }))
+    const libres = [2, 1, 3, 4]
+      .map((i) => ({ i, f: sobrante.filas[i] }))
       .filter(({ i, f }) => !intocables.has(i + "," + f));
     if (!libres.length) break;
-    const { i, f } = unoDe(libres);
+    const { i, f } = libres[0];
     grilla[i][f] = unoDe(SIMBOLOS.filter((x) => x !== grilla[i][f]));
   }
 
-  return grilla;
+  return { grilla, linea };
 }
 
 export const CARAS = 12;

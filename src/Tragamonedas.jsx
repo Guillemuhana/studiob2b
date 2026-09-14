@@ -27,13 +27,15 @@ const FRENOS = [2100, 2620, 3140, 3680, 4300];
    en las jugadas perdidas que salieron con cuatro repetidos. */
 const ESPERA_ANSIA = 2300;
 
-/* Con los primeros TRES iguales ya hay algo en juego: el cuarto rodillo
-   decide entre BONUS, SUPER BONUS y el premio. Antes se miraban cuatro, y
-   eso dejaba la anticipacion casi atada a ganar el premio grande. */
-const detectarAnsia = (grilla) => {
-  const s0 = grilla[0][1];
-  return [0, 1, 2].every((i) => grilla[i][1] === s0);
-};
+/* Con los primeros TRES iguales de CUALQUIER linea ya hay algo en juego: el
+   cuarto rodillo decide entre BONUS, SUPER BONUS y el premio. Antes miraba
+   solo la del medio, y con cinco lineas pagando eso dejaba pasar de largo la
+   mitad de los momentos de tension. */
+const detectarAnsia = (grilla) =>
+  LINEAS.some((l) => {
+    const s0 = grilla[0][l.filas[0]];
+    return [0, 1, 2].every((i) => grilla[i][l.filas[i]] === s0);
+  });
 
 const frenosDe = (ansia) =>
   ansia ? FRENOS.map((f, i) => (i === RODILLOS - 1 ? f + ESPERA_ANSIA : f)) : FRENOS;
@@ -331,11 +333,13 @@ function Forma({ linea }) {
       {[0, 1, 2].map((f) =>
         [0, 1, 2, 3, 4].map((i) => (
           <rect key={f + "-" + i} x={i * 10 + 1.5} y={f * 10 + 1.5} width="7" height="7" rx="1.6"
-            fill={linea.filas[i] === f ? "#F9D858" : "rgba(249,216,88,.18)"} />
+            fill={linea.filas[i] === f ? "#F9D858" : "rgba(249,216,88,.14)"}
+            stroke={linea.filas[i] === f ? "#FFF6D0" : "rgba(249,216,88,.22)"} strokeWidth=".5" />
         ))
       )}
       <polyline points={linea.filas.map((f, i) => `${i * 10 + 5},${f * 10 + 5}`).join(" ")}
-        fill="none" stroke="#FFF6D0" strokeOpacity=".8" strokeWidth="1.2" />
+        fill="none" stroke="#FFF6D0" strokeOpacity=".9" strokeWidth="1.6"
+        strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -481,7 +485,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
   const [tiras, setTiras] = useState(() => {
     const base = premioGuardado
-      ? grillaDe(premioGuardado)
+      ? grillaDe(premioGuardado).grilla
       : [["lingote", "diamante", "logo"], ["estrella", "moneda", "diamante"],
          ["rayo", "logo", "moneda"], ["moneda", "lingote", "chip"],
          ["diamante", "estrella", "rayo"]];
@@ -516,6 +520,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [aviso, setAviso] = useState("");
   /* que linea pago, para poder dibujarla encima de los rodillos */
   const [lineaGana, setLineaGana] = useState(null);
+  /* cuantas celdas de esa linea pagaron: tres, cuatro o cinco */
+  const [cuantasGanan, setCuantasGanan] = useState(0);
   const [golpe, setGolpe] = useState(false);
   const [bonus, setBonus] = useState(null);
   const [cartel, setCartel] = useState(null);
@@ -553,7 +559,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
         if (ultima) {
           const premio = premioDe(ultima.premio);
           setResultado({ premio, codigo: ultima.codigo });
-          setTiras(grillaDe(premio).map((col) => armarTambor(col)));
+          setTiras(grillaDe(premio).grilla.map((col) => armarTambor(col)));
           setAngulos(Array(RODILLOS).fill(anguloDeParada(0)));
           guardarJugada(premio, ultima.codigo);
         }
@@ -598,6 +604,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setError("");
     setAviso("");
     setLineaGana(null);
+    setCuantasGanan(0);
     setBonus(null);
     setCartel(null);
     setLluvia(false);
@@ -635,15 +642,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setLibre(!!datos.libre);
     setRestantes(typeof datos.restantes === "number" ? datos.restantes : 0);
 
-    const grilla = grillaDe(premio);
+    const { grilla, linea } = grillaDe(premio);
     const hayAnsia = !reducido && detectarAnsia(grilla);
     const tiempos = reducido ? [120, 140, 160, 180, 200] : frenosDe(hayAnsia);
     setFrenos(tiempos);
-    const linea = premio.simbolo
-      ? LINEAS[0]
-      : premio.id === "giro"
-        ? LINEAS.find((l) => l.filas.every((f, i) => grilla[i][f] === grilla[0][l.filas[0]]) && l.id !== "centro")
-        : null;
     const nuevas = grilla.map((col) => armarTambor(col));
 
     setTiras(nuevas);
@@ -700,6 +702,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
       if (codigo) setGanados((g) => [...g, { premio: premio.id, codigo, canjeado: false }]);
 
       setLineaGana(linea || null);
+      setCuantasGanan(premio.iguales || 0);
 
       if (premio.id === "bonus3" || premio.id === "bonus4") {
         const cuatro = premio.id === "bonus4";
@@ -841,8 +844,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
               </h2>
               <p className="s2b-lead s2b-tm-lead">
                 {t(
-                  "Sin registro y sin pagar nada. Si salen los cinco símbolos iguales en la línea del medio, el premio es tuyo y lo usás en tu próximo proyecto con nosotros.",
-                  "No sign-up and nothing to pay. Five matching symbols on the middle line and the prize is yours, to use on your next project with us."
+                  "Sin registro y sin pagar nada. Se paga de izquierda a derecha en cualquiera de las cinco líneas: tres iguales dan bonus, cuatro dan súper bonus y cinco, tu descuento.",
+                  "No sign-up and nothing to pay. Wins pay left to right on any of the five lines: three of a kind is a bonus, four is a super bonus, and five is your discount."
                 )}
               </p>
             </div>
@@ -899,6 +902,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       <div className="s2b-tm-rayos" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--izq" aria-hidden="true" />
                       <div className="s2b-tm-riel s2b-tm-riel--der" aria-hidden="true" />
+                      {cartel && <div className="s2b-tm-fogonazo" aria-hidden="true" />}
+
                       <AnimatePresence>
                         {cartel && (
                           <Cartel
@@ -971,9 +976,15 @@ export default function Tragamonedas({ t, waLink, irA }) {
                                 {tira.map((sim, k) => (
                                   <div
                                     className={"s2b-tm-cara" +
-                                      (lineaGana && fase !== "girando" && k === CARA_FRENTE - 1 + lineaGana.filas[i] ? " is-premiada" : "")}
+                                      (lineaGana && fase !== "girando" && i < cuantasGanan
+                                        && k === CARA_FRENTE - 1 + lineaGana.filas[i] ? " is-premiada" : "")}
                                     data-cara={k}
-                                    style={{ transform: `rotateX(${k * PASO}deg) translateZ(46.65cqh)` }}
+                                    /* un solo style: el transform del cilindro
+                                       y el turno del destello escalonado */
+                                    style={{
+                                      transform: `rotateX(${k * PASO}deg) translateZ(46.65cqh)`,
+                                      "--turno": i,
+                                    }}
                                     key={k}
                                   ><Simbolo id={sim} /></div>
                                 ))}
@@ -1072,7 +1083,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 <table>
                   <thead>
                     <tr>
-                      <th>{t("Cinco iguales en…", "Five in a row on…")}</th>
+                      <th>{t("Iguales desde la izquierda", "In a row from the left")}</th>
                       <th>{t("Premio", "Prize")}</th>
                       <th>{t("Probabilidad", "Odds")}</th>
                     </tr>
@@ -1081,16 +1092,17 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     {PREMIOS.map((p) => (
                       <tr key={p.id || "nada"} className={ganador === p.id && fase === "hecho" ? "is-ganado" : ""}>
                         <td>
-                          {p.simbolo ? (
+                          {p.iguales >= 3 ? (
                             <span className="s2b-tm-tres">
-                              {Array.from({ length: RODILLOS }).map((_, k) => <Simbolo key={k} id={p.simbolo} />)}
-                            </span>
-                          ) : p.id === "giro" ? (
-                            <span className="s2b-tm-formas">
-                              {LINEAS.filter((l) => l.id !== "centro").map((l) => <Forma key={l.id} linea={l} />)}
+                              {Array.from({ length: p.iguales }).map((_, k) => (
+                                <Simbolo key={k} id={p.simbolo || "giro"} />
+                              ))}
+                              {p.simbolo
+                                ? null
+                                : <em className="s2b-tm-cualquiera">{t("iguales", "of a kind")}</em>}
                             </span>
                           ) : (
-                            <span className="s2b-tm-nada">{t("Cualquier otra", "Any other")}</span>
+                            <span className="s2b-tm-nada">{t("Menos de tres", "Fewer than three")}</span>
                           )}
                         </td>
                         <td>{t(p.es, p.en)}</td>
@@ -1099,6 +1111,19 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     ))}
                   </tbody>
                 </table>
+
+                {/* las cinco lineas, dibujadas: dicen mas que cualquier texto */}
+                <div className="s2b-tm-lineas">
+                  <span>{t("Las cinco líneas", "The five lines")}</span>
+                  <div>
+                    {LINEAS.map((l) => (
+                      <figure key={l.id}>
+                        <Forma linea={l} />
+                        <figcaption>{t(l.es, l.en)}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="s2b-tm-bases">
@@ -1110,7 +1135,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                   <li><ShieldCheck size={14} /> {t("El sorteo y el código se generan en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the code are generated on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
                   <li><Layers size={14} /> {t("Los descuentos NO son acumulables: si ganás más de uno, se usa uno solo. Al canjear el que elijas, los demás quedan anulados.", "Discounts are NOT cumulative: if you win more than one, only one is used. When you redeem the one you pick, the rest are voided.")}</li>
                   <li><Sparkles size={14} /> {t("Cada código es único, se aplica sobre el presupuesto final de un proyecto nuevo y se canjea una sola vez.", "Every code is unique, applies to the final quote of a new project and can be redeemed only once.")}</li>
-                  <li><RotateCw size={14} /> {t("Cinco iguales en una línea cruzada devuelven la jugada: no te la contamos.", "Five in a row on a crossed line gives the spin back: it doesn't count.")}</li>
+                  <li><RotateCw size={14} /> {t("Se paga de izquierda a derecha en las cinco líneas: la del medio, la de arriba, la de abajo y las dos diagonales.", "Wins pay left to right on all five lines: middle, top, bottom and both diagonals.")}</li>
                   <li><ArrowRight size={14} /> {t("Para reclamarlo, mandanos el código por WhatsApp. Vale 30 días desde la jugada.", "To claim it, send us the code on WhatsApp. Valid for 30 days from the spin.")}</li>
                 </ul>
                 <button className="s2b-link s2b-tm-volver" onClick={() => irA("home")}>
@@ -1287,8 +1312,13 @@ const CSS_TM = `
   filter: drop-shadow(0 0 9px rgba(255,226,160,.95)) drop-shadow(0 4px 9px rgba(0,0,0,.7)); }
 
 /* ---------- marquesina de premios ---------- */
-.s2b-tm-marquesina { position:relative; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:26px 0 0; }
-.s2b-tm-jack { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px;
+/* Seis tarjetas: cuatro descuentos y dos bonus. Con grilla de cuatro columnas
+   las dos ultimas quedaban pegadas a la izquierda, como si faltara algo. En
+   flex la fila incompleta se centra sola y la marquesina vuelve a leerse
+   como el cartel de premios de una maquina. */
+.s2b-tm-marquesina { position:relative; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:26px 0 0; }
+.s2b-tm-jack { flex:0 1 calc(50% - 5px);
+  position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px;
   padding:11px 13px; border-radius:14px;
   border:1px solid rgba(249,216,88,.38);
   background:linear-gradient(160deg, rgba(184,33,59,.55), rgba(61,7,20,.78));
@@ -1443,8 +1473,28 @@ const CSS_TM = `
 /* el simbolo que pago late despues de la frenada */
 .s2b-tm-cara.is-premiada::before { background:linear-gradient(180deg, rgba(249,216,88,.42), rgba(208,154,28,.22));
   box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }
-.s2b-tm-cara.is-premiada .s2b-tm-sim { animation:s2b-tm-latido 1.1s ease-in-out infinite; }
+/* Se encienden de izquierda a derecha con 90 ms entre uno y otro, que es como
+   se lee una linea que paga: el ojo sigue el orden en que se cobra en vez de
+   ver los cinco prenderse a la vez. */
+.s2b-tm-cara.is-premiada .s2b-tm-sim {
+  animation: s2b-tm-entrada .45s cubic-bezier(.2,1.5,.4,1) backwards,
+             s2b-tm-latido 1.1s ease-in-out .45s infinite;
+  animation-delay: calc(var(--turno, 0) * 90ms), calc(var(--turno, 0) * 90ms + .45s); }
+@keyframes s2b-tm-entrada {
+  0% { transform:scale(1); filter:none; }
+  55% { transform:scale(1.42); filter:drop-shadow(0 0 22px rgba(255,244,200,1)); }
+  100% { transform:scale(1); }
+}
 @keyframes s2b-tm-latido { 50% { transform:scale(1.12); filter:drop-shadow(0 0 10px rgba(255,236,170,.9)); } }
+
+/* el fogonazo de la ganancia: un barrido claro que cruza los rodillos una vez.
+   Es transform y opacity, asi que no cuesta un repintado. */
+.s2b-tm-fogonazo { position:absolute; inset:0; z-index:6; pointer-events:none; overflow:hidden; border-radius:14px; }
+.s2b-tm-fogonazo::before { content:''; position:absolute; top:-20%; bottom:-20%; width:45%;
+  background:linear-gradient(100deg, transparent, rgba(255,248,214,.55) 45%, rgba(255,226,150,.3) 60%, transparent);
+  transform:translateX(-160%) skewX(-14deg);
+  animation:s2b-tm-fogon .85s cubic-bezier(.3,.1,.3,1) 2; }
+@keyframes s2b-tm-fogon { to { transform:translateX(360%) skewX(-14deg); } }
 
 /* ---------- la lluvia del premio mayor ----------
    Solo transform y opacity: el navegador la compone en la placa de video sin
@@ -1705,11 +1755,27 @@ const CSS_TM = `
 .s2b-tm-tabla td { padding:11px 0; border-bottom:1px solid rgba(167,140,255,.1); font-size:14px; color:#D8D2EC; vertical-align:middle; }
 .s2b-tm-tabla tr:last-child td { border-bottom:none; }
 .s2b-tm-tabla tr.is-ganado td { color:#fff; background:linear-gradient(90deg, rgba(127,227,168,.16), transparent); }
-.s2b-tm-tres { display:inline-flex; gap:2px; }
+.s2b-tm-tres { display:inline-flex; gap:2px; align-items:center; }
 .s2b-tm-tres .s2b-tm-sim { width:23px; height:23px; }
 .s2b-tm-nada { font-family:var(--mono); font-size:11px; color:#7E7799; }
+.s2b-tm-lineas { margin-top:18px; padding-top:16px; border-top:1px solid rgba(249,216,88,.18); }
+.s2b-tm-lineas > span { display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:#9E97C4; margin-bottom:12px; }
+/* Cinco fichas del mismo ancho, en una fila en escritorio y en tres mas dos
+   centradas en el celular: la fila incompleta pegada a la izquierda parecia
+   un error de maquetado. */
+.s2b-tm-lineas > div { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.s2b-tm-lineas figure { flex:0 1 calc(20% - 8px); min-width:88px;
+  margin:0; display:grid; justify-items:center; align-content:start; gap:7px;
+  padding:9px 6px; border-radius:12px; border:1px solid rgba(249,216,88,.16);
+  background:rgba(0,0,0,.26); }
+.s2b-tm-lineas figcaption { font-family:var(--mono); font-size:8.5px; letter-spacing:.08em;
+  text-transform:uppercase; color:#9E97C4; text-align:center; }
+.s2b-tm-cualquiera { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:#D9B98A; font-style:normal; align-self:center; margin-left:4px; }
 .s2b-tm-formas { display:inline-flex; gap:6px; flex-wrap:wrap; }
-.s2b-tm-forma { width:40px; height:24px; flex:none; }
+.s2b-tm-forma { width:100%; max-width:66px; height:auto; flex:none;
+  filter:drop-shadow(0 0 5px rgba(249,216,88,.32)); }
 .s2b-tm-prob { font-family:var(--mono); font-size:13px; color:var(--oro2); white-space:nowrap; }
 .s2b-tm-bases ul { list-style:none; margin:0; padding:0; display:grid; gap:11px; }
 .s2b-tm-bases li { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#BDB4E4; line-height:1.55;
@@ -1725,12 +1791,17 @@ const CSS_TM = `
 .s2b .s2b-tm-compartir h3 { display:inline-flex; align-items:center; gap:9px; margin:0 0 8px; font-family:var(--mono);
   font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--oro2); font-weight:400; }
 .s2b-tm-compartir p { font-size:14px; color:#BDB4E4; margin:0 auto 16px; max-width:46ch; }
-.s2b-tm-compartir-bts { display:flex; flex-wrap:wrap; gap:9px; justify-content:center; }
-.s2b .s2b-tm-cb { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border-radius:999px;
+.s2b-tm-compartir-bts { display:flex; flex-wrap:wrap; gap:9px; justify-content:center; align-items:stretch; }
+/* Todos apoyados en la misma repisa de 3 px y con el mismo alto: antes el
+   dorado tenia sombra y los otros no, y la fila quedaba desprolija. */
+.s2b .s2b-tm-cb { display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:40px; padding:0 16px; border-radius:999px;
   border:1px solid rgba(249,216,88,.3); background:rgba(0,0,0,.3); color:#D8D2EC;
+  box-shadow:0 3px 0 rgba(0,0,0,.42);
   font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
-  transition:color .2s, border-color .2s, background .2s, transform .15s; }
-.s2b .s2b-tm-cb:hover { color:#fff; border-color:var(--oro2); background:rgba(249,216,88,.14); transform:translateY(-1px); }
+  transition:color .2s, border-color .2s, background .2s, transform .12s, box-shadow .12s; }
+.s2b .s2b-tm-cb:hover { color:#fff; border-color:var(--oro2); background:rgba(249,216,88,.14); }
+.s2b .s2b-tm-cb:active { transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.42); }
 /* el nativo va primero y se nota: en el celular es el unico que hace falta */
 .s2b .s2b-tm-cb--primero { color:#3A0B14; border-color:var(--oro4);
   background:linear-gradient(180deg,var(--oro1),var(--oro2) 48%,var(--oro3));
@@ -1785,7 +1856,8 @@ const CSS_TM = `
 .s2b-tm-escena { max-width:760px; margin-left:auto; margin-right:auto; }
 
 @media (min-width: 760px) {
-  .s2b-tm-marquesina { grid-template-columns:repeat(4,1fr); max-width:760px; margin-left:auto; margin-right:auto; }
+  .s2b-tm-marquesina { max-width:760px; margin-left:auto; margin-right:auto; }
+  .s2b-tm-jack { flex-basis:calc(25% - 7.5px); }
   .s2b-tm-abajo { grid-template-columns:1.15fr .85fr; }
 }
 
@@ -1812,14 +1884,12 @@ const CSS_TM = `
   .s2b-tm-cara .s2b-tm-sim { width:72%; }
   .s2b-tm-escena { margin-left:-14px; margin-right:-14px; }
   /* la marquesina es informacion secundaria en el celular: la maquina es lo
-     que importa, y estas cinco tarjetas se comian media pantalla */
+     que importa, y estas seis tarjetas se comian media pantalla */
   .s2b-tm-marquesina { gap:6px; margin:16px 0 0; }
-  .s2b-tm-jack { padding:6px 9px; gap:6px; border-radius:10px; }
+  .s2b-tm-jack { flex-basis:calc(50% - 3px); padding:6px 9px; gap:6px; border-radius:10px; }
   .s2b-tm-jack .s2b-tm-sim { width:22px; height:22px; }
   .s2b-tm-jack-rango { font-size:7.5px; letter-spacing:.1em; }
   .s2b-tm-jack-monto { font-size:15px; }
-  /* con cinco tarjetas en dos columnas la ultima queda huerfana */
-  .s2b-tm-jack:last-child { grid-column:1 / -1; }
   .s2b-tm-mueble { padding:5px; border-radius:18px; }
   .s2b-tm-cuerpo { padding:7px; border-radius:14px; }
   .s2b-tm-rodillos { padding:6px 12px; }
@@ -1831,6 +1901,7 @@ const CSS_TM = `
   .s2b .s2b-tm-hud-ico { width:28px; height:28px; }
   .s2b-tm-barra { padding:7px; gap:6px; }
   .s2b-tm-caja { padding:6px 4px; border-width:1px; }
+  .s2b-tm-lineas figure { flex-basis:calc(33.333% - 6.7px); }
   /* cinco simbolos por fila no entran al lado del texto: se achican */
   .s2b-tm-tres .s2b-tm-sim { width:16px; height:16px; }
   .s2b-tm-tabla td { font-size:12.5px; padding:9px 0; }
@@ -1849,6 +1920,7 @@ const CSS_TM = `
   .s2b-tm-rayos, .s2b-tm-riel, .s2b-tm-moneda, .s2b-tm-spin-ico { animation:none !important; }
   .s2b-tm-trazo polyline { animation:none !important; stroke-dashoffset:0; }
   .s2b-tm-cara.is-premiada .s2b-tm-sim,
+  .s2b-tm-fogonazo::before,
   .s2b-tm-nivel.is-fin,
   .s2b-tm-cartel--grande b,
   .s2b-tm-cartel--mayor b,
