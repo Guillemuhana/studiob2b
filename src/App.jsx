@@ -705,6 +705,62 @@ const CSS = `
   border-radius:12px; padding:11px 13px; margin-bottom:13px; }
 .s2b-formerr a { color:#fff; text-decoration:underline; }
 
+/* ==================================================================
+   La cadena comercial
+
+   Cinco eslabones en fila, unidos por una flecha. La flecha no es
+   decoracion: dice que el paso siguiente necesita del anterior, que
+   es la idea entera de la seccion. Por eso en el celular, cuando la
+   fila se vuelve columna, la flecha gira y sigue uniendo hacia abajo
+   en vez de desaparecer.
+
+   El resultado -lo que gana el cliente- va grande arriba; el nombre
+   del servicio va abajo, chico y en mono, como una nota al pie.
+   ================================================================== */
+.s2b-cadena { list-style:none; margin:48px 0 0; padding:0;
+  display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+.s2b-eslabon { position:relative; display:flex; }
+.s2b-eslabon-in { display:flex; flex-direction:column; width:100%; gap:9px;
+  padding:24px 20px 20px; border-radius:22px;
+  border:1px solid var(--line); background:var(--surface); color:inherit;
+  box-shadow:0 24px 60px -48px rgba(24,12,60,.5);
+  transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s; }
+.s2b-eslabon-in:hover { transform:translateY(-4px); border-color:var(--violet);
+  box-shadow:0 30px 70px -40px rgba(109,74,255,.45); }
+.s2b-eslabon-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.s2b-eslabon-ic { width:42px; height:42px; flex:none; border-radius:13px; display:grid; place-items:center;
+  color:var(--violet); background:linear-gradient(150deg, rgba(167,140,255,.18), rgba(109,74,255,.1));
+  border:1px solid rgba(167,140,255,.28); }
+.s2b-eslabon-n { font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--muted); }
+.s2b-eslabon-t { font-size:clamp(17px,1.9vw,20px); line-height:1.2; margin:4px 0 0; }
+.s2b-eslabon-d { font-size:14px; color:var(--muted); line-height:1.55; margin:0; flex:1; }
+/* el nombre tecnico: presente para el que lo busca, callado para el que no */
+.s2b-eslabon-serv { margin-top:6px; align-self:flex-start;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--violet); padding:6px 11px; border-radius:999px;
+  background:rgba(167,140,255,.12); border:1px solid rgba(167,140,255,.26); }
+
+/* la flecha entre eslabon y eslabon, en el hueco del gap */
+.s2b-eslabon + .s2b-eslabon::before {
+  content:''; position:absolute; left:-14px; top:45px; width:14px; height:10px;
+  background:var(--violet); opacity:.5; pointer-events:none;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'%3E%3Cpath d='M0 5h10M8 1l4 4-4 4' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'%3E%3Cpath d='M0 5h10M8 1l4 4-4 4' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+@media (max-width: 1020px) {
+  .s2b-cadena { grid-template-columns:repeat(2,1fr); gap:16px 14px; }
+  /* en dos columnas la flecha horizontal mentiria en el salto de renglon */
+  .s2b-eslabon + .s2b-eslabon::before { display:none; }
+}
+@media (max-width: 560px) {
+  .s2b-cadena { grid-template-columns:1fr; gap:26px; }
+  .s2b-eslabon-in { padding:20px 18px 18px; }
+  /* en columna la flecha vuelve, girada: sigue uniendo, ahora hacia abajo */
+  .s2b-eslabon + .s2b-eslabon::before { display:block; left:50%; top:-20px;
+    width:14px; height:14px; transform:translateX(-50%) rotate(90deg); }
+}
+
 /* ---------- footer ---------- */
 /* El pie termina 100 px antes del borde y no 34: abajo de todo flotan dos
    cosas fijas -la burbuja de WhatsApp a la derecha, el cambio de idioma a
@@ -2056,6 +2112,63 @@ const ayuda = (t) => [
     d: t("Te acompañamos desde la definición de la idea hasta el diseño, el desarrollo y el lanzamiento.", "We help from concept and strategy through design, development and launch."),
     tags: ["Mobile App", "Web App", "Marketplace", "SaaS", "MVP", "Platform", "AI App"],
     cta: t("Quiero desarrollar mi idea", "Build my idea"), to: "idea",
+  },
+];
+
+/* ==================================================================
+   La cadena comercial.
+
+   Nadie se levanta con ganas de comprar "SEO" o "un CRM". Lo que
+   quiere es que lo encuentren y que no se le escapen los interesados.
+   Por eso cada eslabon se nombra por el resultado -lo que gana- y el
+   servicio que lo consigue va abajo, en chico: primero el problema,
+   despues la herramienta.
+
+   Van en orden y cada uno alimenta al siguiente, que es la razon por
+   la que se dibujan como cadena y no como cinco tarjetas sueltas: si
+   no te encuentran no hay consultas, si no contestas se van a otro
+   lado, y sin seguimiento la consulta se pierde en un chat. La cadena
+   vale lo que vale su eslabon mas flojo, y eso es justo lo que tiene
+   que entender quien la lee.
+
+   `to` lleva a la seccion que cuenta ese servicio en detalle, para
+   que quien SI quiera la parte tecnica la tenga a un clic.
+   ================================================================== */
+const cadena = (t) => [
+  {
+    n: "01", ic: Search,
+    paso: t("Que te encuentren", "Get found"),
+    servicio: "SEO",
+    d: t("Aparecés cuando alguien busca lo que hacés, sin pagar por cada clic.", "You show up when somebody searches for what you do, without paying for every click."),
+    to: "servicios",
+  },
+  {
+    n: "02", ic: Target,
+    paso: t("Conseguir interesados", "Get leads"),
+    servicio: t("Generación de leads", "Lead generation"),
+    d: t("Las visitas dejan de ser un número y pasan a ser consultas con nombre y teléfono.", "Visits stop being a number and turn into enquiries with a name and a phone."),
+    to: "servicios",
+  },
+  {
+    n: "03", ic: Bot,
+    paso: t("Responder al toque", "Answer right away"),
+    servicio: t("Asistente de IA", "AI assistant"),
+    d: t("Contesta a cualquier hora y en minutos, no al otro día, que es cuando ya compraron en otro lado.", "It answers at any hour and within minutes, not the next day, which is when they have already bought somewhere else."),
+    to: "agentes",
+  },
+  {
+    n: "04", ic: Database,
+    paso: t("Hacer seguimiento", "Follow up"),
+    servicio: "CRM",
+    d: t("Cada consulta queda anotada y con un próximo paso. Nada se pierde en un chat.", "Every enquiry is logged and has a next step. Nothing gets lost in a chat."),
+    to: "empresas",
+  },
+  {
+    n: "05", ic: Handshake,
+    paso: t("Cerrar más clientes", "Close more clients"),
+    servicio: t("Página web", "Website"),
+    d: t("Cuando llegan a decidir, lo que ven da confianza en vez de dudas.", "When they get to the decision, what they see builds confidence instead of doubt."),
+    to: "clientes",
   },
 ];
 
@@ -4237,6 +4350,7 @@ export default function StudioB2B() {
   const FAQS = useMemo(() => faqs(t), [t]);
   const NAV_LINKS = useMemo(() => navLinks(t), [t]);
   const AYUDA = useMemo(() => ayuda(t), [t]);
+  const CADENA = useMemo(() => cadena(t), [t]);
   const DOLORES = useMemo(() => dolores(t), [t]);
   const DISPERSOS = useMemo(() => dispersos(t), [t]);
   const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
@@ -4949,6 +5063,50 @@ export default function StudioB2B() {
           </div>
         </div>
       </div>
+
+      {/* ============ LA CADENA COMERCIAL ============
+          Va antes que cualquier seccion tecnica a proposito. Quien llega no
+          sabe -ni tiene por que- si lo que necesita se llama SEO o CRM; sabe
+          que no lo encuentran y que los interesados se le escapan. Aca lee
+          eso, en su idioma, y recien despues aparece el nombre del servicio. */}
+      <section className="s2b-sec s2b-sec--sm s2b-amb" id="camino">
+        <div className="s2b-wrap">
+          <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
+            <div className="s2b-eyebrow">{t("De punta a punta", "End to end")}</div>
+            <h2 className="s2b-h2" style={{ maxWidth: "15ch" }}>
+              {t("Así te conseguimos", "This is how we get you")} <b>{t("más clientes", "more clients")}</b>
+            </h2>
+            <p className="s2b-lead" style={{ textAlign: "center" }}>
+              {t("Son cinco pasos, y cada uno necesita del anterior. Nos ocupamos de todos.", "Five steps, and each one needs the one before it. We take care of all of them.")}
+            </p>
+          </div>
+
+          <ol className="s2b-cadena">
+            {CADENA.map((c, i) => {
+              const I = c.ic;
+              return (
+                <li className="s2b-eslabon s2b-rv" key={c.n} style={{ transitionDelay: i * 90 + "ms" }}>
+                  <a
+                    className="s2b-eslabon-in"
+                    href={"#" + c.to}
+                    onClick={(e) => { e.preventDefault(); goTo(c.to); }}
+                  >
+                    <div className="s2b-eslabon-top">
+                      <span className="s2b-eslabon-ic"><I size={20} /></span>
+                      <span className="s2b-eslabon-n">{c.n}</span>
+                    </div>
+                    <h3 className="s2b-eslabon-t">{c.paso}</h3>
+                    <p className="s2b-eslabon-d">{c.d}</p>
+                    {/* el nombre tecnico va al final y en chico: es la respuesta
+                        a "¿y eso como se hace?", no el titulo */}
+                    <span className="s2b-eslabon-serv">{c.servicio}</span>
+                  </a>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      </section>
 
       {/* ============ EL PROBLEMA DE UNA EMPRESA ============ */}
       <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="empresas">
