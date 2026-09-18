@@ -2913,8 +2913,11 @@ const presupuestos = (t) => [
 ];
 
 const navLinks = (t) => [
-  { id: "servicios", label: t("Servicios", "Services") },
+  /* Precios va primero y no en el medio de la lista: es lo que mas se busca
+     y lo que hace que alguien se quede o se vaya. Perdido entre otros cuatro
+     no se encuentra, que es lo mismo que no estar. */
   { id: "precios", label: t("Precios", "Pricing") },
+  { id: "servicios", label: t("Servicios", "Services") },
   { id: "proceso", label: t("Proceso", "Process") },
   { id: "clientes", label: t("Clientes", "Clients") },
   { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
@@ -4998,13 +5001,16 @@ export default function StudioB2B() {
               <div className="s2b-brand"><span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span><div className="s2b-brand-txt">STUDIO B2B</div></div>
               <button aria-label={t("Cerrar", "Close")} onClick={() => setDrawer(false)}><X size={26} /></button>
             </div>
-            {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
+            {/* Primero el menu de verdad y despues los atajos de Soluciones.
+                Al reves, Precios quedaba cuarto en el celular, abajo de tres
+                atajos que llevan casi todos al mismo lado. */}
             {NAV_LINKS.map((n) => (
               <button key={n.id} className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
                 {n.label}
                 {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
               </button>
             ))}
+            {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
             <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 26, width: "100%", justifyContent: "center" }} onClick={() => goTo("contacto")}>
               Contactanos <ArrowUpRight size={16} />
             </button>
