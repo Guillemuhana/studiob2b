@@ -769,6 +769,36 @@ const CSS = `
     width:14px; height:14px; transform:translateX(-50%) rotate(90deg); }
 }
 
+/* ==================================================================
+   Los cuatro pasos, con los dias
+
+   Dos columnas: el titulo se queda pegado arriba mientras la lista pasa
+   al lado. Las filas se separan con una linea fina y nada mas -sin
+   tarjetas, sin fondos-: son cuatro momentos de una misma cosa, no
+   cuatro productos distintos.
+   ================================================================== */
+.s2b-armado { display: grid; gap: 40px; }
+.s2b-armado-cab .s2b-lead { margin-top: 16px; }
+.s2b-armado-lista { list-style: none; margin: 0; padding: 0; }
+.s2b-paso4 { display: grid; grid-template-columns: auto 1fr; gap: 20px;
+  padding: 26px 0; border-top: 1px solid var(--line); }
+.s2b-paso4:first-child { border-top: none; padding-top: 0; }
+.s2b-paso4-n { font-family: var(--mono); font-size: clamp(20px,2.4vw,26px); font-weight: 700;
+  line-height: 1; color: var(--violet); }
+.s2b-paso4-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 9px; }
+.s2b .s2b-paso4-top h3 { font-size: clamp(18px,2.1vw,23px); line-height: 1.15; }
+/* el dia al lado del titulo y no adentro del parrafo: es lo que se busca */
+.s2b-paso4-dia { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--lilac); padding: 5px 11px; border-radius: 999px;
+  background: rgba(167,140,255,.12); border: 1px solid rgba(167,140,255,.28); white-space: nowrap; }
+.s2b-paso4-txt p { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 62ch; }
+
+@media (min-width: 900px) {
+  .s2b-armado { grid-template-columns: .82fr 1.18fr; gap: 64px; align-items: start; }
+  /* el titulo acompana la lectura de la lista en vez de irse hacia arriba */
+  .s2b-armado-cab { position: sticky; top: 118px; }
+}
+
 /* ---------- footer ---------- */
 /* El pie termina 100 px antes del borde y no 34: abajo de todo flotan dos
    cosas fijas -la burbuja de WhatsApp a la derecha, el cambio de idioma a
@@ -2180,6 +2210,43 @@ const cadena = (t) => [
   },
 ];
 
+/* ==================================================================
+   Los cuatro pasos, con los dias puestos.
+
+   Lo que desactiva la duda de "¿y esto cuanto tarda?" no es decir
+   "rapido", es poner el dia al lado de cada paso. Por eso la etiqueta
+   -Dia 1, Dias 2 a 5- va junto al titulo y no escondida en el texto.
+
+   El ultimo no tiene fecha y dice "en curso" a proposito: despues del
+   lanzamiento no hay un dia en el que esto se termina, y prometer que
+   lo hay seria mentir.
+
+   OJO al tocar los dias: son una promesa comercial, no una decoracion.
+   Lo que dice aca tiene que ser lo que el equipo pueda sostener.
+   ================================================================== */
+const armado = (t) => [
+  {
+    n: "01", cuando: t("Día 1", "Day 1"),
+    tt: t("Nos contás tu negocio", "You tell us about your business"),
+    d: t("Una llamada o un formulario corto. Miramos cómo trabajás hoy, por dónde te entran las consultas y en qué punto se te escapan.", "A call or a short form. We look at how you work today, where your enquiries come in and at what point they slip away."),
+  },
+  {
+    n: "02", cuando: t("Días 2 a 5", "Days 2 to 5"),
+    tt: t("Armamos tu sistema", "We build your system"),
+    d: t("La página, la app, el asistente de IA y las automatizaciones, hechos alrededor de cómo funciona tu negocio y conectados a lo que ya usás. Sin plantillas.", "The site, the app, the AI assistant and the automations, built around how your business actually works and connected to what you already use. No templates."),
+  },
+  {
+    n: "03", cuando: t("Día 6", "Day 6"),
+    tt: t("Lo aprobás y sale", "You approve it and it goes live"),
+    d: t("Lo ves funcionando antes de publicarlo y lo probás vos mismo. Cuando das el visto bueno, nos ocupamos del dominio, del alojamiento y de la salida.", "You see it working before it goes out and you try it yourself. Once you give the go-ahead, we handle the domain, the hosting and the launch."),
+  },
+  {
+    n: "04", cuando: t("En curso", "Ongoing"),
+    tt: t("Lo seguimos manteniendo", "We keep it running"),
+    d: t("Cambios en la página, páginas nuevas, ajustes del sistema: nos lo pedís y lo resolvemos. Vos ocupate de atender a los clientes que entran.", "Changes to the site, new pages, tweaks to the system: you ask and we handle it. You just take care of the clients coming in."),
+  },
+];
+
 /* Lo que hoy le duele al dueño de una empresa. Son sintomas, no promesas:
    cada uno lo reconoce en su propia operacion. */
 const dolores = (t) => [
@@ -2685,7 +2752,10 @@ const navLinks = (t) => [
   { id: "proceso", label: t("Proceso", "Process") },
   { id: "clientes", label: t("Clientes", "Clients") },
   { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
-  { id: "jugar", label: t("Jugar", "Play") },
+  /* "Jugar" sale del menu por ahora. La ruta /jugar sigue viva y la maquina
+     funciona igual: lo unico que se saco es la entrada del menu, asi que el
+     link se puede seguir compartiendo y basta devolver esta linea para que
+     vuelva a aparecer. */
 ];
 
 /* ================= utilidades ================= */
@@ -4359,6 +4429,7 @@ export default function StudioB2B() {
   const NAV_LINKS = useMemo(() => navLinks(t), [t]);
   const AYUDA = useMemo(() => ayuda(t), [t]);
   const CADENA = useMemo(() => cadena(t), [t]);
+  const ARMADO = useMemo(() => armado(t), [t]);
   const DOLORES = useMemo(() => dolores(t), [t]);
   const DISPERSOS = useMemo(() => dispersos(t), [t]);
   const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
@@ -5113,6 +5184,42 @@ export default function StudioB2B() {
               );
             })}
           </ol>
+        </div>
+      </section>
+
+      {/* ============ CUATRO PASOS, CON LOS DIAS ============
+          Va pegada a la cadena: arriba queda lo que se gana, aca abajo en
+          cuanto tiempo. "¿Y esto cuanto tarda?" es la pregunta que frena la
+          decision, y se contesta mejor con un dia al lado de cada paso que
+          con la palabra "rapido". */}
+      <section className="s2b-sec s2b-sec--sm s2b-amb" id="armado">
+        <div className="s2b-wrap">
+          <div className="s2b-armado">
+            <div className="s2b-armado-cab s2b-rv">
+              <div className="s2b-eyebrow">{t("Cómo va", "How it goes")}</div>
+              <h2 className="s2b-h2">
+                {t("Tu sistema está listo", "Your system is ready")} <b>{t("en días", "in days")}</b>
+              </h2>
+              <p className="s2b-lead">
+                {t("Cuatro pasos. La página, la app, el asistente de IA y las automatizaciones, hechos a medida de tu negocio y mantenidos después de salir. De eso nos ocupamos nosotros.", "Four steps. The site, the app, the AI assistant and the automations, built around your business and maintained after launch. That part is on us.")}
+              </p>
+            </div>
+
+            <ol className="s2b-armado-lista">
+              {ARMADO.map((p, i) => (
+                <li className="s2b-paso4 s2b-rv" key={p.n} style={{ transitionDelay: i * 80 + "ms" }}>
+                  <span className="s2b-paso4-n">{p.n}</span>
+                  <div className="s2b-paso4-txt">
+                    <div className="s2b-paso4-top">
+                      <h3>{p.tt}</h3>
+                      <span className="s2b-paso4-dia">{p.cuando}</span>
+                    </div>
+                    <p>{p.d}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 
