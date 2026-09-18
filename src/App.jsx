@@ -793,17 +793,10 @@ const CSS = `
   background: rgba(167,140,255,.12); border: 1px solid rgba(167,140,255,.28); white-space: nowrap; }
 .s2b-paso4-txt p { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 62ch; }
 
-/* la aclaracion de sobre que corren los dias: se lee si se la busca, no
-   compite con los pasos */
-.s2b-armado-nota { margin-top: 22px; padding-left: 16px; border-left: 2px solid rgba(167,140,255,.3);
-  font-size: 13.5px; line-height: 1.6; color: var(--muted); max-width: 66ch; }
-
 @media (min-width: 900px) {
-  .s2b-armado { grid-template-columns: .82fr 1.18fr; gap: 64px 64px; align-items: start; }
+  .s2b-armado { grid-template-columns: .82fr 1.18fr; gap: 64px; align-items: start; }
   /* el titulo acompana la lectura de la lista en vez de irse hacia arriba */
   .s2b-armado-cab { position: sticky; top: 118px; }
-  /* la nota va debajo de la lista, en su misma columna */
-  .s2b-armado-nota { grid-column: 2; margin-top: 0; }
 }
 
 /* ---------- footer ---------- */
@@ -5226,15 +5219,6 @@ export default function StudioB2B() {
                 </li>
               ))}
             </ol>
-
-            {/* Los dias de arriba son una promesa y hay que decir sobre que
-                corren. Valen para el sistema de captacion, que es lo que
-                esta armado de antemano; un desarrollo a medida tiene su
-                propio plazo. Decirlo aca cuesta un renglon; no decirlo
-                cuesta el cliente que leyo "Dia 6" y escucho "tres meses". */}
-            <p className="s2b-armado-nota s2b-rv">
-              {t("Estos tiempos son para el sistema de captación: la página, el asistente y las automatizaciones. Un desarrollo a medida tiene su propio plazo, y te lo damos por escrito en el presupuesto.", "These timings are for the acquisition system: the site, the assistant and the automations. Custom development has its own timeline, and we put it in writing in the quote.")}
-            </p>
           </div>
         </div>
       </section>
