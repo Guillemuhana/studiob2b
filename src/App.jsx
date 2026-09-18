@@ -3,7 +3,7 @@ import {
   ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, MapPin, Check, Database, Users,
   MessageSquare, FileSignature, Search, MonitorPlay, FileText, Wallet, Rocket, CircleDollarSign,
-  Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
+  Instagram, Linkedin, Github, Phone, Quote,
   Building2, Lightbulb, Boxes, LayoutDashboard, Plug, Layers, Repeat,
   ClipboardList, FileSpreadsheet, ShoppingCart, CalendarCheck, Store,
   GraduationCap, Truck, CreditCard, ShieldCheck, Headphones, TrendingUp,
@@ -259,14 +259,6 @@ const CSS = `
 
 .s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
 
-.s2b-pop { position:absolute; top:calc(100% + 8px); left:50%; transform: translateX(-50%); width:min(560px, 78vw);
-  background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:10px; z-index:90;
-  box-shadow: 0 30px 70px -24px rgba(24,12,60,.35); display:grid; gap:2px; }
-.s2b-pop a { display:grid; grid-template-columns:38px 1fr; gap:14px; padding:14px; border-radius:14px; transition: background .2s; align-items:start; }
-.s2b-pop a:hover { background: var(--paper); }
-.s2b-pop .ic { width:38px; height:38px; border-radius:11px; display:grid; place-items:center; color:#fff; background: linear-gradient(150deg, var(--violet), #4B2FD6); }
-.s2b-pop b { display:block; font-family: var(--display); font-size:15px; color: var(--title); }
-.s2b-pop span { font-size:13px; color: var(--muted); line-height:1.5; }
 
 .s2b-burger { display:none; padding:8px; color:#fff; }
 /* El cambio de idioma vive pegado al borde izquierdo, a media altura: se ve
@@ -797,6 +789,91 @@ const CSS = `
   .s2b-armado { grid-template-columns: .82fr 1.18fr; gap: 64px; align-items: start; }
   /* el titulo acompana la lectura de la lista en vez de irse hacia arriba */
   .s2b-armado-cab { position: sticky; top: 118px; }
+}
+
+/* ==================================================================
+   Precios
+
+   El plan del medio es el que se quiere vender, asi que es el unico con
+   borde encendido, rotulo y boton lleno. Los otros dos existen para
+   que ese tenga con que compararse.
+
+   Las tarjetas se estiran a la misma altura y el boton queda abajo de
+   todo en las tres: con listas de distinto largo, botones a distinta
+   altura hacen que la fila parezca rota.
+   ================================================================== */
+.s2b-switch { display: inline-flex; gap: 4px; margin: 34px auto 0; padding: 4px;
+  border-radius: 999px; border: 1px solid var(--line); background: rgba(0,0,0,.28); }
+.s2b-switch { display: flex; width: max-content; margin-left: auto; margin-right: auto; }
+.s2b .s2b-switch button { display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted);
+  transition: color .2s, background .2s; }
+.s2b .s2b-switch button.is-on { color: #fff; background: linear-gradient(150deg,#7E5EFF,#5432DE); }
+.s2b-switch em { font-family: var(--mono); font-style: normal; font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+  color: #7FE3A8; background: rgba(127,227,168,.14); border: 1px solid rgba(127,227,168,.3); }
+.s2b-switch button.is-on em { color: #EAFFF2; background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.3); }
+
+.s2b-planes { display: grid; gap: 18px; margin-top: 44px; }
+.s2b-plan { position: relative; display: flex; flex-direction: column; gap: 10px;
+  padding: 30px 26px; border-radius: 26px;
+  border: 1px solid var(--line); background: var(--surface); }
+/* el destacado: filo encendido arriba, como la tarjeta de la referencia */
+.s2b-plan.is-destacado { border-color: rgba(167,140,255,.5);
+  box-shadow: 0 0 0 1px rgba(167,140,255,.25), 0 34px 80px -50px rgba(109,74,255,.85); }
+.s2b-plan.is-destacado::before { content:''; position:absolute; inset: -1px auto auto -1px; width: calc(100% + 2px); height: 3px;
+  border-radius: 26px 26px 0 0; background: linear-gradient(90deg, var(--violet), var(--lilac)); }
+.s2b-plan-rotulo { position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: #fff; padding: 5px 13px; border-radius: 999px; white-space: nowrap;
+  background: linear-gradient(150deg,#7E5EFF,#5432DE); box-shadow: 0 10px 22px -12px rgba(109,74,255,.9); }
+.s2b .s2b-plan-tt { font-size: 22px; }
+.s2b-plan-d { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.s2b-plan-precio { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; }
+.s2b-plan-precio b { font-family: var(--display); font-size: clamp(34px,4vw,44px); font-weight: 700;
+  line-height: 1; color: var(--lilac); }
+.s2b-plan-precio span { font-size: 15px; color: var(--muted); }
+.s2b-plan-letra { font-size: 13px; color: var(--muted); }
+.s2b-plan-items { list-style: none; margin: 16px 0 0; padding: 18px 0 0; display: grid; gap: 11px;
+  border-top: 1px solid var(--line); }
+.s2b-plan-items li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; }
+.s2b-plan-items svg { flex: none; margin-top: 2px; color: var(--lilac); }
+.s2b-plan-nota { margin-top: 16px; font-size: 13.5px; font-weight: 600; color: #8FEAB0; }
+/* el "ideal para" empuja el boton al fondo: las tres filas terminan parejas */
+.s2b-plan-ideal { flex: 1; margin-top: 6px; font-size: 13px; color: var(--muted); line-height: 1.55; font-style: italic; }
+.s2b-plan-ideal b { font-style: normal; color: var(--text); }
+.s2b .s2b-plan .s2b-btn { margin-top: 20px; width: 100%; justify-content: center; }
+
+/* ---- lo que se presupuesta ---- */
+.s2b-proy { margin-top: 74px; padding-top: 58px; border-top: 1px solid var(--line); }
+.s2b .s2b-proy-tt { font-size: clamp(24px,3.2vw,34px); max-width: 22ch; }
+.s2b .s2b-proy-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.s2b-proy-grid { display: grid; gap: 16px; margin-top: 36px; }
+.s2b-proy-card { display: flex; flex-direction: column; gap: 10px; padding: 24px 22px;
+  border-radius: 20px; border: 1px solid var(--line); background: var(--surface); }
+.s2b-proy-ic { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center;
+  color: var(--violet); background: linear-gradient(150deg, rgba(167,140,255,.18), rgba(109,74,255,.1));
+  border: 1px solid rgba(167,140,255,.28); }
+.s2b .s2b-proy-card h4 { font-size: 19px; margin-top: 4px; }
+.s2b-proy-d { flex: 1; font-size: 14px; color: var(--muted); line-height: 1.55; }
+.s2b-proy-pie { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.s2b-proy-desde { font-size: 14px; color: var(--muted); }
+.s2b-proy-desde b { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--lilac); }
+.s2b-proy-plazo { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); }
+.s2b-proy-cierre { margin-top: 28px; text-align: center; font-size: 14.5px; color: var(--muted); }
+.s2b .s2b-proy-cierre .s2b-link { margin-left: 4px; }
+
+@media (min-width: 900px) {
+  .s2b-planes { grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+  /* el del medio sobresale: se ve cual es el recomendado antes de leer */
+  .s2b-plan.is-destacado { transform: translateY(-14px); }
+  .s2b-proy-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 600px) and (max-width: 899px) {
+  .s2b-proy-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ---------- footer ---------- */
@@ -1362,14 +1439,6 @@ const CSS = `
 .s2b-nav.is-stuck .s2b-mark-halo::before { opacity: .28; }
 /* el hueco que deja el nav fijo */
 .s2b-navpad { height: 96px; }
-
-/* el menu desplegable ya no es una caja blanca suelta */
-.s2b-pop { background: rgba(16,10,38,.92); backdrop-filter: blur(20px) saturate(150%);
-  border-color: rgba(167,140,255,.18); border-radius: 18px;
-  box-shadow: 0 34px 80px -30px rgba(0,0,0,.8); }
-.s2b-pop a:hover { background: rgba(167,140,255,.1); }
-.s2b-pop b { color: #fff; }
-.s2b-pop span { color: #9E97C4; }
 
 /* ---------- hero ---------- */
 .s2b-hero { padding: 40px 0 104px; }
@@ -2247,6 +2316,102 @@ const armado = (t) => [
   },
 ];
 
+/* ==================================================================
+   PRECIOS
+
+   ⚠ LOS NUMEROS DE ACA SON LOS QUE SE PUBLICAN. Cambiarlos es cambiar
+   lo que la empresa cobra, asi que viven todos juntos en este bloque y
+   en ningun otro lado: no hay un precio suelto perdido en el JSX.
+
+   Dos bloques, porque son dos negocios distintos y mezclarlos confunde:
+
+   - Mensual. La parte de captacion -la pagina, el asistente, el CRM-
+     que se arma sobre una base que ya existe y se mantiene todos los
+     meses. Ahi el precio se puede publicar.
+   - Por proyecto. El software a medida, que no entra en un plan
+     mensual porque cada uno es distinto. Se publica un piso ("desde")
+     y un plazo, no un precio cerrado: prometer un numero exacto sin
+     haber visto el proyecto es como prometer una fecha sin conocerlo.
+
+   El anual da dos meses: 10 cuotas en vez de 12.
+   ================================================================== */
+const MESES_ANUAL = 10;
+
+const planes = (t) => [
+  {
+    id: "presencia",
+    tt: t("Presencia", "Presence"),
+    mes: 97, setup: 249,
+    d: t("Que te encuentren y que puedan escribirte.", "So they find you and can reach you."),
+    items: [
+      t("Sitio a medida de hasta 5 páginas", "Custom site, up to 5 pages"),
+      t("Formulario que te avisa al instante", "A form that pings you instantly"),
+      t("SEO base: rápido, indexable, en Google", "Base SEO: fast, indexable, on Google"),
+      t("Google Maps y WhatsApp integrados", "Google Maps and WhatsApp built in"),
+      t("Alojamiento y dominio incluidos", "Hosting and domain included"),
+      t("2 cambios por mes", "2 changes a month"),
+    ],
+    nota: t("Con un cliente nuevo por mes ya se paga solo.", "One new client a month already covers it."),
+    ideal: t("Profesionales y empresas de servicios que hoy no tienen web, o tienen una que no les trae nada.", "Professionals and service businesses with no site today, or one that brings them nothing."),
+  },
+  {
+    id: "captacion",
+    tt: t("Captación", "Acquisition"),
+    mes: 197, setup: 497,
+    destacado: true,
+    rotulo: t("Más elegido", "Most picked"),
+    d: t("Que además te contesten las consultas y no se pierda ninguna.", "Plus enquiries get answered and none get lost."),
+    items: [
+      t("Todo lo de Presencia", "Everything in Presence"),
+      t("Sitio a medida sin límite de páginas", "Custom site, no page limit"),
+      t("SEO local y ficha de Google", "Local SEO and Google Business profile"),
+      t("Asistente de IA en WhatsApp que responde y califica", "AI assistant on WhatsApp that answers and qualifies"),
+      t("CRM con cada consulta y su próximo paso", "CRM with every enquiry and its next step"),
+      t("Panel de administración", "Admin panel"),
+      t("Cobros en línea", "Online payments"),
+      t("4 cambios por mes", "4 changes a month"),
+    ],
+    nota: t("Es el punto donde la mayoría deja de perder consultas.", "This is where most businesses stop losing enquiries."),
+    ideal: t("Negocios que ya reciben consultas y se les escapan por no contestar a tiempo.", "Businesses already getting enquiries and losing them by answering too late."),
+  },
+  {
+    id: "completo",
+    tt: t("Sistema completo", "Full system"),
+    mes: 349, setup: 897,
+    d: t("Todo el circuito andando, con un solo responsable.", "The whole loop running, with one team responsible."),
+    items: [
+      t("Todo lo de Captación", "Everything in Acquisition"),
+      t("Automatizaciones: seguimientos, recordatorios, pedidos de reseña", "Automations: follow-ups, reminders, review requests"),
+      t("Integraciones con las herramientas que ya usás", "Integrations with the tools you already use"),
+      t("Informe mensual: qué entró y de dónde", "Monthly report: what came in and from where"),
+      t("Cambios sin tope", "Unlimited changes"),
+      t("Soporte prioritario", "Priority support"),
+    ],
+    nota: t("Un solo número al que llamar cuando algo falla.", "One number to call when something breaks."),
+    ideal: t("Empresas que quieren el circuito completo y no quieren coordinar tres proveedores.", "Companies that want the full loop and don't want to coordinate three vendors."),
+  },
+];
+
+/* El software a medida no lleva precio cerrado a proposito: lleva un piso
+   y un plazo. El numero de verdad sale del relevamiento. */
+const proyectos = (t) => [
+  {
+    ic: Rocket, tt: "MVP", desde: 4900,
+    plazo: t("4 a 8 semanas", "4 to 8 weeks"),
+    d: t("La primera versión funcional de tu idea, con lo que de verdad importa, lista para salir y probarla con usuarios reales.", "The first working version of your idea, with what actually matters, ready to launch and test with real users."),
+  },
+  {
+    ic: Smartphone, tt: t("App móvil", "Mobile app"), desde: 9900,
+    plazo: t("8 a 14 semanas", "8 to 14 weeks"),
+    d: t("iOS y Android desde una sola base, con publicación en las tiendas y actualizaciones incluidas.", "iOS and Android from one codebase, with store releases and updates included."),
+  },
+  {
+    ic: Code2, tt: t("Sistema a medida", "Custom system"), desde: null,
+    plazo: t("Se define en el relevamiento", "Defined during discovery"),
+    d: t("Gestión, portales de clientes, integraciones. Cada uno es distinto, así que el número sale después de entender qué hay que hacer.", "Management systems, client portals, integrations. Each one is different, so the number comes after we understand the work."),
+  },
+];
+
 /* Lo que hoy le duele al dueño de una empresa. Son sintomas, no promesas:
    cada uno lo reconoce en su propia operacion. */
 const dolores = (t) => [
@@ -2749,6 +2914,7 @@ const presupuestos = (t) => [
 
 const navLinks = (t) => [
   { id: "servicios", label: t("Servicios", "Services") },
+  { id: "precios", label: t("Precios", "Pricing") },
   { id: "proceso", label: t("Proceso", "Process") },
   { id: "clientes", label: t("Clientes", "Clients") },
   { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
@@ -4403,7 +4569,6 @@ export default function StudioB2B() {
      suscribe una sola vez y necesita leer el valor de ahora, no el del
      pintado en que se suscribio */
   const drawerRef = useRef(false);
-  const [pop, setPop] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [tab, setTab] = useState("soft");
   const [qi, setQi] = useState(0);
@@ -4414,6 +4579,9 @@ export default function StudioB2B() {
   const [formErr, setFormErr] = useState("");
   const [detalle, setDetalle] = useState(false);
   const [form, setForm] = useState(FORM_VACIO);
+  /* el precio se muestra siempre por mes; anual solo cambia cuantas cuotas
+     se pagan, que es como se lee un descuento sin hacer cuentas */
+  const [anual, setAnual] = useState(false);
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
   const [idioma, setIdioma] = useState(idiomaGuardado);
@@ -4430,6 +4598,8 @@ export default function StudioB2B() {
   const AYUDA = useMemo(() => ayuda(t), [t]);
   const CADENA = useMemo(() => cadena(t), [t]);
   const ARMADO = useMemo(() => armado(t), [t]);
+  const PLANES = useMemo(() => planes(t), [t]);
+  const PROYECTOS = useMemo(() => proyectos(t), [t]);
   const DOLORES = useMemo(() => dolores(t), [t]);
   const DISPERSOS = useMemo(() => dispersos(t), [t]);
   const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
@@ -4461,7 +4631,7 @@ export default function StudioB2B() {
   }, []);
 
   const irA = useCallback((v) => {
-    setDrawer(false); setPop(false);
+    setDrawer(false);
     const destino = RUTAS[v] || "/";
     if (location.pathname !== destino) history.pushState({}, "", destino);
     setVista(v);
@@ -4630,7 +4800,7 @@ export default function StudioB2B() {
   }, [esDiaProg]);
 
   const goTo = useCallback((id) => {
-    setDrawer(false); setPop(false);
+    setDrawer(false);
     if (RUTAS[id]) { irA(id); return; }
     const ir = (suave) => {
       const el = document.getElementById(id);
@@ -4793,23 +4963,11 @@ export default function StudioB2B() {
               <div className="s2b-brand-txt">STUDIO B2B<small>DESDE 2015</small></div>
             </button>
 
-            <nav className="s2b-menu" onMouseLeave={() => setPop(false)}>
-              <div onMouseEnter={() => setPop(true)}>
-                <button className="top" aria-expanded={pop}>{t("Soluciones", "Solutions")} <ChevronDown size={15} /></button>
-                {pop && (
-                  <div className="s2b-pop">
-                    {SOLUCIONES.map((s) => {
-                      const I = s.icon;
-                      return (
-                        <a key={s.id} href={"#" + s.id} onClick={(e) => { e.preventDefault(); goTo(s.id === "agentes" ? "agentes" : "servicios"); }}>
-                          <div className="ic"><I size={18} /></div>
-                          <div><b>{s.t}</b><span>{s.d}</span></div>
-                        </a>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+            {/* "Soluciones" era un desplegable con tres atajos que llevaban
+                casi todos al mismo lugar que "Servicios". Fuera: el menu se
+                lee de un saque y no hay nada que abrir con el mouse. La
+                lista SOLUCIONES sigue viva, que es la que arma el pie. */}
+            <nav className="s2b-menu">
               {NAV_LINKS.map((n) => (
                 <div key={n.id}>
                   <button
@@ -4876,19 +5034,17 @@ export default function StudioB2B() {
 
           <div className="s2b-wrap s2b-hero-copy">
             <div className="s2b-hero-in">
-              <div className="s2b-pill">{t("Software a medida · Apps · IA", "Custom Software · Apps · AI Solutions")}</div>
+              <div className="s2b-pill">{t("Sitios web · Aplicaciones · IA · Automatizaciones", "Websites · Apps · AI · Automations")}</div>
               <div className="s2b-sweep">
-                <h1>{t("Creamos software que transforma", "We build software that transforms")} <span>{t("ideas y negocios", "ideas and businesses")}</span></h1>
+                <h1>{t("Un solo equipo para toda tu", "One team for your whole")} <span>{t("operación digital", "digital operation")}</span></h1>
               </div>
               <p>
-                {t("Desarrollamos aplicaciones, sistemas a medida e inteligencia artificial para empresas, emprendedores y personas que quieren convertir una idea en un producto digital real.", "Custom software, apps and AI solutions for businesses, entrepreneurs and people who want to turn an idea into a real digital product.")}
+                {t("Diseñamos el sistema, lo armamos alrededor de cómo ya trabajás, lo conectamos con las herramientas que usás y lo seguimos manteniendo después de salir, para que no tengas que coordinar cuatro proveedores para un solo negocio.", "We design the system, build it around how you already work, connect it to the tools you use and keep maintaining it after launch, so you are not coordinating four vendors to run one business.")}
               </p>
-              {/* la linea de posicionamiento: en cuatro palabras, a que nos dedicamos */}
-              <div className="s2b-kicker">
-                {[t("Software a medida", "Custom software"), "Apps", "CRM", t("Inteligencia Artificial", "AI Solutions")].map((x, i) => (
-                  <React.Fragment key={x}>{i > 0 && <i aria-hidden="true" />}<span>{x}</span></React.Fragment>
-                ))}
-              </div>
+              {/* Aca habia una segunda lista de servicios. Con la pildora de
+                  arriba diciendo lo mismo, el titular quedaba entre dos
+                  enumeraciones y el hero dejaba de ser una frase. Una sola
+                  lista, arriba. */}
               <div className="s2b-hero-cta">
                 <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell Us About Your Project")} <ArrowRight size={16} /></button>
                 <button className="s2b-btn s2b-btn--glass" onClick={() => goTo("idea")}>
@@ -5219,6 +5375,115 @@ export default function StudioB2B() {
                 </li>
               ))}
             </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PRECIOS ============
+          Dos bloques porque son dos negocios distintos. Arriba lo que se
+          arma sobre una base que ya existe y se puede cotizar de antemano;
+          abajo lo que no entra en un plan mensual y lleva "desde" y plazo
+          en vez de un numero cerrado. Mezclarlos es lo que hace que un
+          cliente crea que su sistema de gestion cuesta 97 dolares. */}
+      <section className="s2b-sec s2b-sec--sm s2b-amb" id="precios">
+        <div className="s2b-wrap">
+          <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
+            <div className="s2b-eyebrow">{t("Precios", "Pricing")}</div>
+            <h2 className="s2b-h2" style={{ maxWidth: "17ch" }}>
+              {t("Sistemas, no", "Systems, not")} <b>{t("proyectos sueltos", "one-off projects")}</b>
+            </h2>
+            <p className="s2b-lead" style={{ textAlign: "center" }}>
+              {t("Una página sola es el punto de partida. Lo que la convierte en un sistema es lo que corre encima: el asistente, el CRM y las automatizaciones, mantenidos por el mismo equipo después de salir.", "A site on its own is the starting point. What turns it into a system is what runs on top: the assistant, the CRM and the automations, maintained by the same team after launch.")}
+            </p>
+          </div>
+
+          {/* mensual o anual: el precio mostrado es siempre por mes */}
+          <div className="s2b-switch s2b-rv" role="group" aria-label={t("Forma de pago", "Billing period")}>
+            <button className={anual ? "" : "is-on"} onClick={() => setAnual(false)} aria-pressed={!anual}>
+              {t("Mensual", "Monthly")}
+            </button>
+            <button className={anual ? "is-on" : ""} onClick={() => setAnual(true)} aria-pressed={anual}>
+              {t("Anual", "Annual")} <em>{t("2 meses gratis", "2 months free")}</em>
+            </button>
+          </div>
+
+          <div className="s2b-planes">
+            {PLANES.map((p, i) => (
+              <article
+                className={"s2b-plan s2b-rv" + (p.destacado ? " is-destacado" : "")}
+                key={p.id}
+                style={{ transitionDelay: i * 80 + "ms" }}
+              >
+                {p.rotulo && <span className="s2b-plan-rotulo">{p.rotulo}</span>}
+                <h3 className="s2b-plan-tt">{p.tt}</h3>
+                <p className="s2b-plan-d">{p.d}</p>
+
+                <div className="s2b-plan-precio">
+                  <b>US$ {p.mes}</b><span>{t("/mes", "/mo")}</span>
+                </div>
+                <p className="s2b-plan-letra">
+                  {anual
+                    ? t(`Pagando el año: ${MESES_ANUAL} cuotas en vez de 12`, `Paid yearly: ${MESES_ANUAL} months instead of 12`)
+                    : t(`+ US$ ${p.setup} de configuración, una sola vez`, `+ US$ ${p.setup} setup, once`)}
+                </p>
+
+                <ul className="s2b-plan-items">
+                  {p.items.map((it) => (
+                    <li key={it}><Check size={15} aria-hidden="true" />{it}</li>
+                  ))}
+                </ul>
+
+                <p className="s2b-plan-nota">{p.nota}</p>
+                <p className="s2b-plan-ideal"><b>{t("Ideal para:", "Best for:")}</b> {p.ideal}</p>
+
+                <button
+                  className={"s2b-btn " + (p.destacado ? "s2b-btn--primary" : "s2b-btn--line")}
+                  onClick={() => goTo("contacto")}
+                >
+                  {t("Empezar", "Get started")} <ArrowRight size={16} />
+                </button>
+              </article>
+            ))}
+          </div>
+
+          {/* ---- lo que se presupuesta ---- */}
+          <div className="s2b-proy">
+            <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
+              <h3 className="s2b-proy-tt">
+                {t("Y lo que es a medida,", "And what's custom-built")} <b>{t("se presupuesta", "gets quoted")}</b>
+              </h3>
+              <p className="s2b-lead" style={{ textAlign: "center" }}>
+                {t("Las apps y los sistemas de gestión no entran en un plan mensual: cada uno es distinto. Va un piso y un plazo, y el número de verdad sale después de entender qué hay que hacer.", "Apps and management systems don't fit in a monthly plan: each one is different. Here's a floor and a timeline; the real number comes after we understand the work.")}
+              </p>
+            </div>
+
+            <div className="s2b-proy-grid">
+              {PROYECTOS.map((p, i) => {
+                const I = p.ic;
+                return (
+                  <article className="s2b-proy-card s2b-rv" key={p.tt} style={{ transitionDelay: i * 80 + "ms" }}>
+                    <span className="s2b-proy-ic"><I size={20} /></span>
+                    <h4>{p.tt}</h4>
+                    <p className="s2b-proy-d">{p.d}</p>
+                    <div className="s2b-proy-pie">
+                      <span className="s2b-proy-desde">
+                        {p.desde
+                          ? <>{t("desde", "from")} <b>US$ {p.desde.toLocaleString("es-AR")}</b></>
+                          : <b>{t("A presupuestar", "Quoted")}</b>}
+                      </span>
+                      <span className="s2b-proy-plazo">{p.plazo}</span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <p className="s2b-proy-cierre s2b-rv">
+              {t("La primera llamada no se cobra y de ahí sale el alcance por escrito.", "The first call is free and the written scope comes out of it.")}{" "}
+              <button className="s2b-link" onClick={() => goTo("contacto")}>
+                {t("Contanos qué necesitás", "Tell us what you need")} <ArrowRight size={15} />
+              </button>
+            </p>
           </div>
         </div>
       </section>
