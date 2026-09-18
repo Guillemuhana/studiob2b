@@ -2341,7 +2341,7 @@ const planes = (t) => [
   {
     id: "presencia",
     tt: t("Presencia", "Presence"),
-    mes: 97, setup: 249,
+    mes: 67, setup: 174,
     d: t("Que te encuentren y que puedan escribirte.", "So they find you and can reach you."),
     items: [
       t("Sitio a medida de hasta 5 páginas", "Custom site, up to 5 pages"),
@@ -2357,7 +2357,7 @@ const planes = (t) => [
   {
     id: "captacion",
     tt: t("Captación", "Acquisition"),
-    mes: 197, setup: 497,
+    mes: 137, setup: 347,
     destacado: true,
     rotulo: t("Más elegido", "Most picked"),
     d: t("Que además te contesten las consultas y no se pierda ninguna.", "Plus enquiries get answered and none get lost."),
@@ -2377,7 +2377,7 @@ const planes = (t) => [
   {
     id: "completo",
     tt: t("Sistema completo", "Full system"),
-    mes: 349, setup: 897,
+    mes: 244, setup: 627,
     d: t("Todo el circuito andando, con un solo responsable.", "The whole loop running, with one team responsible."),
     items: [
       t("Todo lo de Captación", "Everything in Acquisition"),
@@ -2404,12 +2404,12 @@ const planes = (t) => [
    quiere encontrar lo suyo en la lista, aunque el precio diga consultar. */
 const proyectos = (t) => [
   {
-    ic: Rocket, tt: "MVP", desde: 4900,
+    ic: Rocket, tt: "MVP", desde: 3430,
     plazo: t("4 a 8 semanas", "4 to 8 weeks"),
     d: t("La primera versión funcional de tu idea, con lo que de verdad importa, lista para salir y probarla con usuarios reales.", "The first working version of your idea, with what actually matters, ready to launch and test with real users."),
   },
   {
-    ic: Smartphone, tt: t("App móvil", "Mobile app"), desde: 2900,
+    ic: Smartphone, tt: t("App móvil", "Mobile app"), desde: 2030,
     plazo: t("8 a 14 semanas", "8 to 14 weeks"),
     d: t("iOS y Android desde una sola base, con publicación en las tiendas y actualizaciones incluidas.", "iOS and Android from one codebase, with store releases and updates included."),
   },
