@@ -61,15 +61,24 @@ const CSS = `
   --deep:     #190E4C;
   --violet:   #6D4AFF;
   --lilac:    #A78CFF;
-  --paper:    #F6F5FB;
+  /* ================================================================
+     El sitio es oscuro.
+
+     No se pinto seccion por seccion: se dieron vuelta estos tokens, que
+     es de donde sale el color de todo lo demas. --paper es el piso de la
+     pagina y --surface el de una tarjeta, apenas levantada del piso para
+     que se lea el borde sin necesidad de sombra: sobre negro la sombra
+     no existe, el que separa es el borde.
+     ================================================================ */
+  --paper:    #0A0912;
   --chrome-md:#C3C8D8;
   --chrome-lo:#6E7288;
 
-  --title:  #14102C;
-  --text:   #4C4767;
-  --muted:  #7A7396;
-  --line:   rgba(24,12,60,0.10);
-  --surface:#FFFFFF;
+  --title:  #FFFFFF;
+  --text:   #C6C0E0;
+  --muted:  #938CB4;
+  --line:   rgba(167,140,255,0.16);
+  --surface:#13111F;
 
   --display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
   --body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -99,7 +108,7 @@ const CSS = `
     radial-gradient(680px circle at 6% 88%, rgba(167,140,255,0.20), transparent 62%),
     linear-gradient(168deg, #150B3F 0%, #0B0718 72%);
 }
-.s2b-band--tint { background: linear-gradient(180deg, #FFFFFF, var(--paper)); }
+.s2b-band--tint { background: linear-gradient(180deg, #100E1C, var(--paper)); }
 
 .s2b-wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .s2b-sec { padding: 112px 0; }
@@ -187,7 +196,7 @@ const CSS = `
 
 /* ---------- nav ---------- */
 .s2b-nav { position: sticky; top:0; z-index:80; transition: background .3s, box-shadow .3s; }
-.s2b-nav.is-stuck { background: rgba(255,255,255,.9); backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 1px 0 rgba(24,12,60,.08); }
+.s2b-nav.is-stuck { background: rgba(10,9,18,.9); backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 1px 0 rgba(167,140,255,.12); }
 .s2b-nav-in { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:10px 0; }
 .s2b-brand { display:flex; align-items:center; gap:14px; }
 .s2b-nav .s2b-brand { --mark:88px; }
@@ -234,14 +243,13 @@ const CSS = `
   color:#FFE9A8; background:linear-gradient(120deg, rgba(249,216,88,.14), rgba(109,74,255,.22));
   box-shadow:inset 0 0 0 1px rgba(249,216,88,.5), 0 0 18px -6px rgba(249,216,88,.5);
 }
-.s2b-nav.is-stuck .s2b-menu button.top.is-jugar { color:#8A5A06;
-  background:linear-gradient(120deg, rgba(249,216,88,.3), rgba(109,74,255,.16));
-  box-shadow:inset 0 0 0 1px rgba(200,145,20,.55), 0 0 16px -6px rgba(208,154,28,.6); }
+/* Con el header claro la pastilla pegada arriba llevaba oro oscuro sobre
+   blanco. Ahora la pastilla del header tambien es oscura, asi que el oro
+   claro de siempre sirve pegado y sin pegar: un solo color, que ademas es
+   el que se lee. */
 .s2b-menu button.top.is-jugar:hover,
 .s2b-drawer button.dl.is-jugar:hover { color:#FFF6D0;
   background:linear-gradient(120deg, rgba(249,216,88,.26), rgba(109,74,255,.3)); }
-.s2b-nav.is-stuck .s2b-menu button.top.is-jugar:hover { color:#5E3A00;
-  background:linear-gradient(120deg, rgba(249,216,88,.45), rgba(109,74,255,.2)); }
 
 .s2b-luz { position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:linear-gradient(100deg, transparent 34%, rgba(255,245,210,.75) 50%, transparent 66%);
@@ -252,7 +260,7 @@ const CSS = `
 .s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
 
 .s2b-pop { position:absolute; top:calc(100% + 8px); left:50%; transform: translateX(-50%); width:min(560px, 78vw);
-  background:#fff; border:1px solid var(--line); border-radius:20px; padding:10px; z-index:90;
+  background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:10px; z-index:90;
   box-shadow: 0 30px 70px -24px rgba(24,12,60,.35); display:grid; gap:2px; }
 .s2b-pop a { display:grid; grid-template-columns:38px 1fr; gap:14px; padding:14px; border-radius:14px; transition: background .2s; align-items:start; }
 .s2b-pop a:hover { background: var(--paper); }
@@ -406,8 +414,8 @@ const CSS = `
 .s2b-clogo:hover { color: var(--violet); opacity:1; }
 .s2b-clogo--img {
   height:var(--clogo-h); width:auto; object-fit:contain; opacity:1; filter:none;
-  border-radius:16px; background:#fff; padding:12px 18px;
-  border:1px solid rgba(24,12,60,.05); box-shadow:0 14px 30px -22px rgba(24,12,60,.55);
+  border-radius:16px; background:#F4F2FA; padding:12px 18px;
+  border:1px solid rgba(167,140,255,.16); box-shadow:0 14px 30px -22px rgba(0,0,0,.8);
 }
 .s2b-clogo--img:hover { filter:none; opacity:1; }
 /* la marca y, abajo, de donde es el cliente */
@@ -417,7 +425,7 @@ const CSS = `
 
 /* ---------- servicios (filas alternadas) ---------- */
 .s2b-rows { display:grid; gap:20px; margin-top:52px; }
-.s2b-row { display:grid; grid-template-columns:.82fr 1.18fr; gap:0; border-radius:28px; overflow:hidden; border:1px solid var(--line); background:#fff; box-shadow: 0 24px 60px -40px rgba(24,12,60,.4); }
+.s2b-row { display:grid; grid-template-columns:.82fr 1.18fr; gap:0; border-radius:28px; overflow:hidden; border:1px solid var(--line); background:var(--surface); box-shadow: 0 24px 60px -40px rgba(24,12,60,.4); }
 .s2b-row:nth-child(even) { grid-template-columns:1.18fr .82fr; }
 .s2b-row:nth-child(even) .s2b-row-txt { order:2; }
 .s2b-row-txt { padding: clamp(28px,4vw,52px); display:flex; flex-direction:column; justify-content:center; }
@@ -431,7 +439,7 @@ const CSS = `
 /* la captura de un trabajo real, en vez del panel de mentira. Se ve entera:
    la altura la pone la propia imagen, nada se recorta. */
 .s2b-shot { position:relative; width:calc(100% - 36px); border-radius:16px; overflow:hidden;
-  padding-top:27px; background:#fff; border:1px solid rgba(255,255,255,.8);
+  padding-top:27px; background:var(--surface); border:1px solid rgba(255,255,255,.8);
   box-shadow:0 34px 70px -28px rgba(24,12,60,.62), 0 4px 14px -8px rgba(24,12,60,.3);
   transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
 /* la barra de ventana, con sus tres luces */
@@ -456,7 +464,7 @@ const CSS = `
 .s2b-vis-stack-t { font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(46,28,102,.5); }
 .s2b-vis-logos { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
 .s2b-vis-logo { width:44px; height:44px; border-radius:13px; display:grid; place-items:center;
-  background:#fff; box-shadow: 0 12px 26px -18px rgba(24,12,60,.75), inset 0 0 0 1px rgba(24,12,60,.05);
+  background:var(--surface); box-shadow: 0 12px 26px -18px rgba(24,12,60,.75), inset 0 0 0 1px rgba(24,12,60,.05);
   transition: transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .45s; }
 .s2b-vis-logo svg { width:22px; height:22px; display:block; }
 .s2b-row:hover .s2b-vis-logo { transform:translateY(-5px); box-shadow: 0 18px 32px -18px rgba(24,12,60,.8), inset 0 0 0 1px rgba(24,12,60,.05); }
@@ -648,11 +656,11 @@ const CSS = `
 .s2b-quotes { position:relative; margin-top:44px; overflow:hidden; }
 .s2b-qtrack { display:flex; transition: transform .55s cubic-bezier(.2,.8,.2,1); }
 .s2b-qslide { min-width:100%; padding:2px; }
-.s2b-qcard { background:#fff; border:1px solid var(--line); border-radius:26px; padding:clamp(26px,3.6vw,44px); display:grid; grid-template-columns:auto 1fr; gap:32px; box-shadow:0 26px 60px -44px rgba(24,12,60,.6); }
+.s2b-qcard { background:var(--surface); border:1px solid var(--line); border-radius:26px; padding:clamp(26px,3.6vw,44px); display:grid; grid-template-columns:auto 1fr; gap:32px; box-shadow:0 26px 60px -44px rgba(24,12,60,.6); }
 /* el lugar del logo del cliente: una placa blanca que le sirve igual al escudo
    cuadrado que al logotipo apaisado, y que parte en dos cuando son dos marcas */
 .s2b-qphoto { width:190px; height:206px; flex:none; border-radius:20px; padding:16px;
-  background:#fff; border:1px solid var(--line); box-shadow:0 18px 36px -30px rgba(24,12,60,.7);
+  background:var(--surface); border:1px solid var(--line); box-shadow:0 18px 36px -30px rgba(24,12,60,.7);
   display:grid; align-content:center; gap:13px; }
 /* overflow oculto: si un logo no carga, el texto alternativo se queda adentro
    de la placa en vez de desbordarse encima de la reseña */
@@ -672,7 +680,7 @@ const CSS = `
 .s2b-qfoot span { font-size:13px; color:var(--muted); }
 .s2b-qlogo { margin-left:auto; font-family:var(--display); font-weight:700; font-size:15px; color:#A9A3BE; letter-spacing:-.02em; }
 .s2b-qnav { display:flex; gap:8px; margin-top:22px; }
-.s2b-qnav button { width:42px; height:42px; border-radius:50%; border:1px solid var(--line); display:grid; place-items:center; color:var(--title); background:#fff; transition: border-color .2s, transform .2s; }
+.s2b-qnav button { width:42px; height:42px; border-radius:50%; border:1px solid var(--line); display:grid; place-items:center; color:var(--title); background:var(--surface); transition: border-color .2s, transform .2s; }
 .s2b-qnav button:hover { border-color:var(--violet); transform:translateY(-2px); }
 .s2b-qdots { display:flex; gap:6px; align-items:center; margin-left:10px; }
 .s2b-qdots i { width:7px; height:7px; border-radius:50%; background:var(--line); transition: width .3s, background .3s; }
@@ -834,7 +842,7 @@ const CSS = `
 /* ---------- los dolores de una empresa ---------- */
 .s2b-dolores { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:36px; }
 .s2b-dolor { display:flex; align-items:center; gap:10px; padding:14px 15px; border-radius:15px;
-  border:1px solid var(--line); background:#fff; font-size:13.5px; color:var(--text); line-height:1.3;
+  border:1px solid var(--line); background:var(--surface); font-size:13.5px; color:var(--text); line-height:1.3;
   transition:border-color .25s, transform .25s; }
 .s2b-dolor:hover { border-color:rgba(109,74,255,.3); transform:translateY(-2px); }
 .s2b-dolor svg { flex:none; color:#B0A8CC; }
@@ -871,7 +879,7 @@ const CSS = `
 
 /* ---------- grilla de tarjetas: que desarrollamos / por que nosotros ---------- */
 .s2b-cards { display:grid; grid-template-columns:1fr; gap:12px; margin-top:40px; }
-.s2b-card { padding:20px; border-radius:20px; border:1px solid var(--line); background:#fff;
+.s2b-card { padding:20px; border-radius:20px; border:1px solid var(--line); background:var(--surface);
   transition:transform .28s cubic-bezier(.2,.8,.2,1), border-color .28s, box-shadow .28s; }
 .s2b-card:hover { transform:translateY(-4px); border-color:rgba(109,74,255,.3);
   box-shadow:0 26px 54px -40px rgba(24,12,60,.6); }
@@ -900,7 +908,7 @@ const CSS = `
 /* ---------- tipos de productos: mosaico visual ---------- */
 .s2b-prods { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:40px; }
 .s2b-prod { display:flex; flex-direction:column; align-items:flex-start; gap:11px; padding:17px 15px;
-  border-radius:18px; border:1px solid var(--line); background:#fff;
+  border-radius:18px; border:1px solid var(--line); background:var(--surface);
   font-family:var(--display); font-weight:600; font-size:14px; letter-spacing:-.015em; color:var(--title);
   line-height:1.25; transition:transform .25s, border-color .25s, box-shadow .25s; }
 .s2b-prod:hover { transform:translateY(-3px); border-color:rgba(109,74,255,.32);
@@ -910,7 +918,7 @@ const CSS = `
 /* ---------- portfolio: casos reales ---------- */
 .s2b-casos { display:grid; grid-template-columns:1fr; gap:18px; margin-top:44px; }
 .s2b-caso { display:flex; flex-direction:column; border-radius:24px; overflow:hidden;
-  border:1px solid var(--line); background:#fff; box-shadow:0 24px 60px -46px rgba(24,12,60,.5);
+  border:1px solid var(--line); background:var(--surface); box-shadow:0 24px 60px -46px rgba(24,12,60,.5);
   transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
 .s2b-caso:hover { transform:translateY(-4px); box-shadow:0 34px 74px -42px rgba(24,12,60,.6); }
 /* la parte de arriba: la captura del trabajo, o el logo cuando no hay captura */
@@ -918,7 +926,7 @@ const CSS = `
   background:linear-gradient(150deg,#F0ECFF,#E4DCFF); overflow:hidden; }
 .s2b-caso-vis .s2b-shot { width:100%; }
 .s2b-caso-marca { display:grid; justify-items:center; gap:11px; padding:14px 20px; border-radius:18px;
-  background:#fff; box-shadow:0 18px 40px -30px rgba(24,12,60,.7); }
+  background:var(--surface); box-shadow:0 18px 40px -30px rgba(24,12,60,.7); }
 .s2b-caso-marca img { height:56px; width:auto; max-width:190px; object-fit:contain; display:block; }
 .s2b-caso-cuerpo { display:flex; flex-direction:column; gap:12px; padding:22px 20px 24px; flex:1; }
 .s2b-caso-top { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
@@ -946,7 +954,7 @@ const CSS = `
 /* ---------- proceso resumido en el home ---------- */
 .s2b-pasos { display:grid; grid-template-columns:1fr; gap:10px; margin-top:40px; }
 .s2b-paso-mini { display:grid; grid-template-columns:auto 1fr; gap:15px; align-items:start;
-  padding:17px 18px; border-radius:18px; border:1px solid var(--line); background:#fff;
+  padding:17px 18px; border-radius:18px; border:1px solid var(--line); background:var(--surface);
   transition:border-color .25s, transform .25s; }
 .s2b-paso-mini:hover { border-color:rgba(109,74,255,.3); transform:translateX(3px); }
 .s2b-paso-mini-ico { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; flex:none;
@@ -1258,7 +1266,7 @@ const CSS = `
           mask-image: radial-gradient(78% 60% at 50% 46%, #000, transparent);
 }
 /* superficie intermedia: ni blanco ni oscuro, para romper la seguidilla clara */
-.s2b-band--soft { background: linear-gradient(180deg, #FFFFFF 0%, var(--paper) 34%, var(--paper-2) 100%); }
+.s2b-band--soft { background: linear-gradient(180deg, #100E1C 0%, var(--paper) 34%, var(--paper-2) 100%); }
 
 /* ---------- titulos: mas escala, mas jerarquia ---------- */
 .s2b-h2 { font-size: clamp(31px, 4.9vw, 56px); letter-spacing: -.035em; }
@@ -1449,7 +1457,7 @@ const CSS = `
 .s2b-door--emp .s2b-door-rot { color: var(--lilac); }
 .s2b-door--emp .s2b-chip { background: rgba(255,255,255,.06); border-color: rgba(167,140,255,.22); color: #BDB4E4; }
 
-.s2b-door--idea { background: linear-gradient(158deg, #FFFFFF 0%, var(--paper) 70%, #EDE9FC 100%); }
+.s2b-door--idea { background: linear-gradient(158deg, #17142A 0%, #110F1E 70%, #0D0B18 100%); }
 .s2b-door--idea::after { background: radial-gradient(70% 60% at 70% 12%, rgba(167,140,255,.24), transparent 68%); }
 .s2b-door--idea .s2b-door-rot { color: var(--violet); }
 
@@ -1481,12 +1489,12 @@ const CSS = `
   letter-spacing: .2em; text-transform: uppercase; }
 
 /* el lado desordenado */
-.s2b-lado--caos { border: 1px dashed rgba(24,12,60,.16); background:
-  radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,.9), var(--paper)); }
+.s2b-lado--caos { border: 1px dashed rgba(167,140,255,.2); background:
+  radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,.07), var(--paper)); }
 .s2b-lado--caos .s2b-lado-rot { color: #B0A8CC; }
 .s2b-nube { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; padding-top: 18px; }
 .s2b-nube span { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 12px;
-  background: #fff; border: 1px solid var(--line); font-size: 13px; color: var(--text); white-space: nowrap;
+  background: var(--surface); border: 1px solid var(--line); font-size: 13px; color: var(--text); white-space: nowrap;
   box-shadow: 0 10px 22px -18px rgba(24,12,60,.7);
   animation: s2b-flota 6s ease-in-out infinite alternate; }
 .s2b-nube span svg { color: #B0A8CC; flex: none; }
@@ -1604,7 +1612,7 @@ const CSS = `
   grid-auto-flow: dense; }
 
 .s2b-bt { position: relative; overflow: hidden; display: flex; flex-direction: column;
-  padding: 22px; border-radius: var(--r-card); background: #fff; border: 1px solid var(--line);
+  padding: 22px; border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--line);
   box-shadow: 0 20px 46px -40px rgba(24,12,60,.5);
   transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s; }
 .s2b-bt:hover { transform: translateY(-4px); border-color: rgba(109,74,255,.3);
@@ -1635,7 +1643,7 @@ const CSS = `
 
 /* las destacadas: fondo con profundidad y un poco mas de aire */
 .s2b-bt--feat { padding: 26px; background:
-  radial-gradient(120% 110% at 12% 0%, #FFFFFF, #F7F5FF 46%, #EFEAFF 100%); }
+  radial-gradient(120% 110% at 12% 0%, #191632, #131026 46%, #0E0C1B 100%); }
 .s2b-bt--feat h3 { font-size: clamp(18px, 1.9vw, 23px); margin-bottom: 9px; }
 .s2b-bt--feat p { font-size: 14.4px; max-width: 42ch; }
 /* las oscuras: rompen el bloque claro desde adentro */
@@ -1653,7 +1661,7 @@ const CSS = `
   align-items: center; padding: 9px 0; }
 .s2b-flujo-paso i { position: relative; z-index: 1; width: 30px; height: 30px; border-radius: 10px;
   display: grid; place-items: center; font-family: var(--mono); font-size: 10px; font-style: normal;
-  color: var(--violet); background: #fff; border: 1px solid rgba(109,74,255,.2); }
+  color: var(--violet); background: var(--surface); border: 1px solid rgba(109,74,255,.2); }
 .s2b-flujo-paso span { font-size: 13px; color: var(--text); line-height: 1.35; }
 /* el tramo que une un paso con el siguiente */
 .s2b-flujo-paso::before { content: ""; position: absolute; left: 15px; top: 50%; bottom: -50%; width: 2px;
@@ -1721,7 +1729,7 @@ const CSS = `
 @keyframes s2b-tira-izq { to { transform: translateX(-50%); } }
 @keyframes s2b-tira-der { from { transform: translateX(-50%); } to { transform: none; } }
 .s2b-tira span { display: inline-flex; align-items: center; gap: 10px; flex: none; white-space: nowrap;
-  padding: 13px 19px; border-radius: 14px; background: #fff; border: 1px solid var(--line);
+  padding: 13px 19px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line);
   font-family: var(--display); font-weight: 600; font-size: 14.5px; letter-spacing: -.015em; color: var(--title);
   box-shadow: 0 14px 30px -26px rgba(24,12,60,.6);
   transition: border-color .25s, color .25s, box-shadow .25s; }
@@ -1770,7 +1778,7 @@ const CSS = `
 .s2b-mas-t { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
   color: var(--muted); margin-bottom: 4px; }
 .s2b-mini { display: grid; gap: 14px; padding: 22px; border-radius: var(--r-card);
-  background: #fff; border: 1px solid var(--line); align-content: start;
+  background: var(--surface); border: 1px solid var(--line); align-content: start;
   box-shadow: 0 20px 46px -42px rgba(24,12,60,.5);
   transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s; }
 .s2b-mini:hover { transform: translateY(-4px); border-color: rgba(109,74,255,.28); }
@@ -1789,7 +1797,7 @@ const CSS = `
 .s2b-etapa { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 16px; align-items: start; }
 .s2b-etapa-nodo { position: relative; z-index: 2; width: 44px; height: 44px; border-radius: 14px; flex: none;
   display: grid; place-items: center; color: var(--violet);
-  background: #fff; border: 1px solid var(--line);
+  background: var(--surface); border: 1px solid var(--line);
   box-shadow: 0 12px 26px -20px rgba(24,12,60,.6);
   transition: color .5s, background .5s, border-color .5s, box-shadow .5s; }
 .s2b-etapa.is-in .s2b-etapa-nodo { color: #fff; border-color: transparent;
@@ -2024,7 +2032,7 @@ const CSS = `
 .s2b-mini { display: grid; gap: 0; padding: 0; overflow: hidden; align-content: start; }
 .s2b-mini-logo {
   display: grid; place-items: center; padding: 30px 24px; min-height: 158px; height: auto;
-  background: radial-gradient(130% 105% at 50% 0%, #FFFFFF 0%, #F5F2FF 52%, #E9E3FF 100%);
+  background: radial-gradient(130% 105% at 50% 0%, #17142C 0%, #121027 52%, #0D0B1A 100%);
   border-bottom: 1px solid var(--line);
 }
 .s2b-mini-logo img {
@@ -5386,7 +5394,7 @@ export default function StudioB2B() {
       </section>
 
       {/* ============ PORTFOLIO ============ */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb" id="clientes" style={{ background: "linear-gradient(180deg,#FFFFFF,var(--paper))" }}>
+      <section className="s2b-sec s2b-sec--sm s2b-amb" id="clientes" style={{ background: "linear-gradient(180deg,#100E1C,var(--paper))" }}>
         <div className="s2b-wrap">
           <div className="s2b-head s2b-rv">
             <div>
@@ -5477,7 +5485,7 @@ export default function StudioB2B() {
       {/* ============ POR QUÉ STUDIO B2B ============ */}
       {/* Editorial, no tarjetas: el titulo se queda quieto de un lado mientras
           del otro pasan las seis razones, separadas por un filete y nada mas. */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb" style={{ background: "linear-gradient(180deg,var(--paper),#FFFFFF)" }}>
+      <section className="s2b-sec s2b-sec--sm s2b-amb" style={{ background: "linear-gradient(180deg,var(--paper),#100E1C)" }}>
         <div className="s2b-wrap s2b-porque">
           <div className="s2b-porque-head s2b-rv">
             <div className="s2b-eyebrow">{t("El equipo", "The team")}</div>
