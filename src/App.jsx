@@ -2392,8 +2392,16 @@ const planes = (t) => [
   },
 ];
 
-/* El software a medida no lleva precio cerrado a proposito: lleva un piso
-   y un plazo. El numero de verdad sale del relevamiento. */
+/* El software a medida no lleva precio cerrado a proposito.
+
+   Los dos que si tienen piso son los que hicimos muchas veces y sabemos
+   cuanto salen: el MVP y la app movil. Los otros cuatro dicen "a
+   consultar" y no un numero inventado, y por la misma razon tampoco
+   prometen un plazo: si no se cotizo, no se puso fecha. Esa es la regla
+   y vale para los dos campos.
+
+   Cubre el catalogo completo, que es lo que alguien viene a mirar:
+   quiere encontrar lo suyo en la lista, aunque el precio diga consultar. */
 const proyectos = (t) => [
   {
     ic: Rocket, tt: "MVP", desde: 4900,
@@ -2406,9 +2414,20 @@ const proyectos = (t) => [
     d: t("iOS y Android desde una sola base, con publicación en las tiendas y actualizaciones incluidas.", "iOS and Android from one codebase, with store releases and updates included."),
   },
   {
+    ic: Globe, tt: t("App web", "Web app"), desde: null,
+    d: t("SaaS, paneles y portales para clientes o empleados. Corre en el navegador, sin instalar nada, y entra desde cualquier dispositivo.", "SaaS, dashboards and portals for clients or staff. Runs in the browser, nothing to install, reachable from any device."),
+  },
+  {
     ic: Code2, tt: t("Sistema a medida", "Custom system"), desde: null,
-    plazo: t("Se define en el relevamiento", "Defined during discovery"),
-    d: t("Gestión, portales de clientes, integraciones. Cada uno es distinto, así que el número sale después de entender qué hay que hacer.", "Management systems, client portals, integrations. Each one is different, so the number comes after we understand the work."),
+    d: t("Gestión, stock, facturación, lo que tu operación necesite. Reemplaza las planillas y las herramientas sueltas por un solo lugar.", "Operations, stock, invoicing, whatever your business needs. Replaces spreadsheets and scattered tools with a single place."),
+  },
+  {
+    ic: Bot, tt: t("Agente de IA a medida", "Custom AI agent"), desde: null,
+    d: t("Más allá del asistente que viene en los planes: uno entrenado con la información de tu negocio y metido adentro de tus procesos.", "Beyond the assistant included in the plans: one trained on your business data and built into your own processes."),
+  },
+  {
+    ic: Plug, tt: t("Integraciones", "Integrations"), desde: null,
+    d: t("Conectar lo que ya usás para que dejen de ser islas: facturación, pagos, WhatsApp, tu ERP, lo que sea que tenga una API.", "Connecting what you already use so it stops being islands: invoicing, payments, WhatsApp, your ERP, anything with an API."),
   },
 ];
 
@@ -5459,7 +5478,7 @@ export default function StudioB2B() {
                 {t("Y lo que es a medida,", "And what's custom-built")} <b>{t("se presupuesta", "gets quoted")}</b>
               </h3>
               <p className="s2b-lead" style={{ textAlign: "center" }}>
-                {t("Las apps y los sistemas de gestión no entran en un plan mensual: cada uno es distinto. Va un piso y un plazo, y el número de verdad sale después de entender qué hay que hacer.", "Apps and management systems don't fit in a monthly plan: each one is different. Here's a floor and a timeline; the real number comes after we understand the work.")}
+                {t("Las apps y los sistemas no entran en un plan mensual: cada uno es distinto. Los dos que hicimos muchas veces llevan un piso; el resto se consulta, porque el número sale después de entender qué hay que hacer.", "Apps and systems don't fit in a monthly plan: each one is different. The two we've built many times have a floor; the rest you ask about, because the number comes after we understand the work.")}
               </p>
             </div>
 
@@ -5475,9 +5494,11 @@ export default function StudioB2B() {
                       <span className="s2b-proy-desde">
                         {p.desde
                           ? <>{t("desde", "from")} <b>US$ {p.desde.toLocaleString("es-AR")}</b></>
-                          : <b>{t("A presupuestar", "Quoted")}</b>}
+                          : <b>{t("A consultar", "Ask us")}</b>}
                       </span>
-                      <span className="s2b-proy-plazo">{p.plazo}</span>
+                      {/* sin precio tampoco va plazo: si no se cotizo, no se
+                          puso fecha */}
+                      {p.plazo && <span className="s2b-proy-plazo">{p.plazo}</span>}
                     </div>
                   </article>
                 );
