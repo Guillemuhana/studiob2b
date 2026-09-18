@@ -2409,7 +2409,7 @@ const proyectos = (t) => [
     d: t("La primera versión funcional de tu idea, con lo que de verdad importa, lista para salir y probarla con usuarios reales.", "The first working version of your idea, with what actually matters, ready to launch and test with real users."),
   },
   {
-    ic: Smartphone, tt: t("App móvil", "Mobile app"), desde: 9900,
+    ic: Smartphone, tt: t("App móvil", "Mobile app"), desde: 2900,
     plazo: t("8 a 14 semanas", "8 to 14 weeks"),
     d: t("iOS y Android desde una sola base, con publicación en las tiendas y actualizaciones incluidas.", "iOS and Android from one codebase, with store releases and updates included."),
   },
