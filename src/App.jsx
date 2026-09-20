@@ -8,7 +8,7 @@ import {
   ClipboardList, FileSpreadsheet, ShoppingCart, CalendarCheck, Store,
   GraduationCap, Truck, CreditCard, ShieldCheck, Headphones, TrendingUp,
   Target, Palette, FlaskConical, Send, Sprout, Blocks,
-  KeyRound, Network, Globe, Handshake, Eye,
+  KeyRound, Network, Globe, Handshake, Eye, Clock,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
 /* La seccion del Dia del Programador se lleva el resaltador de sintaxis, el
@@ -898,7 +898,12 @@ const CSS = `
 .s2b-appweb-precio b { font-family: var(--display); font-size: clamp(36px,4.6vw,50px); font-weight: 700;
   line-height: 1.05; color: var(--lilac); }
 .s2b-appweb-hasta { font-size: 14px; color: var(--text); }
-.s2b-appweb-precio em { margin-top: 8px; font-style: normal; font-family: var(--mono); font-size: 10px;
+/* el plazo, pegado al precio y en verde: es la otra mitad de la pregunta */
+.s2b-appweb-plazo { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+  padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  color: #8FEAB0; background: rgba(127,227,168,.12); border: 1px solid rgba(127,227,168,.3); }
+.s2b-appweb-plazo svg { flex: none; }
+.s2b-appweb-precio em { margin-top: 10px; font-style: normal; font-family: var(--mono); font-size: 10px;
   letter-spacing: .1em; text-transform: uppercase; color: var(--muted); line-height: 1.5; }
 .s2b .s2b-appweb-precio .s2b-btn { margin-top: 16px; width: 100%; justify-content: center; }
 
@@ -4643,6 +4648,12 @@ function AppWeb({ t, grupos, goTo, compacto = false }) {
       <b>US$ {APPWEB_DESDE.toLocaleString("es-AR")}</b>
       <span className="s2b-appweb-hasta">
         {t("hasta", "up to")} US$ {APPWEB_HASTA.toLocaleString("es-AR")}
+      </span>
+      {/* Cuanto sale y cuando la tengo son la misma pregunta: van juntos.
+          Como esta caja es la misma para la seccion y para precios, el
+          plazo aparece en los dos lados sin escribirlo dos veces. */}
+      <span className="s2b-appweb-plazo">
+        <Clock size={13} aria-hidden="true" /> {t("Lista en 7 días", "Ready in 7 days")}
       </span>
       <em>{t("según la estructura del proyecto", "depending on the project's scope")}</em>
       <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
