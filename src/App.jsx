@@ -941,6 +941,48 @@ const CSS = `
   .s2b-appweb-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* ---- los siete dias ----
+   Una linea horizontal con cinco paradas: la semana tiene que entrar de
+   un vistazo, y para eso la forma es un riel y no una pila de tarjetas.
+   El riel es un ::before de la lista y los circulos de cada dia lo tapan,
+   asi que la linea parece pasar por atras de las paradas. En el celular
+   el riel gira y baja por el costado. */
+.s2b-siete { margin-top: 70px; padding-top: 56px; border-top: 1px solid var(--line); }
+.s2b-siete-cab { max-width: 62ch; }
+.s2b .s2b-siete-tt { font-size: clamp(26px,3.6vw,40px); }
+.s2b .s2b-siete-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.s2b-siete-d { margin-top: 14px; font-size: 15px; color: var(--muted); line-height: 1.6; }
+
+.s2b-siete-linea { position: relative; list-style: none; margin: 38px 0 0; padding: 0;
+  display: grid; gap: 26px; }
+.s2b-siete-linea::before { content: ''; position: absolute; left: 21px; top: 10px; bottom: 10px; width: 2px;
+  background: linear-gradient(180deg, var(--violet), rgba(167,140,255,.16)); }
+.s2b-siete-paso { position: relative; padding-left: 62px; }
+.s2b-siete-dia { position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-content: center; text-align: center; line-height: 1;
+  border: 1px solid rgba(167,140,255,.4); background: var(--paper);
+  box-shadow: 0 0 0 5px var(--paper); }
+.s2b-siete-dia em { display: block; font-family: var(--mono); font-style: normal; font-size: 7.5px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.s2b-siete-dia b { display: block; margin-top: 2px; font-family: var(--display); font-size: 14px;
+  font-weight: 700; color: var(--lilac); white-space: nowrap; }
+.s2b .s2b-siete-paso h4 { font-size: 17px; margin-bottom: 5px; }
+.s2b-siete-paso p { font-size: 14px; color: var(--muted); line-height: 1.55; max-width: 46ch; }
+
+.s2b-siete-pie { display: grid; gap: 14px; margin-top: 34px; justify-items: start; }
+.s2b-siete-pie span { font-size: 13px; color: var(--muted); line-height: 1.55; max-width: 60ch; }
+
+@media (min-width: 900px) {
+  /* en escritorio el riel se acuesta y las cinco paradas van en fila */
+  .s2b-siete-linea { grid-template-columns: repeat(5, 1fr); gap: 22px; margin-top: 46px; }
+  .s2b-siete-linea::before { left: 22px; right: 22px; top: 21px; bottom: auto; width: auto; height: 2px;
+    background: linear-gradient(90deg, var(--violet), rgba(167,140,255,.16)); }
+  .s2b-siete-paso { padding: 62px 0 0; }
+  .s2b-siete-dia { left: 0; }
+  .s2b-siete-pie { grid-template-columns: auto 1fr; align-items: center; gap: 22px; }
+}
+
 /* ---- lo que se presupuesta ---- */
 .s2b-proy { margin-top: 74px; padding-top: 58px; border-top: 1px solid var(--line); }
 /* quedaron cinco tarjetas: la fila incompleta se centra en vez de colgar */
@@ -2557,6 +2599,47 @@ const appWebGrupos = (t) => [
       t("Escalable: arranca con lo esencial y suma módulos, usuarios y sucursales cuando el negocio crece", "Scalable: start with the essentials and add modules, users and branches as the business grows"),
       t("Código fuente versionado en GitHub, listo para mantener y hacer crecer", "Source code versioned on GitHub, ready to maintain and grow"),
     ],
+  },
+];
+
+/* ==================================================================
+   Los siete dias de la app web.
+
+   Va pegado abajo del bloque de la aplicacion: primero que es y que
+   trae, despues cuando la tenes. Son cinco pasos repartidos en siete
+   dias, no siete pasos, porque el dia es la unidad que importa y
+   agrupar dos jornadas en un paso es lo que hace que la semana entre
+   de un vistazo.
+
+   OJO: siete dias es una promesa comercial. Vale para la aplicacion
+   web, que se arma sobre una base que ya existe. Los proyectos a
+   medida tienen sus propios plazos y estan publicados en sus tarjetas.
+   ================================================================== */
+const sieteDias = (t) => [
+  {
+    dia: "1",
+    tt: t("Nos contás el negocio", "You tell us the business"),
+    d: t("Una llamada. Salimos con la lista de pantallas y qué hace cada una.", "One call. We come out with the list of screens and what each one does."),
+  },
+  {
+    dia: "2 · 3",
+    tt: t("Diseño", "Design"),
+    d: t("Ves cómo va a quedar antes de que se escriba una línea de código.", "You see how it will look before a single line of code is written."),
+  },
+  {
+    dia: "4 · 5",
+    tt: t("Desarrollo", "Build"),
+    d: t("Se arma la aplicación con tus datos adentro, no con texto de relleno.", "The app gets built with your real data inside, not filler text."),
+  },
+  {
+    dia: "6",
+    tt: t("La probás vos", "You try it"),
+    d: t("Entrás, la usás y pedís los cambios que quieras.", "You log in, use it and ask for whatever changes you want."),
+  },
+  {
+    dia: "7",
+    tt: t("Sale en vivo", "It goes live"),
+    d: t("Dominio, alojamiento y publicación. De ahí en más la mantenemos nosotros.", "Domain, hosting and launch. From there on we keep it running."),
   },
 ];
 
@@ -4893,6 +4976,7 @@ export default function StudioB2B() {
   const PLANES = useMemo(() => planes(t), [t]);
   const PROYECTOS = useMemo(() => proyectos(t), [t]);
   const APPWEB_GRUPOS = useMemo(() => appWebGrupos(t), [t]);
+  const SIETE_DIAS = useMemo(() => sieteDias(t), [t]);
   /* Lo que cuelga de cada entrada del menu. Los numeros salen de los mismos
      datos que publica la pagina -PLANES y las constantes de la app web- y no
      escritos aca: si maniana cambia un precio, el menu cambia solo. */
@@ -5732,6 +5816,44 @@ export default function StudioB2B() {
       <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="aplicaciones">
         <div className="s2b-wrap">
           <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} />
+
+          {/* ---- los siete dias ----
+              Pegado abajo del bloque: primero que es y que trae, despues
+              cuando la tenes. Es la pregunta que viene justo despues de
+              leer el precio. */}
+          <div className="s2b-siete">
+            <div className="s2b-siete-cab s2b-rv">
+              <div className="s2b-eyebrow">{t("De la primera charla a andando", "From the first call to live")}</div>
+              <h3 className="s2b-siete-tt">
+                {t("Tu app web en", "Your web app in")} <b>{t("7 días", "7 days")}</b>
+              </h3>
+              <p className="s2b-siete-d">
+                {t("Cinco pasos repartidos en una semana. El día 7 está publicada y funcionando, y de ahí en más la mantenemos nosotros.", "Five steps across one week. On day 7 it's published and running, and from there on we keep it going.")}
+              </p>
+            </div>
+
+            <ol className="s2b-siete-linea">
+              {SIETE_DIAS.map((p, i) => (
+                <li className="s2b-siete-paso s2b-rv" key={p.dia} style={{ transitionDelay: i * 80 + "ms" }}>
+                  <span className="s2b-siete-dia">
+                    <em>{t("día", "day")}</em>
+                    <b>{p.dia}</b>
+                  </span>
+                  <h4>{p.tt}</h4>
+                  <p>{p.d}</p>
+                </li>
+              ))}
+            </ol>
+
+            <div className="s2b-siete-pie s2b-rv">
+              <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
+                {t("Arrancar esta semana", "Start this week")} <ArrowRight size={16} />
+              </button>
+              {/* la aclaracion va aca y no escondida: los siete dias son de la
+                  app web, no de cualquier desarrollo */}
+              <span>{t("Los 7 días son para la aplicación web. Los proyectos a medida llevan su propio plazo, que va en cada tarjeta.", "The 7 days are for the web app. Custom projects have their own timeline, shown on each card.")}</span>
+            </div>
+          </div>
         </div>
       </section>
 
