@@ -259,14 +259,6 @@ const CSS = `
 
 .s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
 
-/* ---------- la entrada principal del menu ----------
-   "Aplicaciones web" es el producto de la casa, asi que se distingue del
-   resto sin gritar: filete violeta a la izquierda y el texto encendido. */
-.s2b-menu button.top.is-destacada { color:#DCD2FF; font-weight:600; }
-.s2b-menu button.top.is-destacada:hover { color:#fff; background:rgba(167,140,255,.16); }
-.s2b-drawer button.dl.is-destacada { color:#DCD2FF; font-weight:600;
-  padding-left:14px; border-left:2px solid var(--violet); }
-
 /* ---------- el desplegable ----------
    Nace oscuro: el sitio es oscuro y una caja clara colgando del header se
    ve pegada encima. */
@@ -3108,14 +3100,14 @@ const presupuestos = (t) => [
 ];
 
 const navLinks = (t) => [
-  /* Las dos primeras abren un desplegable -lo declara `pop`- porque son las
-     dos que tienen algo adentro que vale la pena mostrar sin entrar. El
-     resto son links pelados.
+  /* Solo Precios abre un desplegable -lo declara `pop`-: adentro estan las
+     tres formas de comprar, y una de ellas lleva a la seccion de
+     aplicaciones web. Tenerla ademas suelta en el menu era decir lo mismo
+     dos veces en la misma barra.
 
      Precios va adelante y no en el medio: es lo que mas se busca y lo que
      hace que alguien se quede o se vaya. Perdido entre otros cuatro no se
      encuentra, que es lo mismo que no estar. */
-  { id: "aplicaciones", label: t("Aplicaciones web a medida", "Custom web apps"), pop: "appweb", destacada: true },
   { id: "precios", label: t("Precios", "Pricing"), pop: "precios" },
   { id: "servicios", label: t("Servicios", "Services") },
   { id: "proceso", label: t("Proceso", "Process") },
@@ -4905,14 +4897,6 @@ export default function StudioB2B() {
      datos que publica la pagina -PLANES y las constantes de la app web- y no
      escritos aca: si maniana cambia un precio, el menu cambia solo. */
   const POPS = useMemo(() => ({
-    appweb: {
-      tt: t("Todo lo que incluye", "Everything it includes"),
-      pie: t("desde", "from") + " US$ " + APPWEB_DESDE.toLocaleString("es-AR"),
-      items: APPWEB_GRUPOS.map((g) => ({
-        ic: g.ic, tt: g.tt, to: "aplicaciones",
-        d: g.items.length + " " + t("puntos", "points"),
-      })),
-    },
     precios: {
       tt: t("Qué estás buscando", "What you're after"),
       pie: "",
@@ -5303,7 +5287,7 @@ export default function StudioB2B() {
                 return (
                   <div key={n.id} onMouseEnter={() => setPop(n.pop || null)}>
                     <button
-                      className={"top" + (n.destacada ? " is-destacada" : "") + (n.id === "jugar" ? " is-jugar" : "")}
+                      className={"top" + (n.id === "jugar" ? " is-jugar" : "")}
                       aria-expanded={menu ? pop === n.pop : undefined}
                       onClick={() => goTo(n.id)}
                     >
