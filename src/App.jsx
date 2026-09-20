@@ -844,8 +844,63 @@ const CSS = `
 .s2b-plan-ideal b { font-style: normal; color: var(--text); }
 .s2b .s2b-plan .s2b-btn { margin-top: 20px; width: 100%; justify-content: center; }
 
+/* ---- el bloque destacado: la aplicacion web ----
+   Un solo panel a lo ancho, con filo encendido arriba: al lado de tres
+   tarjetas iguales, lo que se distingue es lo que rompe la grilla.
+   Los veintiun puntos van en seis grupos y cada grupo tiene titulo, que
+   es lo unico que hace que veintiuno se puedan leer. */
+.s2b-appweb { position: relative; margin-top: 66px; padding: 36px 30px 32px; border-radius: 30px;
+  border: 1px solid rgba(167,140,255,.34); overflow: hidden;
+  background:
+    radial-gradient(900px circle at 82% -10%, rgba(109,74,255,.2), transparent 62%),
+    var(--surface);
+  box-shadow: 0 40px 100px -60px rgba(109,74,255,.9); }
+.s2b-appweb::before { content:''; position:absolute; inset: 0 0 auto; height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--lilac), var(--violet)); }
+.s2b-appweb-cab { display: grid; gap: 26px; align-items: start; }
+.s2b .s2b-appweb-tt { font-size: clamp(26px,3.6vw,40px); max-width: 16ch; }
+.s2b .s2b-appweb-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.s2b-appweb-d { margin-top: 14px; font-size: 15px; color: var(--muted); line-height: 1.62; max-width: 58ch;
+  text-align: justify; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 5 2 2; text-wrap: pretty; }
+
+/* el precio, en su propia caja: es lo que la persona vino a buscar */
+.s2b-appweb-precio { display: grid; justify-items: start; gap: 2px;
+  padding: 22px; border-radius: 20px;
+  border: 1px solid rgba(167,140,255,.28); background: rgba(0,0,0,.3); }
+.s2b-appweb-precio > span { font-size: 13px; color: var(--muted); }
+.s2b-appweb-precio b { font-family: var(--display); font-size: clamp(36px,4.6vw,50px); font-weight: 700;
+  line-height: 1.05; color: var(--lilac); }
+.s2b-appweb-hasta { font-size: 14px; color: var(--text); }
+.s2b-appweb-precio em { margin-top: 8px; font-style: normal; font-family: var(--mono); font-size: 10px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted); line-height: 1.5; }
+.s2b .s2b-appweb-precio .s2b-btn { margin-top: 16px; width: 100%; justify-content: center; }
+
+.s2b-appweb-grid { display: grid; gap: 22px; margin-top: 34px; padding-top: 30px;
+  border-top: 1px solid var(--line); }
+.s2b .s2b-appweb-grupo h4 { display: flex; align-items: center; gap: 10px; font-size: 15.5px; margin-bottom: 13px; }
+.s2b-appweb-ic { width: 30px; height: 30px; flex: none; border-radius: 9px; display: grid; place-items: center;
+  color: var(--violet); background: rgba(167,140,255,.14); border: 1px solid rgba(167,140,255,.26); }
+.s2b-appweb-grupo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.s2b-appweb-grupo li { display: flex; gap: 9px; align-items: flex-start;
+  font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+.s2b-appweb-grupo svg { flex: none; margin-top: 3px; color: var(--lilac); }
+.s2b-appweb-cierre { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line);
+  font-size: 15px; color: var(--text); line-height: 1.6; max-width: 76ch; }
+
+@media (min-width: 760px) {
+  .s2b-appweb { padding: 42px 38px 36px; }
+  .s2b-appweb-cab { grid-template-columns: 1.35fr .65fr; gap: 40px; }
+  .s2b-appweb-grid { grid-template-columns: repeat(2, 1fr); gap: 26px 40px; }
+}
+@media (min-width: 1060px) {
+  .s2b-appweb-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 /* ---- lo que se presupuesta ---- */
 .s2b-proy { margin-top: 74px; padding-top: 58px; border-top: 1px solid var(--line); }
+/* quedaron cinco tarjetas: la fila incompleta se centra en vez de colgar */
+.s2b-proy-grid { justify-content: center; }
 .s2b .s2b-proy-tt { font-size: clamp(24px,3.2vw,34px); max-width: 22ch; }
 .s2b .s2b-proy-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
   -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -2392,6 +2447,75 @@ const planes = (t) => [
   },
 ];
 
+/* ==================================================================
+   La aplicacion web: el bloque destacado de precios.
+
+   Vinieron veintiun puntos en una sola lista. Puestos en fila son un
+   muro que nadie lee: la unica forma de que veintiuno entren por los
+   ojos es agruparlos, y que cada grupo conteste una pregunta distinta
+   -como se ve, si me encuentran, quien entra, que controlo, con que se
+   conecta, que pasa despues-. El titulo del grupo hace el trabajo de
+   resumen y los puntos quedan de respaldo para el que quiera leerlos.
+
+   Van los veintiuno, ninguno se cayo en el camino.
+   ================================================================== */
+const APPWEB_DESDE = 950;
+const APPWEB_HASTA = 5000;
+
+const appWebGrupos = (t) => [
+  {
+    ic: Palette, tt: t("Cómo se ve y cómo anda", "How it looks and runs"),
+    items: [
+      t("Diseño moderno y personalizado, con la identidad de tu marca", "Modern, custom design carrying your brand identity"),
+      t("Alta velocidad: código, imágenes y recursos optimizados", "High speed: optimized code, images and assets"),
+      t("Funciona igual en celular, tablet y computadora", "Works the same on phone, tablet and desktop"),
+      t("Se instala como app desde el navegador, sin pasar por Play Store ni App Store", "Installs like an app from the browser, no Play Store or App Store"),
+    ],
+  },
+  {
+    ic: Search, tt: t("Que te encuentren en Google", "Getting found on Google"),
+    items: [
+      t("SEO avanzado: las secciones públicas quedan listas para que Google las rastree e indexe", "Advanced SEO: public sections ready for Google to crawl and index"),
+      t("SEO con inteligencia artificial: investigación de palabras clave e intención de búsqueda", "AI-powered SEO: keyword research and search intent analysis"),
+      t("Preparada para las búsquedas con IA, además de los resultados tradicionales", "Ready for AI search experiences, not just traditional results"),
+      t("Optimización técnica: metadescripciones, URLs, canónicas, sitemap, robots.txt y datos estructurados", "Technical optimization: meta descriptions, URLs, canonicals, sitemap, robots.txt and structured data"),
+      t("SEO local, apuntado a las ciudades y zonas donde están tus clientes", "Local SEO, aimed at the cities and areas where your clients are"),
+    ],
+  },
+  {
+    ic: KeyRound, tt: t("Quién entra y a qué", "Who gets in, and to what"),
+    items: [
+      t("Login seguro: cada usuario con su cuenta y su contraseña", "Secure login: each user with their own account and password"),
+      t("Roles y permisos para administradores, empleados, vendedores, proveedores y clientes", "Roles and permissions for admins, staff, sales, suppliers and clients"),
+      t("Seguridad y respaldo: protección de datos, control de accesos y registro de operaciones", "Security and backups: data protection, access control and an operations log"),
+    ],
+  },
+  {
+    ic: LayoutDashboard, tt: t("El negocio, adentro", "The business, inside"),
+    items: [
+      t("Base de datos centralizada: clientes, productos, ventas, pedidos, turnos y operaciones", "Central database: clients, products, sales, orders, appointments and operations"),
+      t("Panel administrativo: usuarios, contenidos, configuración y movimientos en un solo lugar", "Admin panel: users, content, settings and activity in one place"),
+      t("Reportes y estadísticas en tiempo real, con gráficos y paneles", "Real-time reports and stats, with charts and dashboards"),
+      t("Seguimiento de tareas, operaciones y resultados para decidir con datos", "Tracking of tasks, operations and results so you decide with data"),
+    ],
+  },
+  {
+    ic: Plug, tt: t("IA y conexiones", "AI and connections"),
+    items: [
+      t("Inteligencia artificial adentro: asistentes, atención automática, presupuestos, recomendaciones y automatización de tareas", "AI inside: assistants, automatic support, quotes, recommendations and task automation"),
+      t("Integraciones con WhatsApp, Mercado Pago, CRM, correo, redes sociales y mapas", "Integrations with WhatsApp, Mercado Pago, CRM, email, social media and maps"),
+    ],
+  },
+  {
+    ic: Sprout, tt: t("Qué pasa después", "What happens next"),
+    items: [
+      t("Actualizaciones automáticas: cada mejora le llega a todos al instante", "Automatic updates: every improvement reaches everyone instantly"),
+      t("Escalable: arranca con lo esencial y suma módulos, usuarios y sucursales cuando el negocio crece", "Scalable: start with the essentials and add modules, users and branches as the business grows"),
+      t("Código fuente versionado en GitHub, listo para mantener y hacer crecer", "Source code versioned on GitHub, ready to maintain and grow"),
+    ],
+  },
+];
+
 /* El software a medida no lleva precio cerrado a proposito.
 
    Los dos que si tienen piso son los que hicimos muchas veces y sabemos
@@ -2413,10 +2537,10 @@ const proyectos = (t) => [
     plazo: t("8 a 14 semanas", "8 to 14 weeks"),
     d: t("iOS y Android desde una sola base, con publicación en las tiendas y actualizaciones incluidas.", "iOS and Android from one codebase, with store releases and updates included."),
   },
-  {
-    ic: Globe, tt: t("App web", "Web app"), desde: null,
-    d: t("SaaS, paneles y portales para clientes o empleados. Corre en el navegador, sin instalar nada, y entra desde cualquier dispositivo.", "SaaS, dashboards and portals for clients or staff. Runs in the browser, nothing to install, reachable from any device."),
-  },
+  /* La app web salio de esta lista: tiene su propio bloque arriba, con
+     precio y con todo lo que incluye. Repetirla aca obligaba a sostener el
+     mismo producto contado en dos lugares, y tarde o temprano uno de los
+     dos queda viejo. */
   {
     ic: Code2, tt: t("Sistema a medida", "Custom system"), desde: null,
     d: t("Gestión, stock, facturación, lo que tu operación necesite. Reemplaza las planillas y las herramientas sueltas por un solo lugar.", "Operations, stock, invoicing, whatever your business needs. Replaces spreadsheets and scattered tools with a single place."),
@@ -4622,6 +4746,7 @@ export default function StudioB2B() {
   const ARMADO = useMemo(() => armado(t), [t]);
   const PLANES = useMemo(() => planes(t), [t]);
   const PROYECTOS = useMemo(() => proyectos(t), [t]);
+  const APPWEB_GRUPOS = useMemo(() => appWebGrupos(t), [t]);
   const DOLORES = useMemo(() => dolores(t), [t]);
   const DISPERSOS = useMemo(() => dispersos(t), [t]);
   const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
@@ -5469,6 +5594,55 @@ export default function StudioB2B() {
                 </button>
               </article>
             ))}
+          </div>
+
+          {/* ---- el bloque destacado: la aplicacion web ----
+              Va entre los planes y lo que se presupuesta porque es las dos
+              cosas: tiene precio como un plan, pero es un proyecto. Y es lo
+              que mas se vende, asi que se lleva el ancho entero. */}
+          <div className="s2b-appweb s2b-rv" id="appweb">
+            <div className="s2b-appweb-cab">
+              <div>
+                <div className="s2b-eyebrow">{t("Lo que más hacemos", "What we build most")}</div>
+                <h3 className="s2b-appweb-tt">
+                  {t("Aplicaciones web", "Smart web")} <b>{t("inteligentes", "applications")}</b>
+                </h3>
+                <p className="s2b-appweb-d">
+                  {t("Aplicaciones modernas y rápidas para administrar, automatizar y hacer crecer tu negocio desde una sola plataforma. Entran desde el celular, la tablet o la computadora, sin descargar nada de ninguna tienda.", "Modern, fast applications to run, automate and grow your business from a single platform. They open on a phone, a tablet or a desktop, with nothing to download from any store.")}
+                </p>
+              </div>
+              <div className="s2b-appweb-precio">
+                <span>{t("desde", "from")}</span>
+                <b>US$ {APPWEB_DESDE.toLocaleString("es-AR")}</b>
+                <span className="s2b-appweb-hasta">
+                  {t("hasta", "up to")} US$ {APPWEB_HASTA.toLocaleString("es-AR")}
+                </span>
+                <em>{t("según la estructura del proyecto", "depending on the project's scope")}</em>
+                <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
+                  {t("Pedir presupuesto", "Get a quote")} <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="s2b-appweb-grid">
+              {APPWEB_GRUPOS.map((g) => {
+                const I = g.ic;
+                return (
+                  <div className="s2b-appweb-grupo" key={g.tt}>
+                    <h4><span className="s2b-appweb-ic"><I size={17} /></span>{g.tt}</h4>
+                    <ul>
+                      {g.items.map((it) => (
+                        <li key={it}><Check size={14} aria-hidden="true" />{it}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="s2b-appweb-cierre">
+              {t("Una página web muestra información. Una aplicación web administra el negocio: conecta al equipo, atiende clientes, automatiza procesos y te muestra los resultados, todo desde el mismo lugar.", "A website shows information. A web application runs the business: it connects your team, serves clients, automates work and shows you the results, all from the same place.")}
+            </p>
           </div>
 
           {/* ---- lo que se presupuesta ---- */}
