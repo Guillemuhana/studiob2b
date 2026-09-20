@@ -3,7 +3,7 @@ import {
   ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Sparkles, Code2, Bot, PenTool,
   Workflow, Smartphone, Plus, Minus, Menu, X, MapPin, Check, Database, Users,
   MessageSquare, FileSignature, Search, MonitorPlay, FileText, Wallet, Rocket, CircleDollarSign,
-  Instagram, Linkedin, Github, Phone, Quote,
+  Instagram, Linkedin, Github, ChevronDown, Phone, Quote,
   Building2, Lightbulb, Boxes, LayoutDashboard, Plug, Layers, Repeat,
   ClipboardList, FileSpreadsheet, ShoppingCart, CalendarCheck, Store,
   GraduationCap, Truck, CreditCard, ShieldCheck, Headphones, TrendingUp,
@@ -258,6 +258,35 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) { .s2b-luz { animation:none; opacity:.28; transform:none; } }
 
 .s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
+
+/* ---------- la entrada principal del menu ----------
+   "Aplicaciones web" es el producto de la casa, asi que se distingue del
+   resto sin gritar: filete violeta a la izquierda y el texto encendido. */
+.s2b-menu button.top.is-destacada { color:#DCD2FF; font-weight:600; }
+.s2b-menu button.top.is-destacada:hover { color:#fff; background:rgba(167,140,255,.16); }
+.s2b-drawer button.dl.is-destacada { color:#DCD2FF; font-weight:600;
+  padding-left:14px; border-left:2px solid var(--violet); }
+
+/* ---------- el desplegable ----------
+   Nace oscuro: el sitio es oscuro y una caja clara colgando del header se
+   ve pegada encima. */
+.s2b-pop { position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%);
+  width:min(620px, 84vw); z-index:90; padding:14px;
+  border-radius:20px; border:1px solid rgba(167,140,255,.2);
+  background:rgba(14,10,30,.96); backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:0 40px 90px -34px rgba(0,0,0,.9); }
+.s2b-pop-cab { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  padding:2px 8px 12px; margin-bottom:8px; border-bottom:1px solid rgba(167,140,255,.14); }
+.s2b-pop-cab b { font-family:var(--display); font-size:14px; color:#fff; }
+.s2b-pop-cab span { font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--lilac); }
+.s2b-pop-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.s2b .s2b-pop-grid button { display:grid; grid-template-columns:32px 1fr; gap:11px; align-items:center;
+  width:100%; text-align:left; padding:10px 9px; border-radius:13px; transition:background .2s; }
+.s2b .s2b-pop-grid button:hover { background:rgba(167,140,255,.12); }
+.s2b-pop-grid .ic { width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
+  color:var(--lilac); background:rgba(167,140,255,.14); border:1px solid rgba(167,140,255,.24); }
+.s2b-pop-grid b { display:block; font-family:var(--display); font-weight:600; font-size:13.5px; color:#fff; line-height:1.25; }
+.s2b-pop-grid em { font-family:var(--mono); font-style:normal; font-size:10px; letter-spacing:.08em; color:var(--muted); }
 
 
 .s2b-burger { display:none; padding:8px; color:#fff; }
@@ -849,16 +878,21 @@ const CSS = `
    tarjetas iguales, lo que se distingue es lo que rompe la grilla.
    Los veintiun puntos van en seis grupos y cada grupo tiene titulo, que
    es lo unico que hace que veintiuno se puedan leer. */
-.s2b-appweb { position: relative; margin-top: 66px; padding: 36px 30px 32px; border-radius: 30px;
-  border: 1px solid rgba(167,140,255,.34); overflow: hidden;
+/* En su propia seccion no lleva caja: es la seccion. La caja queda solo
+   para la version corta de precios, donde si tiene que destacarse de las
+   tarjetas de al lado. */
+.s2b-appweb { position: relative; }
+.s2b-appweb--corto { padding: 30px 26px; border-radius: 30px; overflow: hidden;
+  border: 1px solid rgba(167,140,255,.34);
   background:
     radial-gradient(900px circle at 82% -10%, rgba(109,74,255,.2), transparent 62%),
     var(--surface);
   box-shadow: 0 40px 100px -60px rgba(109,74,255,.9); }
-.s2b-appweb::before { content:''; position:absolute; inset: 0 0 auto; height: 3px;
+.s2b-appweb--corto::before { content:''; position:absolute; inset: 0 0 auto; height: 3px;
   background: linear-gradient(90deg, var(--violet), var(--lilac), var(--violet)); }
 .s2b-appweb-cab { display: grid; gap: 26px; align-items: start; }
-.s2b .s2b-appweb-tt { font-size: clamp(26px,3.6vw,40px); max-width: 16ch; }
+.s2b .s2b-appweb-tt { font-size: clamp(30px,4.6vw,50px); max-width: 15ch; }
+.s2b .s2b-appweb--corto .s2b-appweb-tt { font-size: clamp(24px,3.2vw,34px); }
 .s2b .s2b-appweb-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
   -webkit-background-clip: text; background-clip: text; color: transparent; }
 .s2b-appweb-d { margin-top: 14px; font-size: 15px; color: var(--muted); line-height: 1.62; max-width: 58ch;
@@ -885,11 +919,29 @@ const CSS = `
 .s2b-appweb-grupo li { display: flex; gap: 9px; align-items: flex-start;
   font-size: 13.5px; color: var(--muted); line-height: 1.5; }
 .s2b-appweb-grupo svg { flex: none; margin-top: 3px; color: var(--lilac); }
-.s2b-appweb-cierre { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line);
-  font-size: 15px; color: var(--text); line-height: 1.6; max-width: 76ch; }
+/* ---- pagina web contra aplicacion web ----
+   Era una nota al pie y es el argumento mas fuerte del texto. En dos
+   columnas se entiende sin leer: a la izquierda lo que casi todos tienen,
+   apagado; a la derecha lo que esto es, encendido. */
+.s2b-appweb-vs { display: grid; gap: 14px; margin-top: 34px; padding-top: 30px;
+  border-top: 1px solid var(--line); }
+.s2b-appweb-vs-col { padding: 22px; border-radius: 18px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.26); }
+.s2b-appweb-vs-col.is-nuestra { border-color: rgba(167,140,255,.42);
+  background: linear-gradient(150deg, rgba(109,74,255,.16), rgba(0,0,0,.3)); }
+.s2b-appweb-vs-rot { display: block; margin-bottom: 8px; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.s2b-appweb-vs-col.is-nuestra .s2b-appweb-vs-rot { color: var(--lilac); }
+.s2b-appweb-vs-col p { font-size: 15px; line-height: 1.6; color: var(--muted); }
+.s2b-appweb-vs-col.is-nuestra p { color: var(--text); }
+
+/* la version corta, adentro de precios: solo cabecera y precio */
+.s2b-appweb--corto { margin-top: 44px; }
+.s2b .s2b-appweb--corto .s2b-link { margin-top: 16px; }
 
 @media (min-width: 760px) {
-  .s2b-appweb { padding: 42px 38px 36px; }
+  .s2b-appweb--corto { padding: 36px 34px; }
+  .s2b-appweb-vs { grid-template-columns: 1fr 1fr; gap: 18px; }
   .s2b-appweb-cab { grid-template-columns: 1.35fr .65fr; gap: 40px; }
   .s2b-appweb-grid { grid-template-columns: repeat(2, 1fr); gap: 26px 40px; }
 }
@@ -3056,10 +3108,15 @@ const presupuestos = (t) => [
 ];
 
 const navLinks = (t) => [
-  /* Precios va primero y no en el medio de la lista: es lo que mas se busca
-     y lo que hace que alguien se quede o se vaya. Perdido entre otros cuatro
-     no se encuentra, que es lo mismo que no estar. */
-  { id: "precios", label: t("Precios", "Pricing") },
+  /* Las dos primeras abren un desplegable -lo declara `pop`- porque son las
+     dos que tienen algo adentro que vale la pena mostrar sin entrar. El
+     resto son links pelados.
+
+     Precios va adelante y no en el medio: es lo que mas se busca y lo que
+     hace que alguien se quede o se vaya. Perdido entre otros cuatro no se
+     encuentra, que es lo mismo que no estar. */
+  { id: "aplicaciones", label: t("Aplicaciones web a medida", "Custom web apps"), pop: "appweb", destacada: true },
+  { id: "precios", label: t("Precios", "Pricing"), pop: "precios" },
   { id: "servicios", label: t("Servicios", "Services") },
   { id: "proceso", label: t("Proceso", "Process") },
   { id: "clientes", label: t("Clientes", "Clients") },
@@ -4494,6 +4551,101 @@ function Visitas({ t }) {
   );
 }
 
+/* ---------- la aplicacion web ----------
+   El mismo componente en dos modos, y a proposito:
+
+   - completo: la seccion propia, que es el producto principal de la
+     agencia y por eso se lleva una seccion entera.
+   - compacto: adentro de precios, donde lo unico que se busca es cuanto
+     sale; el resto queda a un clic.
+
+   Si fueran dos bloques distintos, cambiar un precio o un punto obligaria
+   a acordarse de tocar los dos, y tarde o temprano uno queda viejo. */
+function AppWeb({ t, grupos, goTo, compacto = false }) {
+  const precio = (
+    <div className="s2b-appweb-precio">
+      <span>{t("desde", "from")}</span>
+      <b>US$ {APPWEB_DESDE.toLocaleString("es-AR")}</b>
+      <span className="s2b-appweb-hasta">
+        {t("hasta", "up to")} US$ {APPWEB_HASTA.toLocaleString("es-AR")}
+      </span>
+      <em>{t("según la estructura del proyecto", "depending on the project's scope")}</em>
+      <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
+        {t("Pedir presupuesto", "Get a quote")} <ArrowRight size={16} />
+      </button>
+    </div>
+  );
+
+  if (compacto) {
+    return (
+      <div className="s2b-appweb s2b-appweb--corto s2b-rv">
+        <div className="s2b-appweb-cab">
+          <div>
+            <div className="s2b-eyebrow">{t("Lo que más hacemos", "What we build most")}</div>
+            <h3 className="s2b-appweb-tt">
+              {t("Aplicaciones web", "Smart web")} <b>{t("inteligentes", "applications")}</b>
+            </h3>
+            <p className="s2b-appweb-d">
+              {t("Administrar, automatizar y hacer crecer tu negocio desde una sola plataforma, que entra desde el celular, la tablet o la computadora.", "Run, automate and grow your business from a single platform, reachable from a phone, a tablet or a desktop.")}
+            </p>
+            <button className="s2b-link" onClick={() => goTo("aplicaciones")}>
+              {t("Ver todo lo que incluye", "See everything it includes")} <ArrowRight size={15} />
+            </button>
+          </div>
+          {precio}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="s2b-appweb">
+      <div className="s2b-appweb-cab s2b-rv">
+        <div>
+          <div className="s2b-eyebrow">{t("Lo que más hacemos", "What we build most")}</div>
+          <h3 className="s2b-appweb-tt">
+            {t("Aplicaciones web", "Smart web")} <b>{t("inteligentes", "applications")}</b>
+          </h3>
+          <p className="s2b-appweb-d">
+            {t("Aplicaciones modernas y rápidas para administrar, automatizar y hacer crecer tu negocio desde una sola plataforma. Entran desde el celular, la tablet o la computadora, sin descargar nada de ninguna tienda.", "Modern, fast applications to run, automate and grow your business from a single platform. They open on a phone, a tablet or a desktop, with nothing to download from any store.")}
+          </p>
+        </div>
+        {precio}
+      </div>
+
+      {/* La comparacion es el argumento mas fuerte del texto y estaba de
+          nota al pie. Puesta en dos columnas se entiende sin leer: a la
+          izquierda lo que casi todos tienen, a la derecha lo que esto es. */}
+      <div className="s2b-appweb-vs s2b-rv">
+        <div className="s2b-appweb-vs-col">
+          <span className="s2b-appweb-vs-rot">{t("Una página web", "A website")}</span>
+          <p>{t("Muestra información. La persona la mira, y después te escribe por otro lado o no te escribe.", "Shows information. Someone looks at it, and then writes to you somewhere else, or doesn't.")}</p>
+        </div>
+        <div className="s2b-appweb-vs-col is-nuestra">
+          <span className="s2b-appweb-vs-rot">{t("Una aplicación web", "A web application")}</span>
+          <p>{t("Administra el negocio: conecta al equipo, atiende clientes, automatiza procesos y te muestra los resultados, todo desde el mismo lugar.", "Runs the business: it connects your team, serves clients, automates work and shows you the results, all from the same place.")}</p>
+        </div>
+      </div>
+
+      <div className="s2b-appweb-grid">
+        {grupos.map((g, i) => {
+          const I = g.ic;
+          return (
+            <div className="s2b-appweb-grupo s2b-rv" key={g.tt} style={{ transitionDelay: (i % 3) * 70 + "ms" }}>
+              <h4><span className="s2b-appweb-ic"><I size={17} /></span>{g.tt}</h4>
+              <ul>
+                {g.items.map((it) => (
+                  <li key={it}><Check size={14} aria-hidden="true" />{it}</li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function WhatsappGlyph() {
   return (
     <svg className="s2b-wa-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -4728,6 +4880,8 @@ export default function StudioB2B() {
   /* el precio se muestra siempre por mes; anual solo cambia cuantas cuotas
      se pagan, que es como se lee un descuento sin hacer cuentas */
   const [anual, setAnual] = useState(false);
+  /* que desplegable del menu esta abierto, o null */
+  const [pop, setPop] = useState(null);
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
   const [idioma, setIdioma] = useState(idiomaGuardado);
@@ -4747,6 +4901,31 @@ export default function StudioB2B() {
   const PLANES = useMemo(() => planes(t), [t]);
   const PROYECTOS = useMemo(() => proyectos(t), [t]);
   const APPWEB_GRUPOS = useMemo(() => appWebGrupos(t), [t]);
+  /* Lo que cuelga de cada entrada del menu. Los numeros salen de los mismos
+     datos que publica la pagina -PLANES y las constantes de la app web- y no
+     escritos aca: si maniana cambia un precio, el menu cambia solo. */
+  const POPS = useMemo(() => ({
+    appweb: {
+      tt: t("Todo lo que incluye", "Everything it includes"),
+      pie: t("desde", "from") + " US$ " + APPWEB_DESDE.toLocaleString("es-AR"),
+      items: APPWEB_GRUPOS.map((g) => ({
+        ic: g.ic, tt: g.tt, to: "aplicaciones",
+        d: g.items.length + " " + t("puntos", "points"),
+      })),
+    },
+    precios: {
+      tt: t("Qué estás buscando", "What you're after"),
+      pie: "",
+      items: [
+        { ic: Repeat, tt: t("Planes mensuales", "Monthly plans"), to: "precios",
+          d: t("desde", "from") + " US$ " + PLANES[0].mes + t(" por mes", " a month") },
+        { ic: Globe, tt: t("Aplicaciones web a medida", "Custom web apps"), to: "aplicaciones",
+          d: "US$ " + APPWEB_DESDE.toLocaleString("es-AR") + " – " + APPWEB_HASTA.toLocaleString("es-AR") },
+        { ic: Code2, tt: t("Proyectos a medida", "Custom projects"), to: "proyectos",
+          d: t("MVP, apps y sistemas", "MVP, apps and systems") },
+      ],
+    },
+  }), [t, APPWEB_GRUPOS, PLANES]);
   const DOLORES = useMemo(() => dolores(t), [t]);
   const DISPERSOS = useMemo(() => dispersos(t), [t]);
   const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
@@ -4947,7 +5126,7 @@ export default function StudioB2B() {
   }, [esDiaProg]);
 
   const goTo = useCallback((id) => {
-    setDrawer(false);
+    setDrawer(false); setPop(null);
     if (RUTAS[id]) { irA(id); return; }
     const ir = (suave) => {
       const el = document.getElementById(id);
@@ -5114,19 +5293,50 @@ export default function StudioB2B() {
                 casi todos al mismo lugar que "Servicios". Fuera: el menu se
                 lee de un saque y no hay nada que abrir con el mouse. La
                 lista SOLUCIONES sigue viva, que es la que arma el pie. */}
-            <nav className="s2b-menu">
-              {NAV_LINKS.map((n) => (
-                <div key={n.id}>
-                  <button
-                    className={"top" + (n.id === "jugar" ? " is-jugar" : "")}
-                    onClick={() => goTo(n.id)}
-                  >
-                    {n.label}
-                    {/* la luz que cruza por detras cada tantos segundos */}
-                    {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
-                  </button>
-                </div>
-              ))}
+            {/* Un solo renderizador para todo el menu: la entrada que trae
+                `pop` abre su desplegable y las demas son un boton y nada
+                mas. Escrito dos veces, agregar un tercero seria copiar y
+                pegar por tercera vez. */}
+            <nav className="s2b-menu" onMouseLeave={() => setPop(null)}>
+              {NAV_LINKS.map((n) => {
+                const menu = n.pop && POPS[n.pop];
+                return (
+                  <div key={n.id} onMouseEnter={() => setPop(n.pop || null)}>
+                    <button
+                      className={"top" + (n.destacada ? " is-destacada" : "") + (n.id === "jugar" ? " is-jugar" : "")}
+                      aria-expanded={menu ? pop === n.pop : undefined}
+                      onClick={() => goTo(n.id)}
+                    >
+                      {n.label}
+                      {menu && <ChevronDown size={15} />}
+                      {/* la luz que cruza por detras cada tantos segundos */}
+                      {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
+                    </button>
+                    {menu && pop === n.pop && (
+                      <div className="s2b-pop">
+                        <div className="s2b-pop-cab">
+                          <b>{menu.tt}</b>
+                          {menu.pie && <span>{menu.pie}</span>}
+                        </div>
+                        <div className="s2b-pop-grid">
+                          {menu.items.map((it) => {
+                            const I = it.ic;
+                            return (
+                              <button key={it.tt} onClick={() => goTo(it.to)}>
+                                <span className="ic"><I size={16} /></span>
+                                <span>
+                                  <b>{it.tt}</b>
+                                  <em>{it.d}</em>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginLeft: 8 }} onClick={() => goTo("contacto")}>
                 {t("Contactanos", "Contact us")} <ArrowUpRight size={16} />
               </button>
@@ -5148,6 +5358,7 @@ export default function StudioB2B() {
             {/* Primero el menu de verdad y despues los atajos de Soluciones.
                 Al reves, Precios quedaba cuarto en el celular, abajo de tres
                 atajos que llevan casi todos al mismo lado. */}
+            {/* lo principal, primero y separado */}
             {NAV_LINKS.map((n) => (
               <button key={n.id} className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
                 {n.label}
@@ -5529,6 +5740,17 @@ export default function StudioB2B() {
         </div>
       </section>
 
+      {/* ============ APLICACIONES WEB ============
+          Seccion propia y no un bloque adentro de precios: es el producto
+          principal de la agencia, y lo que es principal no se lee al final
+          de una pagina de precios. La version corta sigue estando alla, con
+          el precio y un link para volver aca. */}
+      <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="aplicaciones">
+        <div className="s2b-wrap">
+          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} />
+        </div>
+      </section>
+
       {/* ============ PRECIOS ============
           Dos bloques porque son dos negocios distintos. Arriba lo que se
           arma sobre una base que ya existe y se puede cotizar de antemano;
@@ -5539,7 +5761,11 @@ export default function StudioB2B() {
         <div className="s2b-wrap">
           <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
             <div className="s2b-eyebrow">{t("Precios", "Pricing")}</div>
-            <h2 className="s2b-h2" style={{ maxWidth: "17ch" }}>
+            {/* Sin el tope de 17ch entra en un renglon en escritorio. El
+                balance es para el celular, donde la frase no entra de
+                ninguna manera: parte los renglones parejos en vez de dejar
+                "sueltos" colgando solo abajo. */}
+            <h2 className="s2b-h2" style={{ maxWidth: "none", textWrap: "balance" }}>
               {t("Sistemas, no", "Systems, not")} <b>{t("proyectos sueltos", "one-off projects")}</b>
             </h2>
             <p className="s2b-lead" style={{ textAlign: "center" }}>
@@ -5596,57 +5822,15 @@ export default function StudioB2B() {
             ))}
           </div>
 
-          {/* ---- el bloque destacado: la aplicacion web ----
-              Va entre los planes y lo que se presupuesta porque es las dos
-              cosas: tiene precio como un plan, pero es un proyecto. Y es lo
-              que mas se vende, asi que se lleva el ancho entero. */}
-          <div className="s2b-appweb s2b-rv" id="appweb">
-            <div className="s2b-appweb-cab">
-              <div>
-                <div className="s2b-eyebrow">{t("Lo que más hacemos", "What we build most")}</div>
-                <h3 className="s2b-appweb-tt">
-                  {t("Aplicaciones web", "Smart web")} <b>{t("inteligentes", "applications")}</b>
-                </h3>
-                <p className="s2b-appweb-d">
-                  {t("Aplicaciones modernas y rápidas para administrar, automatizar y hacer crecer tu negocio desde una sola plataforma. Entran desde el celular, la tablet o la computadora, sin descargar nada de ninguna tienda.", "Modern, fast applications to run, automate and grow your business from a single platform. They open on a phone, a tablet or a desktop, with nothing to download from any store.")}
-                </p>
-              </div>
-              <div className="s2b-appweb-precio">
-                <span>{t("desde", "from")}</span>
-                <b>US$ {APPWEB_DESDE.toLocaleString("es-AR")}</b>
-                <span className="s2b-appweb-hasta">
-                  {t("hasta", "up to")} US$ {APPWEB_HASTA.toLocaleString("es-AR")}
-                </span>
-                <em>{t("según la estructura del proyecto", "depending on the project's scope")}</em>
-                <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
-                  {t("Pedir presupuesto", "Get a quote")} <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div className="s2b-appweb-grid">
-              {APPWEB_GRUPOS.map((g) => {
-                const I = g.ic;
-                return (
-                  <div className="s2b-appweb-grupo" key={g.tt}>
-                    <h4><span className="s2b-appweb-ic"><I size={17} /></span>{g.tt}</h4>
-                    <ul>
-                      {g.items.map((it) => (
-                        <li key={it}><Check size={14} aria-hidden="true" />{it}</li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
-
-            <p className="s2b-appweb-cierre">
-              {t("Una página web muestra información. Una aplicación web administra el negocio: conecta al equipo, atiende clientes, automatiza procesos y te muestra los resultados, todo desde el mismo lugar.", "A website shows information. A web application runs the business: it connects your team, serves clients, automates work and shows you the results, all from the same place.")}
-            </p>
-          </div>
+          {/* ---- la aplicacion web, en corto ----
+              El detalle entero esta en su propia seccion. Aca va lo que se
+              busca en una pagina de precios -cuanto sale- y un link para ir
+              a leer el resto. Es el mismo componente: una sola fuente para
+              los dos lugares, asi no hay dos versiones que se desincronicen. */}
+          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} compacto />
 
           {/* ---- lo que se presupuesta ---- */}
-          <div className="s2b-proy">
+          <div className="s2b-proy" id="proyectos">
             <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
               <h3 className="s2b-proy-tt">
                 {t("Y lo que es a medida,", "And what's custom-built")} <b>{t("se presupuesta", "gets quoted")}</b>
