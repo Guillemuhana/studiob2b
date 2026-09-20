@@ -8,7 +8,7 @@ import {
   ClipboardList, FileSpreadsheet, ShoppingCart, CalendarCheck, Store,
   GraduationCap, Truck, CreditCard, ShieldCheck, Headphones, TrendingUp,
   Target, Palette, FlaskConical, Send, Sprout, Blocks,
-  KeyRound, Network, Globe, Handshake, Eye, Clock,
+  KeyRound, Network, Globe, Handshake, Eye, Clock, Share2,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
 /* La seccion del Dia del Programador se lleva el resaltador de sintaxis, el
@@ -258,6 +258,16 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) { .s2b-luz { animation:none; opacity:.28; transform:none; } }
 
 .s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
+
+/* los hijos de un desplegable, en el cajon del celular: sangrados y con
+   un filete al costado, para que se lea que cuelgan del de arriba */
+.s2b-drawer button.dl--hijo { display:flex; align-items:center; gap:12px;
+  padding-left:16px; margin-left:10px; border-bottom:none;
+  border-left:2px solid rgba(167,140,255,.3); font-size:15px; font-weight:500; }
+.s2b-drawer button.dl--hijo svg { flex:none; color:var(--lilac); }
+.s2b-drawer button.dl--hijo span { display:grid; text-align:left; line-height:1.3; }
+.s2b-drawer button.dl--hijo em { font-family:var(--mono); font-style:normal; font-size:10.5px;
+  letter-spacing:.06em; color:var(--muted); margin-top:3px; }
 
 /* ---------- el desplegable ----------
    Nace oscuro: el sitio es oscuro y una caja clara colgando del header se
@@ -898,6 +908,14 @@ const CSS = `
 .s2b-appweb-precio b { font-family: var(--display); font-size: clamp(36px,4.6vw,50px); font-weight: 700;
   line-height: 1.05; color: var(--lilac); }
 .s2b-appweb-hasta { font-size: 14px; color: var(--text); }
+/* copiar el link de la seccion: discreto, para el que lo vaya a compartir */
+.s2b .s2b-appweb-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px;
+  padding: 9px 15px; border-radius: 999px; font-size: 13px;
+  color: var(--text); border: 1px solid var(--line); background: rgba(0,0,0,.26);
+  transition: color .2s, border-color .2s, background .2s; }
+.s2b .s2b-appweb-link:hover { color: #fff; border-color: rgba(167,140,255,.45); background: rgba(167,140,255,.12); }
+.s2b-appweb-link svg { flex: none; color: var(--lilac); }
+
 /* el plazo, pegado al precio y en verde: es la otra mitad de la pregunta */
 .s2b-appweb-plazo { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
   padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
@@ -4642,6 +4660,7 @@ function Visitas({ t }) {
    Si fueran dos bloques distintos, cambiar un precio o un punto obligaria
    a acordarse de tocar los dos, y tarde o temprano uno queda viejo. */
 function AppWeb({ t, grupos, goTo, compacto = false }) {
+  const [copiado, setCopiado] = useState(false);
   const precio = (
     <div className="s2b-appweb-precio">
       <span>{t("desde", "from")}</span>
@@ -4660,6 +4679,22 @@ function AppWeb({ t, grupos, goTo, compacto = false }) {
         {t("Pedir presupuesto", "Get a quote")} <ArrowRight size={16} />
       </button>
     </div>
+  );
+
+  /* Copiar el link de esta seccion. La direccion se arma con el origen de
+     donde esta corriendo y no escrita a mano, asi el boton tambien sirve en
+     una preview de Vercel o en local sin mandar a nadie a produccion. */
+  const copiar = () => {
+    const url = window.location.origin + ANCLAS.aplicaciones;
+    const listo = () => { setCopiado(true); setTimeout(() => setCopiado(false), 2200); };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(listo).catch(listo);
+    else listo();
+  };
+  const botonLink = (
+    <button className="s2b-appweb-link" onClick={copiar}>
+      {copiado ? <Check size={14} /> : <Share2 size={14} />}
+      {copiado ? t("Link copiado", "Link copied") : t("Copiar el link de esta sección", "Copy this section's link")}
+    </button>
   );
 
   if (compacto) {
@@ -4695,6 +4730,7 @@ function AppWeb({ t, grupos, goTo, compacto = false }) {
           <p className="s2b-appweb-d">
             {t("Aplicaciones modernas y rápidas para administrar, automatizar y hacer crecer tu negocio desde una sola plataforma. Entran desde el celular, la tablet o la computadora, sin descargar nada de ninguna tienda.", "Modern, fast applications to run, automate and grow your business from a single platform. They open on a phone, a tablet or a desktop, with nothing to download from any store.")}
           </p>
+          {botonLink}
         </div>
         {precio}
       </div>
@@ -4909,15 +4945,42 @@ function UiFlujo({ pasos = [] }) {
 }
 
 const RUTAS = { proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
+
+/* Anclas del home que ademas tienen direccion propia, para poder pasar el
+   link por WhatsApp y que caiga en la seccion.
+
+   No son paginas aparte a proposito: el contenido existe una sola vez, en
+   el home, y esta ruta solo dice a que altura frenar. Duplicarlo en una
+   pagina propia daria dos URLs con el mismo texto -que Google penaliza- y
+   dos lugares que hay que acordarse de actualizar. */
+const ANCLAS = { aplicaciones: "/aplicaciones-web" };
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
    cliente decide, y de paso el home queda mas liviano. */
 const DUENO = { contacto: "proceso" };
+const rutaActual = () => (typeof location === "undefined" ? "/" : location.pathname).replace(/\/+$/, "") || "/";
 const vistaDeUrl = () => {
-  const p = (typeof location === "undefined" ? "/" : location.pathname).replace(/\/+$/, "") || "/";
+  const p = rutaActual();
   const v = Object.keys(RUTAS).find((k) => RUTAS[k] === p);
   return v || "home";
 };
+/* si la URL es la de un ancla, devuelve el id al que hay que bajar */
+const anclaDeUrl = () => {
+  const p = rutaActual();
+  return Object.keys(ANCLAS).find((k) => ANCLAS[k] === p) || null;
+};
+
+function bajarAlAncla() {
+  const id = anclaDeUrl();
+  if (!id) return;
+  let intentos = 0;
+  const probar = () => {
+    const el = document.getElementById(id);
+    if (el) { el.scrollIntoView({ behavior: "auto", block: "start" }); return; }
+    if (intentos++ < 40) setTimeout(probar, 120);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(probar));
+}
 
 /* Ancho de celular. Se usa para no montar las resenas en pantallas chicas:
    apiladas se comen media pantalla de scroll y el logo del cliente ya aparece
@@ -5030,10 +5093,17 @@ export default function StudioB2B() {
   const [vista, setVista] = useState(vistaDeUrl);
 
   useEffect(() => {
-    const sync = () => setVista(vistaDeUrl());
+    const sync = () => { setVista(vistaDeUrl()); bajarAlAncla(); };
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
+
+  /* Entrar por /aplicaciones-web tiene que dejar a la persona parada en la
+     seccion, no arriba de todo. Se espera a que el navegador termine de
+     pintar -las secciones de arriba recien ahi tienen su alto final- y si
+     el ancla todavia no existe se reintenta un rato: el bloque puede estar
+     en un chunk que aun no llego. */
+  useEffect(() => { bajarAlAncla(); }, []);
 
   const irA = useCallback((v) => {
     setDrawer(false);
@@ -5207,6 +5277,10 @@ export default function StudioB2B() {
   const goTo = useCallback((id) => {
     setDrawer(false); setPop(null);
     if (RUTAS[id]) { irA(id); return; }
+    /* las anclas con direccion propia la dejan en la barra, asi la persona
+       puede copiar el link de donde esta parada */
+    if (ANCLAS[id] && location.pathname !== ANCLAS[id]) history.pushState({}, "", ANCLAS[id]);
+    else if (!ANCLAS[id] && vista === "home" && location.pathname !== "/") history.pushState({}, "", "/");
     const ir = (suave) => {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
@@ -5438,12 +5512,31 @@ export default function StudioB2B() {
                 Al reves, Precios quedaba cuarto en el celular, abajo de tres
                 atajos que llevan casi todos al mismo lado. */}
             {/* lo principal, primero y separado */}
-            {NAV_LINKS.map((n) => (
-              <button key={n.id} className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
-                {n.label}
-                {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
-              </button>
-            ))}
+            {/* En el celular no hay hover, asi que lo que en escritorio
+                cuelga de un desplegable va aca desplegado y sangrado. Sin
+                esto, lo unico que estaba adentro de "Precios" -entre otras
+                cosas, las aplicaciones web- no se podia alcanzar desde el
+                menu del celular. */}
+            {NAV_LINKS.map((n) => {
+              const menu = n.pop && POPS[n.pop];
+              return (
+                <React.Fragment key={n.id}>
+                  <button className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
+                    {n.label}
+                    {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
+                  </button>
+                  {menu && menu.items.map((it) => {
+                    const I = it.ic;
+                    return (
+                      <button key={it.tt} className="dl dl--hijo" onClick={() => goTo(it.to)}>
+                        <I size={15} aria-hidden="true" />
+                        <span>{it.tt}<em>{it.d}</em></span>
+                      </button>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
             {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
             <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 26, width: "100%", justifyContent: "center" }} onClick={() => goTo("contacto")}>
               Contactanos <ArrowUpRight size={16} />
