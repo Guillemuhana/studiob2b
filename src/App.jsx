@@ -259,16 +259,6 @@ const CSS = `
 
 .s2b-drawer button.dl.is-jugar { border-radius:14px; padding-left:16px; padding-right:16px; margin-top:6px; border-bottom:none; }
 
-/* los hijos de un desplegable, en el cajon del celular: sangrados y con
-   un filete al costado, para que se lea que cuelgan del de arriba */
-.s2b-drawer button.dl--hijo { display:flex; align-items:center; gap:12px;
-  padding-left:16px; margin-left:10px; border-bottom:none;
-  border-left:2px solid rgba(167,140,255,.3); font-size:15px; font-weight:500; }
-.s2b-drawer button.dl--hijo svg { flex:none; color:var(--lilac); }
-.s2b-drawer button.dl--hijo span { display:grid; text-align:left; line-height:1.3; }
-.s2b-drawer button.dl--hijo em { font-family:var(--mono); font-style:normal; font-size:10.5px;
-  letter-spacing:.06em; color:var(--muted); margin-top:3px; }
-
 /* ---------- el desplegable ----------
    Nace oscuro: el sitio es oscuro y una caja clara colgando del header se
    ve pegada encima. */
@@ -312,9 +302,69 @@ const CSS = `
   .s2b-lang button { font-size:10px; padding:7px 9px; }
 }
 .s2b-nav.is-stuck .s2b-burger { color: var(--title); }
-.s2b-drawer { position:fixed; inset:0; z-index:95; background:#0B0718; color:#fff; padding:18px 24px 40px; overflow-y:auto; }
-.s2b-drawer-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; }
-.s2b-drawer a, .s2b-drawer button.dl { display:block; width:100%; text-align:left; font-family:var(--display); font-size:26px; color:#fff; padding:14px 0; border-bottom:1px solid rgba(167,140,255,.18); }
+/* ---------- el cajon del celular ----------
+   Era una lista de renglones de 26 px separados por lineas: ocupaba toda
+   la pantalla para cinco destinos y no se veia cual era cual. Ahora cada
+   entrada es una pastilla con su flecha, los hijos van sangrados adentro
+   del mismo bloque, los atajos pasan a chips -son etiquetas, no destinos
+   del mismo peso- y abajo queda el pie con el contacto a mano. */
+.s2b-drawer { position:fixed; inset:0; z-index:95; overflow-y:auto;
+  color:#fff; padding:14px 18px 26px;
+  background:
+    radial-gradient(760px circle at 82% -8%, rgba(109,74,255,.26), transparent 62%),
+    #0A0912; }
+.s2b-drawer-top { display:flex; justify-content:space-between; align-items:center;
+  margin:0 -2px 16px; padding-bottom:13px; border-bottom:1px solid rgba(167,140,255,.14); }
+.s2b-drawer-top .s2b-brand { --mark:44px; }
+.s2b-drawer-top .s2b-brand-txt { font-size:17px; }
+.s2b .s2b-drawer-top > button { width:42px; height:42px; border-radius:13px; display:grid; place-items:center;
+  color:#fff; border:1px solid rgba(167,140,255,.22); background:rgba(255,255,255,.05); }
+
+.s2b-drawer-nav { display:grid; gap:3px; }
+.s2b-drawer a, .s2b .s2b-drawer button.dl { position:relative; display:flex; align-items:center;
+  justify-content:space-between; gap:12px; width:100%; text-align:left;
+  font-family:var(--display); font-size:18px; font-weight:600; color:#fff;
+  padding:12px 14px; border-radius:14px; border-bottom:none;
+  background:rgba(255,255,255,.04); border:1px solid rgba(167,140,255,.12);
+  transition:background .2s, border-color .2s; }
+.s2b .s2b-drawer button.dl:active { background:rgba(167,140,255,.16); border-color:rgba(167,140,255,.34); }
+.s2b-drawer button.dl > svg { flex:none; color:var(--lilac); opacity:.7; }
+
+/* los hijos de un desplegable: sangrados, sin caja propia y mas chicos,
+   para que se lea que cuelgan del de arriba y no compitan con el */
+.s2b .s2b-drawer button.dl--hijo { justify-content:flex-start;
+  margin:0 0 0 13px; padding:9px 13px; border-radius:11px;
+  border:none; border-left:2px solid rgba(167,140,255,.34); background:none;
+  font-size:15.5px; font-weight:500; }
+.s2b-drawer button.dl--hijo > svg { flex:none; color:var(--lilac); opacity:1; }
+.s2b-drawer button.dl--hijo span { display:grid; line-height:1.3; }
+.s2b-drawer button.dl--hijo em { font-family:var(--mono); font-style:normal; font-size:10.5px;
+  letter-spacing:.06em; color:var(--muted); margin-top:3px; }
+
+.s2b-drawer-rot { margin:20px 0 9px; font-family:var(--mono); font-size:10px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--muted); }
+.s2b-drawer-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.s2b .s2b-drawer-chips button { padding:9px 14px; border-radius:999px; font-size:13.5px; color:#D8D2EC;
+  border:1px solid rgba(167,140,255,.2); background:rgba(255,255,255,.04); }
+.s2b .s2b-drawer-chips button:active { color:#fff; border-color:rgba(167,140,255,.45); background:rgba(167,140,255,.14); }
+
+.s2b-drawer-pie { display:grid; gap:11px; justify-items:start; margin-top:22px; padding-top:18px;
+  border-top:1px solid rgba(167,140,255,.14); }
+.s2b .s2b-drawer-pie .s2b-btn { width:100%; justify-content:center; }
+.s2b .s2b-drawer-wa { display:inline-flex; align-items:center; gap:10px; width:auto;
+  padding:0; border:none; background:none; border-radius:0;
+  font-family:var(--body); font-size:14.5px; font-weight:500; color:#8FEAB0; }
+.s2b-drawer-wa .s2b-wa-ico { width:18px; height:18px; }
+.s2b-drawer-loc { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+.s2b-drawer-loc svg { flex:none; color:var(--lilac); }
+
+/* Con el cajon abierto no tiene que quedar nada del sitio asomando: el
+   header con su hamburguesa aparecia arriba del menu -dos barras, dos
+   botones de cerrar- y la burbuja de WhatsApp y el cambio de idioma
+   flotaban encima de los links. Se apagan mientras dura. */
+.s2b-menu-abierto .s2b-nav,
+.s2b-menu-abierto .s2b-lang,
+.s2b-menu-abierto .s2b-wa { opacity:0; pointer-events:none; visibility:hidden; }
 
 /* ---------- hero ---------- */
 @property --s2b-g1 { syntax: '<color>'; inherits: false; initial-value: #EFE9FF; }
@@ -1499,7 +1549,12 @@ const CSS = `
 /* el contenido de una banda va por encima del resplandor de la costura */
 .s2b-band--dark > section,
 .s2b-band--dark > footer,
-.s2b-band--dark > div { position: relative; z-index: 1; }
+/* El :not no es un capricho. Esta regla le ganaba en especificidad al
+   position:fixed del cajon del celular -es .clase + elemento contra una
+   clase sola- y lo dejaba en relative: por eso arrancaba abajo del header
+   en vez de tapar la pantalla, y por eso medía lo que medía su contenido
+   en lugar del alto del telefono. */
+.s2b-band--dark > div:not(.s2b-drawer) { position: relative; z-index: 1; }
 
 /* La costura: en lugar de un borde, un resplandor violeta centrado justo en
    el limite entre dos secciones. El fondo se derrama de una a la otra. */
@@ -5288,7 +5343,10 @@ export default function StudioB2B() {
     };
     /* la seccion puede estar en otra vista: primero se cambia de pagina y
        despues se baja, ya sin animacion porque el salto fue de pantalla */
-    if (document.getElementById(id)) ir(true);
+    /* Difiere un cuadro: si el cajon del celular estaba abierto, React
+       todavia no lo saco del DOM y el scroll salia corrido justo el alto
+       del cajon. Esperar al repintado lo deja donde va. */
+    if (document.getElementById(id)) requestAnimationFrame(() => requestAnimationFrame(() => ir(true)));
     else {
       irA(DUENO[id] || "home");
       setTimeout(() => {
@@ -5441,7 +5499,7 @@ export default function StudioB2B() {
   );
 
   return (
-    <div className="s2b">
+    <div className={"s2b" + (drawer ? " s2b-menu-abierto" : "")}>
       <style>{CSS}</style>
 
       {/* ============ HERO + NAV ============ */}
@@ -5519,39 +5577,56 @@ export default function StudioB2B() {
               <div className="s2b-brand"><span className="s2b-mark-halo"><img className="s2b-mark" src="/logo.png" alt="" aria-hidden="true" /></span><div className="s2b-brand-txt">STUDIO B2B</div></div>
               <button aria-label={t("Cerrar", "Close")} onClick={() => setDrawer(false)}><X size={26} /></button>
             </div>
-            {/* Primero el menu de verdad y despues los atajos de Soluciones.
-                Al reves, Precios quedaba cuarto en el celular, abajo de tres
-                atajos que llevan casi todos al mismo lado. */}
-            {/* lo principal, primero y separado */}
             {/* En el celular no hay hover, asi que lo que en escritorio
                 cuelga de un desplegable va aca desplegado y sangrado. Sin
                 esto, lo unico que estaba adentro de "Precios" -entre otras
                 cosas, las aplicaciones web- no se podia alcanzar desde el
-                menu del celular. */}
-            {NAV_LINKS.map((n) => {
-              const menu = n.pop && POPS[n.pop];
-              return (
-                <React.Fragment key={n.id}>
-                  <button className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
-                    {n.label}
-                    {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
-                  </button>
-                  {menu && menu.items.map((it) => {
-                    const I = it.ic;
-                    return (
-                      <button key={it.tt} className="dl dl--hijo" onClick={() => goTo(it.to)}>
-                        <I size={15} aria-hidden="true" />
-                        <span>{it.tt}<em>{it.d}</em></span>
-                      </button>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
-            {SOLUCIONES.map((s) => <button key={s.id} className="dl" onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>)}
-            <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 26, width: "100%", justifyContent: "center" }} onClick={() => goTo("contacto")}>
-              Contactanos <ArrowUpRight size={16} />
-            </button>
+                menu del telefono. */}
+            <nav className="s2b-drawer-nav">
+              {NAV_LINKS.map((n) => {
+                const menu = n.pop && POPS[n.pop];
+                return (
+                  <React.Fragment key={n.id}>
+                    <button className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
+                      <span>{n.label}</span>
+                      <ArrowUpRight size={17} aria-hidden="true" />
+                      {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
+                    </button>
+                    {menu && menu.items.map((it) => {
+                      const I = it.ic;
+                      return (
+                        <button key={it.tt} className="dl dl--hijo" onClick={() => goTo(it.to)}>
+                          <I size={16} aria-hidden="true" />
+                          <span>{it.tt}<em>{it.d}</em></span>
+                        </button>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </nav>
+
+            {/* los atajos de soluciones, en pastillas: son tres etiquetas de
+                una misma seccion, no tres destinos del mismo peso que el
+                menu de arriba, y en renglones enteros lo parecian */}
+            <div className="s2b-drawer-rot">{t("Qué desarrollamos", "What we build")}</div>
+            <div className="s2b-drawer-chips">
+              {SOLUCIONES.map((s) => (
+                <button key={s.id} onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>
+              ))}
+            </div>
+
+            <div className="s2b-drawer-pie">
+              <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>
+                {t("Contactanos", "Contact us")} <ArrowUpRight size={16} />
+              </button>
+              {/* el telefono a mano: en el celular, tocar para escribir es el
+                  camino corto y no hay por que hacerlo bajar hasta el pie */}
+              <a className="s2b-drawer-wa" href={waLink(t("Hola Studio B2B, quiero hacerles una consulta.", "Hi Studio B2B, I'd like to ask you something."))} target="_blank" rel="noopener noreferrer">
+                <WhatsappGlyph /> WhatsApp {WA_SHOW}
+              </a>
+              <span className="s2b-drawer-loc"><MapPin size={13} /> {t("Córdoba, Argentina · Miami, EE.UU.", "Córdoba, Argentina · Miami, USA")}</span>
+            </div>
           </div>
         )}
 
@@ -6254,7 +6329,11 @@ export default function StudioB2B() {
           </div>
 
           <div className="s2b-bento">
-            {QUE_DESARROLLAMOS.map((c, i) => {
+            {/* Seis de diez en el celular. El bento en escritorio es una
+                grilla que se abarca de un vistazo; apilado son diez tarjetas
+                iguales, una abajo de la otra, y las ultimas cuatro no
+                agregan nada que las seis primeras no hayan dicho ya. */}
+            {QUE_DESARROLLAMOS.slice(0, celular ? 6 : 99).map((c, i) => {
               const I = c.ic;
               const tono = c.tono === "dark" ? " s2b-bt--dark" : c.tono === "feat" ? " s2b-bt--feat" : "";
               const forma = (c.parte ? " s2b-bt--parte" : "") + (c.vis ? " s2b-bt--convis" : "");
@@ -6392,7 +6471,12 @@ export default function StudioB2B() {
               como un case study. Los que todavia no tienen captura van abajo,
               en una fila mas tranquila, sin fingir una pantalla que no hay. */}
           <div className="s2b-cases">
-            {CASOS.filter((c) => c.img).map((c, i) => (
+            {/* En el celular van dos y no cuatro. Cada caso es una captura
+                grande mas el texto de que habia antes y que construimos:
+                cuatro se comen cinco pantallas de scroll y para cuando llega
+                al tercero ya entendio la idea. Los otros dos siguen enteros
+                en escritorio y en la fila de logos de arriba. */}
+            {CASOS.filter((c) => c.img).slice(0, celular ? 2 : 99).map((c, i) => (
               <article className="s2b-case s2b-rv" key={c.id}>
                 <div className="s2b-case-vis">
                   <div className="s2b-shot">
@@ -6491,7 +6575,9 @@ export default function StudioB2B() {
       </section>
 
       {/* ============ TECNOLOGÍAS ============ */}
-      <section className="s2b-sec s2b-sec--sm" id="tecnologias">
+      {/* La pared de logos no va en el celular: se mira, no decide, y ahi
+          cuesta una pantalla entera de scroll. */}
+      {!celular && <section className="s2b-sec s2b-sec--sm" id="tecnologias">
         <div className="s2b-tech-panel s2b-rv">
           <div className="s2b-tech-inner">
             <div className="s2b-tech-top">
@@ -6548,7 +6634,7 @@ export default function StudioB2B() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ============ DIA DEL PROGRAMADOR ============ */}
       {/* El script que corre en nuestras terminales, puesto a la vista: se
@@ -6562,8 +6648,12 @@ export default function StudioB2B() {
 
       {/* ============ PREGUNTAS FRECUENTES (resumen) ============ */}
       {/* Las mas frecuentes quedan a mano en el home; el listado completo sigue
-          viviendo en su propia pagina, /preguntas. */}
-      <section className="s2b-sec s2b-sec--sm">
+          viviendo en su propia pagina, /preguntas.
+
+          En el celular no va: son las mismas seis preguntas que estan en
+          /preguntas, y ahi se llega desde el menu. Repetirlas costaba una
+          pantalla y media de scroll para no decir nada nuevo. */}
+      {!celular && <section className="s2b-sec s2b-sec--sm">
         <div className="s2b-wrap" style={{ maxWidth: 900 }}>
           <div className="s2b-rv">
             <div className="s2b-eyebrow">{t("Preguntas", "Questions")}</div>
@@ -6585,7 +6675,7 @@ export default function StudioB2B() {
             </button>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* En el home el formulario estaba quedando sobre fondo claro, con los
           campos oscuros y el texto en lila: la misma banda que usa /proceso lo
