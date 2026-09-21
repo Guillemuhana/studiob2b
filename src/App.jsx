@@ -4944,7 +4944,7 @@ function UiFlujo({ pasos = [] }) {
   );
 }
 
-const RUTAS = { proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
+const RUTAS = { precios: "/precios", proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
 
 /* Anclas del home que ademas tienen direccion propia, para poder pasar el
    link por WhatsApp y que caiga en la seccion.
@@ -4957,7 +4957,7 @@ const ANCLAS = { aplicaciones: "/aplicaciones-web" };
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
    cliente decide, y de paso el home queda mas liviano. */
-const DUENO = { contacto: "proceso" };
+const DUENO = { contacto: "proceso", proyectos: "precios" };
 const rutaActual = () => (typeof location === "undefined" ? "/" : location.pathname).replace(/\/+$/, "") || "/";
 const vistaDeUrl = () => {
   const p = rutaActual();
@@ -5213,6 +5213,7 @@ export default function StudioB2B() {
   useEffect(() => {
     document.title =
       vista === "proceso" ? t("El Proceso Studio B2B, paso a paso | Studio B2B", "The Studio B2B Process, step by step | Studio B2B") :
+      vista === "precios" ? t("Precios | Studio B2B", "Pricing | Studio B2B") :
       vista === "preguntas" ? t("Preguntas frecuentes | Studio B2B", "Frequently asked questions | Studio B2B") :
       vista === "jugar" ? t("Jugá y ganá tu descuento | Studio B2B", "Spin and win your discount | Studio B2B") :
       t("Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial",
@@ -5288,7 +5289,17 @@ export default function StudioB2B() {
     /* la seccion puede estar en otra vista: primero se cambia de pagina y
        despues se baja, ya sin animacion porque el salto fue de pantalla */
     if (document.getElementById(id)) ir(true);
-    else { irA(DUENO[id] || "home"); setTimeout(() => ir(false), 80); }
+    else {
+      irA(DUENO[id] || "home");
+      setTimeout(() => {
+        ir(false);
+        /* irA acaba de escribir la ruta de la pagina destino y se llevo por
+           delante la direccion del ancla. Se vuelve a poner despues del
+           salto, si no venir desde otra pagina dejaba "/" en la barra y el
+           link de la seccion no se podia copiar de ahi. */
+        if (ANCLAS[id] && location.pathname !== ANCLAS[id]) history.replaceState({}, "", ANCLAS[id]);
+      }, 80);
+    }
   }, [irA]);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -5713,6 +5724,132 @@ export default function StudioB2B() {
         {bloqueContacto}
       </div>}
 
+      {/* ============ PRECIOS (pagina aparte) ============
+          Fuera del home a proposito. Mezclada ahi, el que venia a entender
+          que hacemos se chocaba con tres tarjetas de plan y cinco de
+          proyecto antes de llegar a los casos. La decision de comprar tiene
+          su lugar, y no es el medio de la presentacion.
+          Dos bloques porque son dos negocios distintos. Arriba lo que se
+          arma sobre una base que ya existe y se puede cotizar de antemano;
+          abajo lo que no entra en un plan mensual y lleva "desde" y plazo
+          en vez de un numero cerrado. Mezclarlos es lo que hace que un
+          cliente crea que su sistema de gestion cuesta 97 dolares. */}
+      {vista === "precios" && <section className="s2b-sec s2b-sec--sm s2b-amb" id="precios">
+        <div className="s2b-wrap">
+          <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
+            <div className="s2b-eyebrow">{t("Precios", "Pricing")}</div>
+            {/* Sin el tope de 17ch entra en un renglon en escritorio. El
+                balance es para el celular, donde la frase no entra de
+                ninguna manera: parte los renglones parejos en vez de dejar
+                "sueltos" colgando solo abajo. */}
+            <h2 className="s2b-h2" style={{ maxWidth: "none", textWrap: "balance" }}>
+              {t("Sistemas, no", "Systems, not")} <b>{t("proyectos sueltos", "one-off projects")}</b>
+            </h2>
+            <p className="s2b-lead" style={{ textAlign: "center" }}>
+              {t("Una página sola es el punto de partida. Lo que la convierte en un sistema es lo que corre encima: el asistente, el CRM y las automatizaciones, mantenidos por el mismo equipo después de salir.", "A site on its own is the starting point. What turns it into a system is what runs on top: the assistant, the CRM and the automations, maintained by the same team after launch.")}
+            </p>
+          </div>
+
+          {/* mensual o anual: el precio mostrado es siempre por mes */}
+          <div className="s2b-switch s2b-rv" role="group" aria-label={t("Forma de pago", "Billing period")}>
+            <button className={anual ? "" : "is-on"} onClick={() => setAnual(false)} aria-pressed={!anual}>
+              {t("Mensual", "Monthly")}
+            </button>
+            <button className={anual ? "is-on" : ""} onClick={() => setAnual(true)} aria-pressed={anual}>
+              {t("Anual", "Annual")} <em>{t("2 meses gratis", "2 months free")}</em>
+            </button>
+          </div>
+
+          <div className="s2b-planes">
+            {PLANES.map((p, i) => (
+              <article
+                className={"s2b-plan s2b-rv" + (p.destacado ? " is-destacado" : "")}
+                key={p.id}
+                style={{ transitionDelay: i * 80 + "ms" }}
+              >
+                {p.rotulo && <span className="s2b-plan-rotulo">{p.rotulo}</span>}
+                <h3 className="s2b-plan-tt">{p.tt}</h3>
+                <p className="s2b-plan-d">{p.d}</p>
+
+                <div className="s2b-plan-precio">
+                  <b>US$ {p.mes}</b><span>{t("/mes", "/mo")}</span>
+                </div>
+                <p className="s2b-plan-letra">
+                  {anual
+                    ? t(`Pagando el año: ${MESES_ANUAL} cuotas en vez de 12`, `Paid yearly: ${MESES_ANUAL} months instead of 12`)
+                    : t(`+ US$ ${p.setup} de configuración, una sola vez`, `+ US$ ${p.setup} setup, once`)}
+                </p>
+
+                <ul className="s2b-plan-items">
+                  {p.items.map((it) => (
+                    <li key={it}><Check size={15} aria-hidden="true" />{it}</li>
+                  ))}
+                </ul>
+
+                <p className="s2b-plan-nota">{p.nota}</p>
+                <p className="s2b-plan-ideal"><b>{t("Ideal para:", "Best for:")}</b> {p.ideal}</p>
+
+                <button
+                  className={"s2b-btn " + (p.destacado ? "s2b-btn--primary" : "s2b-btn--line")}
+                  onClick={() => goTo("contacto")}
+                >
+                  {t("Empezar", "Get started")} <ArrowRight size={16} />
+                </button>
+              </article>
+            ))}
+          </div>
+
+          {/* ---- la aplicacion web, en corto ----
+              El detalle entero esta en su propia seccion. Aca va lo que se
+              busca en una pagina de precios -cuanto sale- y un link para ir
+              a leer el resto. Es el mismo componente: una sola fuente para
+              los dos lugares, asi no hay dos versiones que se desincronicen. */}
+          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} compacto />
+
+          {/* ---- lo que se presupuesta ---- */}
+          <div className="s2b-proy" id="proyectos">
+            <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
+              <h3 className="s2b-proy-tt">
+                {t("Y lo que es a medida,", "And what's custom-built")} <b>{t("se presupuesta", "gets quoted")}</b>
+              </h3>
+              <p className="s2b-lead" style={{ textAlign: "center" }}>
+                {t("Las apps y los sistemas no entran en un plan mensual: cada uno es distinto. Los dos que hicimos muchas veces llevan un piso; el resto se consulta, porque el número sale después de entender qué hay que hacer.", "Apps and systems don't fit in a monthly plan: each one is different. The two we've built many times have a floor; the rest you ask about, because the number comes after we understand the work.")}
+              </p>
+            </div>
+
+            <div className="s2b-proy-grid">
+              {PROYECTOS.map((p, i) => {
+                const I = p.ic;
+                return (
+                  <article className="s2b-proy-card s2b-rv" key={p.tt} style={{ transitionDelay: i * 80 + "ms" }}>
+                    <span className="s2b-proy-ic"><I size={20} /></span>
+                    <h4>{p.tt}</h4>
+                    <p className="s2b-proy-d">{p.d}</p>
+                    <div className="s2b-proy-pie">
+                      <span className="s2b-proy-desde">
+                        {p.desde
+                          ? <>{t("desde", "from")} <b>US$ {p.desde.toLocaleString("es-AR")}</b></>
+                          : <b>{t("A consultar", "Ask us")}</b>}
+                      </span>
+                      {/* sin precio tampoco va plazo: si no se cotizo, no se
+                          puso fecha */}
+                      {p.plazo && <span className="s2b-proy-plazo">{p.plazo}</span>}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <p className="s2b-proy-cierre s2b-rv">
+              {t("La primera llamada no se cobra y de ahí sale el alcance por escrito.", "The first call is free and the written scope comes out of it.")}{" "}
+              <button className="s2b-link" onClick={() => goTo("contacto")}>
+                {t("Contanos qué necesitás", "Tell us what you need")} <ArrowRight size={15} />
+              </button>
+            </p>
+          </div>
+        </div>
+      </section>}
+
       {/* ============ PREGUNTAS FRECUENTES (pagina aparte) ============ */}
       {vista === "preguntas" && <section className="s2b-sec s2b-sec--sm" id="preguntas">
         <div className="s2b-wrap" style={{ maxWidth: 900 }}>
@@ -5957,128 +6094,6 @@ export default function StudioB2B() {
                   app web, no de cualquier desarrollo */}
               <span>{t("Los 7 días son para la aplicación web. Los proyectos a medida llevan su propio plazo, que va en cada tarjeta.", "The 7 days are for the web app. Custom projects have their own timeline, shown on each card.")}</span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ PRECIOS ============
-          Dos bloques porque son dos negocios distintos. Arriba lo que se
-          arma sobre una base que ya existe y se puede cotizar de antemano;
-          abajo lo que no entra en un plan mensual y lleva "desde" y plazo
-          en vez de un numero cerrado. Mezclarlos es lo que hace que un
-          cliente crea que su sistema de gestion cuesta 97 dolares. */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb" id="precios">
-        <div className="s2b-wrap">
-          <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
-            <div className="s2b-eyebrow">{t("Precios", "Pricing")}</div>
-            {/* Sin el tope de 17ch entra en un renglon en escritorio. El
-                balance es para el celular, donde la frase no entra de
-                ninguna manera: parte los renglones parejos en vez de dejar
-                "sueltos" colgando solo abajo. */}
-            <h2 className="s2b-h2" style={{ maxWidth: "none", textWrap: "balance" }}>
-              {t("Sistemas, no", "Systems, not")} <b>{t("proyectos sueltos", "one-off projects")}</b>
-            </h2>
-            <p className="s2b-lead" style={{ textAlign: "center" }}>
-              {t("Una página sola es el punto de partida. Lo que la convierte en un sistema es lo que corre encima: el asistente, el CRM y las automatizaciones, mantenidos por el mismo equipo después de salir.", "A site on its own is the starting point. What turns it into a system is what runs on top: the assistant, the CRM and the automations, maintained by the same team after launch.")}
-            </p>
-          </div>
-
-          {/* mensual o anual: el precio mostrado es siempre por mes */}
-          <div className="s2b-switch s2b-rv" role="group" aria-label={t("Forma de pago", "Billing period")}>
-            <button className={anual ? "" : "is-on"} onClick={() => setAnual(false)} aria-pressed={!anual}>
-              {t("Mensual", "Monthly")}
-            </button>
-            <button className={anual ? "is-on" : ""} onClick={() => setAnual(true)} aria-pressed={anual}>
-              {t("Anual", "Annual")} <em>{t("2 meses gratis", "2 months free")}</em>
-            </button>
-          </div>
-
-          <div className="s2b-planes">
-            {PLANES.map((p, i) => (
-              <article
-                className={"s2b-plan s2b-rv" + (p.destacado ? " is-destacado" : "")}
-                key={p.id}
-                style={{ transitionDelay: i * 80 + "ms" }}
-              >
-                {p.rotulo && <span className="s2b-plan-rotulo">{p.rotulo}</span>}
-                <h3 className="s2b-plan-tt">{p.tt}</h3>
-                <p className="s2b-plan-d">{p.d}</p>
-
-                <div className="s2b-plan-precio">
-                  <b>US$ {p.mes}</b><span>{t("/mes", "/mo")}</span>
-                </div>
-                <p className="s2b-plan-letra">
-                  {anual
-                    ? t(`Pagando el año: ${MESES_ANUAL} cuotas en vez de 12`, `Paid yearly: ${MESES_ANUAL} months instead of 12`)
-                    : t(`+ US$ ${p.setup} de configuración, una sola vez`, `+ US$ ${p.setup} setup, once`)}
-                </p>
-
-                <ul className="s2b-plan-items">
-                  {p.items.map((it) => (
-                    <li key={it}><Check size={15} aria-hidden="true" />{it}</li>
-                  ))}
-                </ul>
-
-                <p className="s2b-plan-nota">{p.nota}</p>
-                <p className="s2b-plan-ideal"><b>{t("Ideal para:", "Best for:")}</b> {p.ideal}</p>
-
-                <button
-                  className={"s2b-btn " + (p.destacado ? "s2b-btn--primary" : "s2b-btn--line")}
-                  onClick={() => goTo("contacto")}
-                >
-                  {t("Empezar", "Get started")} <ArrowRight size={16} />
-                </button>
-              </article>
-            ))}
-          </div>
-
-          {/* ---- la aplicacion web, en corto ----
-              El detalle entero esta en su propia seccion. Aca va lo que se
-              busca en una pagina de precios -cuanto sale- y un link para ir
-              a leer el resto. Es el mismo componente: una sola fuente para
-              los dos lugares, asi no hay dos versiones que se desincronicen. */}
-          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} compacto />
-
-          {/* ---- lo que se presupuesta ---- */}
-          <div className="s2b-proy" id="proyectos">
-            <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
-              <h3 className="s2b-proy-tt">
-                {t("Y lo que es a medida,", "And what's custom-built")} <b>{t("se presupuesta", "gets quoted")}</b>
-              </h3>
-              <p className="s2b-lead" style={{ textAlign: "center" }}>
-                {t("Las apps y los sistemas no entran en un plan mensual: cada uno es distinto. Los dos que hicimos muchas veces llevan un piso; el resto se consulta, porque el número sale después de entender qué hay que hacer.", "Apps and systems don't fit in a monthly plan: each one is different. The two we've built many times have a floor; the rest you ask about, because the number comes after we understand the work.")}
-              </p>
-            </div>
-
-            <div className="s2b-proy-grid">
-              {PROYECTOS.map((p, i) => {
-                const I = p.ic;
-                return (
-                  <article className="s2b-proy-card s2b-rv" key={p.tt} style={{ transitionDelay: i * 80 + "ms" }}>
-                    <span className="s2b-proy-ic"><I size={20} /></span>
-                    <h4>{p.tt}</h4>
-                    <p className="s2b-proy-d">{p.d}</p>
-                    <div className="s2b-proy-pie">
-                      <span className="s2b-proy-desde">
-                        {p.desde
-                          ? <>{t("desde", "from")} <b>US$ {p.desde.toLocaleString("es-AR")}</b></>
-                          : <b>{t("A consultar", "Ask us")}</b>}
-                      </span>
-                      {/* sin precio tampoco va plazo: si no se cotizo, no se
-                          puso fecha */}
-                      {p.plazo && <span className="s2b-proy-plazo">{p.plazo}</span>}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            <p className="s2b-proy-cierre s2b-rv">
-              {t("La primera llamada no se cobra y de ahí sale el alcance por escrito.", "The first call is free and the written scope comes out of it.")}{" "}
-              <button className="s2b-link" onClick={() => goTo("contacto")}>
-                {t("Contanos qué necesitás", "Tell us what you need")} <ArrowRight size={15} />
-              </button>
-            </p>
           </div>
         </div>
       </section>
