@@ -1096,6 +1096,15 @@ const CSS = `
 .s2b-ia-ficha-paso { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,138,76,.2);
   font-weight: 600; color: #fff; }
 
+/* la base: lo que es la pagina, antes de lo que la hace vender */
+.s2b-ia-base { margin-top: 32px; padding: 22px 24px; border-radius: 20px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.26); }
+.s2b-ia-base > div { display: grid; gap: 10px; }
+.s2b-ia-base span > span, .s2b-ia-base > div > span { display: flex; gap: 10px; align-items: flex-start;
+  font-size: 14px; color: var(--text); line-height: 1.5; }
+.s2b-ia-base svg { flex: none; margin-top: 3px; color: var(--lilac); }
+.s2b-ia-rot--grid { margin: 30px 0 -6px; }
+
 .s2b-ia-porque { margin-top: 40px; }
 .s2b-ia-rot { display: block; margin-bottom: 16px; font-family: var(--mono); font-size: 10px;
   letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
@@ -1106,9 +1115,21 @@ const CSS = `
 
 .s2b-ia-pie { display: grid; gap: 18px; margin-top: 40px; padding-top: 30px;
   border-top: 1px solid var(--line); }
-.s2b-ia-precio b, .s2b-ia-pedimos b { display: block; font-family: var(--display); font-size: 18px;
+.s2b-ia-pedimos b { display: block; font-family: var(--display); font-size: 18px;
   color: var(--title); margin-bottom: 10px; }
-.s2b-ia-precio p { font-size: 14.5px; color: var(--muted); line-height: 1.6; max-width: 54ch; }
+.s2b-ia-precio p { margin-top: 14px; font-size: 14.5px; color: var(--muted); line-height: 1.6; max-width: 54ch; }
+
+/* los dos numeros juntos y con el "+" en el medio: se cobra una vez y
+   despues todos los meses, y eso tiene que leerse de un vistazo */
+.s2b-ia-numeros { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 14px 18px; }
+.s2b-ia-num { display: grid; gap: 4px; }
+.s2b-ia-num b { font-family: var(--display); font-size: clamp(30px,3.8vw,42px); font-weight: 700;
+  line-height: 1; color: var(--lilac); }
+.s2b-ia-num b small { font-family: var(--body); font-size: 15px; font-weight: 500; color: var(--muted); }
+.s2b-ia-num em { font-style: normal; font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); }
+.s2b-ia-mas { font-family: var(--display); font-size: 26px; font-weight: 600; color: var(--muted);
+  line-height: 1.1; align-self: center; margin-top: -12px; }
 .s2b-ia-pedimos ul { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 10px; }
 .s2b-ia-pedimos li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px;
   color: var(--muted); line-height: 1.5; }
@@ -1116,6 +1137,7 @@ const CSS = `
 .s2b .s2b-ia-pedimos .s2b-btn { width: 100%; justify-content: center; }
 
 @media (min-width: 860px) {
+  .s2b-ia-base > div { grid-template-columns: 1fr 1fr; gap: 12px 34px; }
   .s2b-ia-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
   /* el de la ficha se lleva la fila entera: es el que vende */
   .s2b-ia-mod.is-demo { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto;
@@ -2805,7 +2827,13 @@ const sieteDias = (t) => [
    Cubre el catalogo completo, que es lo que alguien viene a mirar:
    quiere encontrar lo suyo en la lista, aunque el precio diga consultar. */
 /* ==================================================================
-   El paquete "App Web Inteligente".
+   El servicio "App web inteligente + IA".
+
+   OJO, no confundir con las "Aplicaciones web inteligentes" de mas
+   arriba, que son otra cosa y se quedan como estaban: aquellas son la
+   aplicacion -US$ 950 a 5.000, lista en 7 dias- y esta es la misma
+   aplicacion con el vendedor adentro. Por eso lleva el "+ IA" pegado
+   al nombre en todos lados: sin eso los dos bloques se leen igual.
 
    Sale de un documento interno de la agencia. OJO con eso: ese
    documento es el manual de venta -como contestar objeciones, como
@@ -2821,10 +2849,16 @@ const sieteDias = (t) => [
    - Sin porcentajes de mejora. Dice textual "no prometer porcentajes":
      no se pueden garantizar y dejan expuesta a la agencia. Se promete
      el sistema y la velocidad de respuesta, no el resultado.
-   - Sin precio. Dice "nunca tirar un precio antes de tener la 1, la 3
-     y la 5". Por eso este es el unico bloque del sitio que no lleva
-     numero, y lo dice de frente en vez de esconderlo.
+   - El precio. El manual dice "nunca tirar un precio antes de tener la
+     1, la 3 y la 5", y eso sigue valiendo para una propuesta a medida:
+     ahi el numero sale del negocio de cada uno. Esto es otra cosa, un
+     paquete con precio de lista, y publicarlo filtra solo: el que no
+     puede pagarlo no escribe, y el que escribe ya sabe de que estamos
+     hablando.
    ================================================================== */
+const IA_SETUP = 1200;
+const IA_MES = 70;
+
 const modulosIA = (t) => [
   {
     ic: Bot,
@@ -5151,7 +5185,7 @@ const ANCLAS = { aplicaciones: "/aplicaciones-web" };
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
    cliente decide, y de paso el home queda mas liviano. */
-const DUENO = { contacto: "proceso", proyectos: "precios" };
+const DUENO = { contacto: "proceso", proyectos: "precios", "paquete-ia": "precios" };
 const rutaActual = () => (typeof location === "undefined" ? "/" : location.pathname).replace(/\/+$/, "") || "/";
 const vistaDeUrl = () => {
   const p = rutaActual();
@@ -5259,6 +5293,8 @@ export default function StudioB2B() {
           d: t("desde", "from") + " US$ " + PLANES[0].mes + t(" por mes", " a month") },
         { ic: Globe, tt: t("Aplicaciones web a medida", "Custom web apps"), to: "aplicaciones",
           d: "US$ " + APPWEB_DESDE.toLocaleString("es-AR") + " – " + APPWEB_HASTA.toLocaleString("es-AR") },
+        { ic: Bot, tt: t("App web inteligente + IA", "Smart web app + AI"), to: "paquete-ia",
+          d: "US$ " + IA_SETUP.toLocaleString("es-AR") + " + " + IA_MES + t("/mes", "/mo") },
         { ic: Code2, tt: t("Proyectos a medida", "Custom projects"), to: "proyectos",
           d: t("MVP, apps y sistemas", "MVP, apps and systems") },
       ],
@@ -6030,7 +6066,7 @@ export default function StudioB2B() {
               un invento. Eso se dice de frente, no se esconde. */}
           <div className="s2b-ia" id="paquete-ia">
             <div className="s2b-ia-cab s2b-rv">
-              <div className="s2b-eyebrow">{t("Paquete nuevo", "New package")}</div>
+              <div className="s2b-eyebrow">{t("Servicio nuevo · App web inteligente + IA", "New service · Smart web app + AI")}</div>
               <h3 className="s2b-ia-tt">
                 {t("Tu web hoy es un folleto.", "Your site today is a brochure.")}{" "}
                 <b>{t("La convertimos en un vendedor.", "We turn it into a salesperson.")}</b>
@@ -6040,6 +6076,24 @@ export default function StudioB2B() {
               </p>
             </div>
 
+            {/* Antes de los cuatro modulos, que es la pagina. Sin esto el
+                bloque se leia como "una IA" suelta y no como lo que es: una
+                landing hecha a codigo, con el SEO adentro, y encima el
+                vendedor. La diferencia con una web comun empieza aca. */}
+            <div className="s2b-ia-base s2b-rv">
+              <span className="s2b-ia-rot">{t("La base: una landing hecha a código", "The base: a hand-coded landing page")}</span>
+              <div>
+                {[
+                  t("Escrita a código, sin plantillas ni constructores", "Written in code, no templates or builders"),
+                  t("SEO completo: técnico, local y preparado para las búsquedas con IA", "Full SEO: technical, local and ready for AI search"),
+                  t("Carga rápida en el celular, que es de donde llega casi todo", "Fast on mobile, which is where almost everyone arrives"),
+                  t("Se instala como app desde el navegador, sin pasar por ninguna tienda", "Installs like an app from the browser, no store needed"),
+                  t("Queda en tu dominio y con tus datos", "Stays on your domain, with your data"),
+                ].map((x) => <span key={x}><Check size={14} aria-hidden="true" />{x}</span>)}
+              </div>
+            </div>
+
+            <span className="s2b-ia-rot s2b-ia-rot--grid s2b-rv">{t("Y encima, los cuatro módulos que la hacen vender", "And on top, the four modules that make it sell")}</span>
             <div className="s2b-ia-grid">
               {MODULOS_IA.map((m, i) => {
                 const I = m.ic;
@@ -6087,9 +6141,19 @@ export default function StudioB2B() {
 
             <div className="s2b-ia-pie s2b-rv">
               <div className="s2b-ia-precio">
-                <b>{t("El precio sale después de tres preguntas", "The price comes after three questions")}</b>
+                <div className="s2b-ia-numeros">
+                  <span className="s2b-ia-num">
+                    <b>US$ {IA_SETUP.toLocaleString("es-AR")}</b>
+                    <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>
+                  </span>
+                  <span className="s2b-ia-mas" aria-hidden="true">+</span>
+                  <span className="s2b-ia-num">
+                    <b>US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
+                    <em>{t("para que siga andando", "to keep it running")}</em>
+                  </span>
+                </div>
                 <p>
-                  {t("Cuántas consultas recibís hoy, cuánto vale un cliente cerrado para vos y si tenés precios publicables. Sin esas tres respuestas cualquier número que te pasemos es un invento, y preferimos no inventar.", "How many enquiries you get today, what a closed client is worth to you, and whether you have publishable prices. Without those three answers any number we give you is made up, and we'd rather not make things up.")}
+                  {t("La mensualidad cubre el asistente atendiendo, el panel, los avisos al teléfono y el alojamiento. No es una suscripción a una plataforma ajena: el sistema queda en tu dominio y con tus datos.", "The monthly fee covers the assistant answering, the panel, the phone alerts and the hosting. It isn't a subscription to somebody else's platform: the system stays on your domain, with your data.")}
                 </p>
               </div>
               <div className="s2b-ia-pedimos">
