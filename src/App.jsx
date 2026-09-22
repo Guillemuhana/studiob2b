@@ -1132,6 +1132,52 @@ const CSS = `
 .s2b-ia-vs-ahora { font-size: 14.5px; line-height: 1.5; color: var(--title); font-weight: 600; }
 .s2b-ia-vs-flecha { color: var(--lilac); justify-self: start; }
 
+/* el cierre de servicios: si el menu lleva hasta aca, de aca se tiene que
+   poder salir hablando con alguien */
+.s2b-serv-cierre { display: grid; gap: 16px; margin-top: 40px; padding-top: 30px;
+  border-top: 1px solid var(--line); justify-items: center; text-align: center; }
+.s2b-serv-cierre p { font-size: clamp(16px,2vw,19px); color: var(--text); max-width: 42ch; }
+.s2b-serv-cierre > div { display: flex; flex-wrap: wrap; gap: 11px; justify-content: center; }
+.s2b-serv-cierre .s2b-wa-ico { width: 17px; height: 17px; }
+
+/* con seis entradas el desplegable necesita aire: dos columnas parejas */
+.s2b-pop { width: min(660px, 88vw); }
+
+/* El que quiere algo listo no quiere comparar seis opciones: quiere que le
+   digan cual. Esa entrada se marca y lleva el precio y el plazo encima, asi
+   la decision se toma sin entrar a ningun lado. */
+.s2b .s2b-pop-grid button.is-listo { background: rgba(167,140,255,.12);
+  box-shadow: inset 0 0 0 1px rgba(167,140,255,.3); }
+.s2b .s2b-pop-grid button.is-listo:hover { background: rgba(167,140,255,.2); }
+.s2b-pop-listo { display: block; margin-bottom: 3px; font-family: var(--mono); font-style: normal;
+  font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--lilac); }
+.s2b-drawer button.dl--hijo.is-listo { border-left-color: var(--violet);
+  background: rgba(167,140,255,.1); border-radius: 12px; }
+
+/* ---- solicita tu demo gratis ----
+   Una franja, no una tarjeta mas: tiene que cortar la lectura, porque es
+   lo unico de la seccion que pide una accion ahora. La de la app web va
+   discreta y la del paquete con IA va encendida, que es la que queremos
+   que se toque. */
+.s2b-demo-pedir { display: grid; gap: 18px; margin-top: 34px; padding: 24px 26px; border-radius: 22px;
+  border: 1px solid rgba(167,140,255,.28); background: rgba(0,0,0,.3); }
+.s2b-demo-pedir.is-fuerte { border-color: rgba(127,227,168,.4);
+  background: linear-gradient(150deg, rgba(31,168,85,.16), rgba(0,0,0,.34) 64%); }
+.s2b-demo-pedir b { display: block; font-family: var(--display); font-size: clamp(19px,2.3vw,25px);
+  color: var(--title); margin-bottom: 8px; }
+.s2b-demo-pedir p { font-size: 14.5px; color: var(--muted); line-height: 1.6; max-width: 62ch; }
+.s2b .s2b-demo-pedir .s2b-btn { width: 100%; justify-content: center; }
+/* el boton de whatsapp es verde y no violeta: la persona reconoce adonde va */
+.s2b .s2b-demo-pedir.is-fuerte .s2b-btn { color: #fff;
+  background: linear-gradient(150deg,#4AE083,#1FA855 62%,#128C7E);
+  box-shadow: 0 14px 34px -14px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.3); }
+.s2b-demo-pedir .s2b-wa-ico { width: 17px; height: 17px; }
+
+@media (min-width: 760px) {
+  .s2b-demo-pedir { grid-template-columns: 1fr auto; gap: 30px; align-items: center; }
+  .s2b .s2b-demo-pedir .s2b-btn { width: auto; }
+}
+
 /* la captura del demo, en el mismo marco de navegador que los casos de
    clientes: asi se lee como un trabajo de verdad y no como un dibujo */
 .s2b-ia-demo { display: block; margin-top: 34px; }
@@ -1145,12 +1191,9 @@ const CSS = `
   color: var(--lilac); }
 .s2b-ia-demo:hover .s2b-ia-demo-rot em { color: #fff; }
 
-/* los dos botones del demo: el de ver pesa, el de compartir no */
-.s2b-ia-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 22px; }
-.s2b .s2b-ia-acciones .s2b-appweb-link { margin-top: 0; }
-.s2b-ia-demo-pie { display: flex; gap: 9px; align-items: flex-start; margin-top: 12px;
-  font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 52ch; }
-.s2b-ia-demo-pie svg { flex: none; margin-top: 3px; color: var(--lilac); }
+/* la aclaracion de que el demo es real, al pie de la captura */
+.s2b-ia-demo-nota { display: block; margin-top: 8px; font-size: 13px; color: var(--muted);
+  line-height: 1.55; max-width: 60ch; }
 
 .s2b-ia-porque { margin-top: 40px; }
 .s2b-ia-rot { display: block; margin-bottom: 16px; font-family: var(--mono); font-size: 10px;
@@ -3523,7 +3566,7 @@ const navLinks = (t) => [
      hace que alguien se quede o se vaya. Perdido entre otros cuatro no se
      encuentra, que es lo mismo que no estar. */
   { id: "precios", label: t("Precios", "Pricing"), pop: "precios" },
-  { id: "servicios", label: t("Servicios", "Services") },
+  { id: "servicios", label: t("Servicios", "Services"), pop: "servicios" },
   { id: "proceso", label: t("Proceso", "Process") },
   { id: "clientes", label: t("Clientes", "Clients") },
   { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
@@ -4967,7 +5010,28 @@ function Visitas({ t }) {
 
    Si fueran dos bloques distintos, cambiar un precio o un punto obligaria
    a acordarse de tocar los dos, y tarde o temprano uno queda viejo. */
-function AppWeb({ t, grupos, goTo, compacto = false }) {
+/* El pedido de demo, compartido por las dos secciones de app web.
+
+   Va a WhatsApp con el mensaje ya escrito y no al formulario: en el
+   celular ese es el camino corto, y un formulario pide datos antes de
+   dar nada. Y se aclara que es "con tu negocio adentro": "demo gratis"
+   a secas no dice que se lleva la persona, y lo que no se entiende no
+   se pide. */
+function DemoGratis({ t, waLink, mensaje, tono = "" }) {
+  return (
+    <div className={"s2b-demo-pedir" + (tono ? " " + tono : "")}>
+      <div>
+        <b>{t("Solicitá tu demo gratis", "Request your free demo")}</b>
+        <p>{t("Te armamos una muestra con tu negocio adentro —tu rubro, tus servicios, tu manera de hablar— para que veas cómo quedaría antes de decidir nada. Sin costo y sin compromiso.", "We'll put together a sample with your business inside —your field, your services, your way of speaking— so you can see how it would look before deciding anything. Free, no strings.")}</p>
+      </div>
+      <a className="s2b-btn s2b-btn--primary" href={waLink(mensaje)} target="_blank" rel="noopener noreferrer">
+        <WhatsappGlyph /> {t("Pedir mi demo", "Get my demo")}
+      </a>
+    </div>
+  );
+}
+
+function AppWeb({ t, grupos, goTo, waLink, compacto = false }) {
   const [copiado, setCopiado] = useState(false);
   const precio = (
     <div className="s2b-appweb-precio">
@@ -5056,6 +5120,12 @@ function AppWeb({ t, grupos, goTo, compacto = false }) {
           <p>{t("Administra el negocio: conecta al equipo, atiende clientes, automatiza procesos y te muestra los resultados, todo desde el mismo lugar.", "Runs the business: it connects your team, serves clients, automates work and shows you the results, all from the same place.")}</p>
         </div>
       </div>
+
+      <DemoGratis
+        t={t}
+        waLink={waLink}
+        mensaje={t("Hola Studio B2B, quiero solicitar el demo gratis de una aplicación web.", "Hi Studio B2B, I'd like to request the free demo of a web application.")}
+      />
 
       <div className="s2b-appweb-grid">
         {grupos.map((g, i) => {
@@ -5381,6 +5451,25 @@ export default function StudioB2B() {
      datos que publica la pagina -PLANES y las constantes de la app web- y no
      escritos aca: si maniana cambia un precio, el menu cambia solo. */
   const POPS = useMemo(() => ({
+    servicios: {
+      tt: t("Todo lo que hacemos", "Everything we do"),
+      pie: "",
+      items: [
+        { ic: Bot, tt: t("App web inteligente + IA", "Smart web app + AI"), to: "paquete-ia",
+          d: "US$ " + IA_SETUP.toLocaleString("es-AR") + " + " + IA_MES + t("/mes · lista en 7 días", "/mo · ready in 7 days"),
+          listo: t("Lo más pedido · ya armado", "Most requested · ready made") },
+        { ic: Globe, tt: t("Aplicaciones web", "Web applications"), to: "aplicaciones",
+          d: t("SaaS, paneles y portales · desde US$ 950", "SaaS, dashboards and portals · from US$ 950") },
+        { ic: Code2, tt: t("Software a medida", "Custom software"), to: "servicios",
+          d: t("Gestión, stock, facturación", "Operations, stock, invoicing") },
+        { ic: Smartphone, tt: t("Apps móviles", "Mobile apps"), to: "servicios",
+          d: t("iOS y Android desde una base", "iOS and Android from one codebase") },
+        { ic: Sparkles, tt: t("Agentes de IA", "AI agents"), to: "agentes",
+          d: t("Atienden adentro de tus herramientas", "They work inside your own tools") },
+        { ic: Plug, tt: t("Integraciones y automatizaciones", "Integrations and automations"), to: "proyectos",
+          d: t("Conectar lo que ya usás", "Connecting what you already use") },
+      ],
+    },
     precios: {
       tt: t("Qué estás buscando", "What you're after"),
       pie: "",
@@ -5817,9 +5906,14 @@ export default function StudioB2B() {
                           {menu.items.map((it) => {
                             const I = it.ic;
                             return (
-                              <button key={it.tt} onClick={() => goTo(it.to)}>
+                              <button
+                                key={it.tt}
+                                className={it.listo ? "is-listo" : ""}
+                                onClick={() => goTo(it.to)}
+                              >
                                 <span className="ic"><I size={16} /></span>
                                 <span>
+                                  {it.listo && <i className="s2b-pop-listo">{it.listo}</i>}
                                   <b>{it.tt}</b>
                                   <em>{it.d}</em>
                                 </span>
@@ -5868,9 +5962,12 @@ export default function StudioB2B() {
                     {menu && menu.items.map((it) => {
                       const I = it.ic;
                       return (
-                        <button key={it.tt} className="dl dl--hijo" onClick={() => goTo(it.to)}>
+                        <button key={it.tt} className={"dl dl--hijo" + (it.listo ? " is-listo" : "")} onClick={() => goTo(it.to)}>
                           <I size={16} aria-hidden="true" />
-                          <span>{it.tt}<em>{it.d}</em></span>
+                          <span>
+                            {it.listo && <i className="s2b-pop-listo">{it.listo}</i>}
+                            {it.tt}<em>{it.d}</em>
+                          </span>
                         </button>
                       );
                     })}
@@ -5879,15 +5976,8 @@ export default function StudioB2B() {
               })}
             </nav>
 
-            {/* los atajos de soluciones, en pastillas: son tres etiquetas de
-                una misma seccion, no tres destinos del mismo peso que el
-                menu de arriba, y en renglones enteros lo parecian */}
-            <div className="s2b-drawer-rot">{t("Qué desarrollamos", "What we build")}</div>
-            <div className="s2b-drawer-chips">
-              {SOLUCIONES.map((s) => (
-                <button key={s.id} onClick={() => goTo(s.id === "agentes" ? "agentes" : "servicios")}>{s.t}</button>
-              ))}
-            </div>
+            {/* Los chips de Soluciones se fueron: con Servicios desplegado
+                arriba, repetian tres destinos que ya estaban en la lista. */}
 
             <div className="s2b-drawer-pie">
               <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" onClick={() => goTo("contacto")}>
@@ -6152,7 +6242,7 @@ export default function StudioB2B() {
               busca en una pagina de precios -cuanto sale- y un link para ir
               a leer el resto. Es el mismo componente: una sola fuente para
               los dos lugares, asi no hay dos versiones que se desincronicen. */}
-          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} compacto />
+          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} waLink={waLink} compacto />
 
           {/* ---- el paquete con IA ----
               Va despues de la app web porque se monta encima de ella: es la
@@ -6172,23 +6262,13 @@ export default function StudioB2B() {
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing.")}
               </p>
-                {/* Ver una andando convence mas que cualquier parrafo, asi
-                    que el demo va primero y el compartir despues. Se aclara
-                    que es de un cliente real y no una maqueta: una demo de
-                    mentira se nota y juega en contra. */}
-                <div className="s2b-ia-acciones">
-                  <a className="s2b-btn s2b-btn--chrome" href={IA_DEMO} target="_blank" rel="noopener noreferrer">
-                    {t("Ver una andando", "See a live one")} <ArrowUpRight size={16} />
-                  </a>
-                  <button className="s2b-appweb-link" onClick={copiarIA}>
-                    {copiadoIA ? <Check size={14} /> : <Share2 size={14} />}
-                    {copiadoIA ? t("Link copiado", "Link copied") : t("Copiar el link para pasárselo a alguien", "Copy the link to send it to someone")}
-                  </button>
-                </div>
-                <p className="s2b-ia-demo-pie">
-                  <MonitorPlay size={14} aria-hidden="true" />
-                  {t("Es la de un cliente nuestro, en producción y recibiendo consultas de verdad. No es una maqueta.", "It belongs to a client of ours, in production and taking real enquiries. It isn't a mockup.")}
-                </p>
+                {/* El boton de "ver una andando" se saco: la captura de abajo
+                    ya es el link, y dos puertas a lo mismo hacen dudar cual
+                    es la buena. Queda solo el de compartir, que es otra cosa. */}
+                <button className="s2b-appweb-link" onClick={copiarIA}>
+                  {copiadoIA ? <Check size={14} /> : <Share2 size={14} />}
+                  {copiadoIA ? t("Link copiado", "Link copied") : t("Copiar el link para pasárselo a alguien", "Copy the link to send it to someone")}
+                </button>
               </div>
 
               {/* La caja del precio al lado del titulo, igual que en la app
@@ -6241,6 +6321,13 @@ export default function StudioB2B() {
               ))}
             </div>
 
+            <DemoGratis
+              t={t}
+              waLink={waLink}
+              tono="is-fuerte"
+              mensaje={t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI.")}
+            />
+
             {/* La captura del demo, con el asistente abierto. Un link a
                 ciegas no muestra nada: esto se ve antes de decidir si hacer
                 clic, y el marco de navegador es el mismo que usan los casos
@@ -6257,7 +6344,10 @@ export default function StudioB2B() {
               <span className="s2b-ia-demo-rot">
                 <MonitorPlay size={15} aria-hidden="true" />
                 {t("Ninit Group · el asistente atendiendo, en vivo", "Ninit Group · the assistant at work, live")}
-                <em>{t("Abrir", "Open")} <ArrowUpRight size={14} /></em>
+                <em>{t("Tocá para abrirla", "Tap to open it")} <ArrowUpRight size={14} /></em>
+              </span>
+              <span className="s2b-ia-demo-nota">
+                {t("Es la de un cliente nuestro, en producción y recibiendo consultas de verdad. No es una maqueta.", "It belongs to a client of ours, in production and taking real enquiries. It isn't a mockup.")}
               </span>
             </a>
 
@@ -6595,7 +6685,7 @@ export default function StudioB2B() {
           el precio y un link para volver aca. */}
       <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="aplicaciones">
         <div className="s2b-wrap">
-          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} />
+          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} waLink={waLink} />
 
           {/* ---- los siete dias ----
               Pegado abajo del bloque: primero que es y que trae, despues
@@ -6849,6 +6939,18 @@ export default function StudioB2B() {
                 </article>
               );
             })}
+          </div>
+
+          <div className="s2b-serv-cierre s2b-rv">
+            <p>{t("¿Lo que necesitás está en esta lista, o es una mezcla de varias?", "Is what you need on this list, or a mix of several?")}</p>
+            <div>
+              <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>
+                {t("Contanos qué necesitás", "Tell us what you need")} <ArrowRight size={16} />
+              </button>
+              <a className="s2b-btn s2b-btn--glass" href={waLink(t("Hola Studio B2B, quiero consultarles por un servicio.", "Hi Studio B2B, I have a question about a service."))} target="_blank" rel="noopener noreferrer">
+                <WhatsappGlyph /> {t("Escribinos por WhatsApp", "Message us on WhatsApp")}
+              </a>
+            </div>
           </div>
         </div>
       </section>
