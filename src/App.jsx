@@ -1105,6 +1105,27 @@ const CSS = `
 .s2b-ia-base svg { flex: none; margin-top: 3px; color: var(--lilac); }
 .s2b-ia-rot--grid { margin: 30px 0 -6px; }
 
+/* el sello de nuevo: es lo que hace que alguien que ya conoce el sitio
+   frene y lo lea en vez de pasarlo de largo */
+.s2b-ia-nuevo { display: inline-flex; align-items: center; margin-bottom: 14px;
+  padding: 6px 14px; border-radius: 999px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+  font-weight: 700; color: #1A0B3D;
+  background: linear-gradient(120deg, #C7B6FF, var(--lilac) 52%, #7E5EFF);
+  box-shadow: 0 10px 26px -12px rgba(167,140,255,.95); }
+
+/* la comparacion: el cambio se decide comparando, no leyendo */
+.s2b-ia-vs { margin-top: 34px; padding: 6px 22px 18px; border-radius: 20px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.26); }
+.s2b-ia-vs-cab { display: none; }
+.s2b-ia-vs-fila { display: grid; gap: 8px; padding: 16px 0;
+  border-top: 1px solid var(--line); }
+.s2b-ia-vs-fila:first-of-type { border-top: none; }
+.s2b-ia-vs-antes { font-size: 14px; line-height: 1.5; color: var(--muted); text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,.22); }
+.s2b-ia-vs-ahora { font-size: 14.5px; line-height: 1.5; color: var(--title); font-weight: 600; }
+.s2b-ia-vs-flecha { color: var(--lilac); justify-self: start; }
+
 .s2b-ia-porque { margin-top: 40px; }
 .s2b-ia-rot { display: block; margin-bottom: 16px; font-family: var(--mono); font-size: 10px;
   letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
@@ -1137,6 +1158,16 @@ const CSS = `
 .s2b .s2b-ia-pedimos .s2b-btn { width: 100%; justify-content: center; }
 
 @media (min-width: 860px) {
+  /* en escritorio la comparacion se acuesta en tres columnas y aparecen los
+     encabezados: antes, la flecha, despues */
+  .s2b-ia-vs { padding: 4px 26px 20px; }
+  .s2b-ia-vs-cab { display: grid; grid-template-columns: 1fr 34px 1fr; gap: 18px;
+    padding: 18px 0 12px; }
+  .s2b-ia-vs-cab span { font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--muted); }
+  .s2b-ia-vs-cab span.is-nuestra { grid-column: 3; color: var(--lilac); }
+  .s2b-ia-vs-fila { grid-template-columns: 1fr 34px 1fr; gap: 18px; align-items: center; }
+  .s2b-ia-vs-flecha { justify-self: center; }
   .s2b-ia-base > div { grid-template-columns: 1fr 1fr; gap: 12px 34px; }
   .s2b-ia-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
   /* el de la ficha se lleva la fila entera: es el que vende */
@@ -5181,7 +5212,7 @@ const RUTAS = { precios: "/precios", proceso: "/proceso", preguntas: "/preguntas
    el home, y esta ruta solo dice a que altura frenar. Duplicarlo en una
    pagina propia daria dos URLs con el mismo texto -que Google penaliza- y
    dos lugares que hay que acordarse de actualizar. */
-const ANCLAS = { aplicaciones: "/aplicaciones-web" };
+const ANCLAS = { aplicaciones: "/aplicaciones-web", "paquete-ia": "/app-web-inteligente" };
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
    cliente decide, y de paso el home queda mas liviano. */
@@ -5190,7 +5221,13 @@ const rutaActual = () => (typeof location === "undefined" ? "/" : location.pathn
 const vistaDeUrl = () => {
   const p = rutaActual();
   const v = Object.keys(RUTAS).find((k) => RUTAS[k] === p);
-  return v || "home";
+  if (v) return v;
+  /* una direccion de ancla abre la pagina donde esa seccion vive. Antes se
+     daba por sentado que era el home; /app-web-inteligente vive en /precios,
+     asi que sin esto la URL abria el home y el ancla no existia nunca. */
+  const a = Object.keys(ANCLAS).find((k) => ANCLAS[k] === p);
+  if (a) return DUENO[a] || "home";
+  return "home";
 };
 /* si la URL es la de un ancla, devuelve el id al que hay que bajar */
 const anclaDeUrl = () => {
@@ -5259,6 +5296,16 @@ export default function StudioB2B() {
   const [anual, setAnual] = useState(false);
   /* que desplegable del menu esta abierto, o null */
   const [pop, setPop] = useState(null);
+  /* copiar el link del servicio nuevo, para pasarselo a un cliente. La
+     direccion sale del origen donde esta corriendo y no escrita a mano,
+     asi el boton sirve igual en una preview o en local. */
+  const [copiadoIA, setCopiadoIA] = useState(false);
+  const copiarIA = useCallback(() => {
+    const url = window.location.origin + ANCLAS["paquete-ia"];
+    const listo = () => { setCopiadoIA(true); setTimeout(() => setCopiadoIA(false), 2200); };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(listo).catch(listo);
+    else listo();
+  }, []);
   /* el proceso vive en su propia direccion para no alargar el home; sin router,
      con la URL de verdad y el boton atras del navegador andando */
   const [idioma, setIdioma] = useState(idiomaGuardado);
@@ -6066,7 +6113,8 @@ export default function StudioB2B() {
               un invento. Eso se dice de frente, no se esconde. */}
           <div className="s2b-ia" id="paquete-ia">
             <div className="s2b-ia-cab s2b-rv">
-              <div className="s2b-eyebrow">{t("Servicio nuevo · App web inteligente + IA", "New service · Smart web app + AI")}</div>
+              <span className="s2b-ia-nuevo">{t("Nuevo", "New")}</span>
+              <div className="s2b-eyebrow">{t("App web inteligente + IA", "Smart web app + AI")}</div>
               <h3 className="s2b-ia-tt">
                 {t("Tu web hoy es un folleto.", "Your site today is a brochure.")}{" "}
                 <b>{t("La convertimos en un vendedor.", "We turn it into a salesperson.")}</b>
@@ -6074,6 +6122,37 @@ export default function StudioB2B() {
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing.")}
               </p>
+              <button className="s2b-appweb-link" onClick={copiarIA}>
+                {copiadoIA ? <Check size={14} /> : <Share2 size={14} />}
+                {copiadoIA ? t("Link copiado", "Link copied") : t("Copiar el link para pasárselo a alguien", "Copy the link to send it to someone")}
+              </button>
+            </div>
+
+            {/* El cambio se decide comparando, no leyendo. Dos columnas con
+                la misma pregunta contestada de las dos maneras: a la
+                izquierda lo que la persona ya tiene, a la derecha lo que
+                pasaria a tener. Es el argumento entero en cuatro renglones. */}
+            <div className="s2b-ia-vs s2b-rv">
+              <div className="s2b-ia-vs-cab">
+                <span>{t("Una web común", "A regular website")}</span>
+                <span className="is-nuestra">{t("App web inteligente + IA", "Smart web app + AI")}</span>
+              </div>
+              {[
+                [t("Muestra información y espera.", "Shows information and waits."),
+                 t("Atiende, pregunta y contesta.", "Greets, asks and answers.")],
+                [t("El que entra a las once de la noche se va y nunca te enterás.", "Whoever comes in at eleven at night leaves and you never find out."),
+                 t("Lo atiende igual y te lo deja anotado.", "It serves them anyway and logs them for you.")],
+                [t("Te avisa que «alguien llenó el formulario».", "It tells you «someone filled the form»."),
+                 t("Te dice quién es, qué quiere, para cuándo y qué lo frena.", "It tells you who they are, what they want, by when and what's holding them up.")],
+                [t("Contestás cuando podés, y a veces al otro día.", "You reply when you can, sometimes the next day."),
+                 t("Contesta en segundos, también domingos y feriados.", "It replies in seconds, Sundays and holidays too.")],
+              ].map(([a, b]) => (
+                <div className="s2b-ia-vs-fila" key={a}>
+                  <p className="s2b-ia-vs-antes">{a}</p>
+                  <ArrowRight className="s2b-ia-vs-flecha" size={16} aria-hidden="true" />
+                  <p className="s2b-ia-vs-ahora">{b}</p>
+                </div>
+              ))}
             </div>
 
             {/* Antes de los cuatro modulos, que es la pagina. Sin esto el
