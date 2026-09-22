@@ -1056,6 +1056,79 @@ const CSS = `
   .s2b-siete-pie { grid-template-columns: auto 1fr; align-items: center; gap: 22px; }
 }
 
+/* ---- el paquete con IA ----
+   La pieza que vende es la ficha del contacto calificado, asi que su
+   modulo rompe la grilla: ocupa el ancho entero y la ficha va dibujada
+   como llega al telefono, no contada. El resto son cajas iguales para
+   que esa se destaque. */
+.s2b-ia { margin-top: 70px; padding-top: 56px; border-top: 1px solid var(--line); }
+.s2b-ia-cab { max-width: 66ch; }
+.s2b .s2b-ia-tt { font-size: clamp(26px,3.6vw,40px); }
+.s2b .s2b-ia-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.s2b-ia-d { margin-top: 14px; font-size: 15px; color: var(--muted); line-height: 1.62;
+  text-align: justify; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 5 2 2; text-wrap: pretty; }
+
+.s2b-ia-grid { display: grid; gap: 16px; margin-top: 34px; }
+.s2b-ia-mod { position: relative; padding: 26px 24px; border-radius: 22px;
+  border: 1px solid var(--line); background: var(--surface); }
+.s2b-ia-mod.is-demo { border-color: rgba(167,140,255,.42);
+  background: linear-gradient(160deg, rgba(109,74,255,.13), var(--surface) 62%); }
+.s2b-ia-n { position: absolute; top: 22px; right: 22px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .16em; color: var(--muted); }
+.s2b-ia-ic { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px;
+  color: var(--violet); background: linear-gradient(150deg, rgba(167,140,255,.18), rgba(109,74,255,.1));
+  border: 1px solid rgba(167,140,255,.28); }
+.s2b .s2b-ia-mod h4 { font-size: 18px; line-height: 1.25; margin: 14px 0 8px; max-width: 30ch; }
+.s2b-ia-mod > p { font-size: 14.5px; color: var(--muted); line-height: 1.6; max-width: 56ch; }
+
+/* la ficha: se dibuja como un aviso que llega al telefono */
+.s2b-ia-ficha { margin-top: 20px; padding: 16px 18px; border-radius: 16px; max-width: 46ch;
+  border: 1px solid rgba(255,138,76,.3); background: rgba(24,12,4,.6);
+  box-shadow: 0 20px 44px -30px rgba(255,138,76,.7); }
+.s2b-ia-ficha-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  margin-bottom: 9px; }
+.s2b-ia-ficha-top b { font-family: var(--display); font-size: 15px; color: #FFB27A; }
+.s2b-ia-ficha-top span { font-family: var(--mono); font-size: 14px; font-weight: 700; color: #FFB27A; }
+.s2b-ia-ficha p { font-size: 13.5px; line-height: 1.55; color: var(--text); }
+.s2b-ia-ficha-frena { margin-top: 6px; color: var(--muted); }
+.s2b-ia-ficha-frena em { font-style: normal; color: #FFB27A; }
+.s2b-ia-ficha-paso { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,138,76,.2);
+  font-weight: 600; color: #fff; }
+
+.s2b-ia-porque { margin-top: 40px; }
+.s2b-ia-rot { display: block; margin-bottom: 16px; font-family: var(--mono); font-size: 10px;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.s2b-ia-porque > div { display: grid; gap: 20px; }
+.s2b .s2b-ia-porque h5 { font-family: var(--display); font-size: 16px; font-weight: 600;
+  color: var(--title); margin-bottom: 6px; line-height: 1.3; }
+.s2b-ia-porque p { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+.s2b-ia-pie { display: grid; gap: 18px; margin-top: 40px; padding-top: 30px;
+  border-top: 1px solid var(--line); }
+.s2b-ia-precio b, .s2b-ia-pedimos b { display: block; font-family: var(--display); font-size: 18px;
+  color: var(--title); margin-bottom: 10px; }
+.s2b-ia-precio p { font-size: 14.5px; color: var(--muted); line-height: 1.6; max-width: 54ch; }
+.s2b-ia-pedimos ul { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 10px; }
+.s2b-ia-pedimos li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px;
+  color: var(--muted); line-height: 1.5; }
+.s2b-ia-pedimos svg { flex: none; margin-top: 3px; color: var(--lilac); }
+.s2b .s2b-ia-pedimos .s2b-btn { width: 100%; justify-content: center; }
+
+@media (min-width: 860px) {
+  .s2b-ia-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+  /* el de la ficha se lleva la fila entera: es el que vende */
+  .s2b-ia-mod.is-demo { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto;
+    gap: 30px; align-items: center; padding: 30px 28px; }
+  .s2b-ia-mod.is-demo .s2b-ia-ic { grid-row: 1; }
+  .s2b-ia-mod.is-demo h4 { grid-column: 1; margin-top: 0; }
+  .s2b-ia-mod.is-demo > p { grid-column: 1; }
+  .s2b-ia-mod.is-demo .s2b-ia-ficha { grid-column: 2; grid-row: 1 / span 4; margin-top: 0; width: 340px; }
+  .s2b-ia-porque > div { grid-template-columns: repeat(2, 1fr); gap: 24px 40px; }
+  .s2b-ia-pie { grid-template-columns: 1.1fr .9fr; gap: 44px; align-items: start; }
+  .s2b .s2b-ia-pedimos .s2b-btn { width: auto; }
+}
+
 /* ---- lo que se presupuesta ---- */
 .s2b-proy { margin-top: 74px; padding-top: 58px; border-top: 1px solid var(--line); }
 /* quedaron cinco tarjetas: la fila incompleta se centra en vez de colgar */
@@ -2731,6 +2804,72 @@ const sieteDias = (t) => [
 
    Cubre el catalogo completo, que es lo que alguien viene a mirar:
    quiere encontrar lo suyo en la lista, aunque el precio diga consultar. */
+/* ==================================================================
+   El paquete "App Web Inteligente".
+
+   Sale de un documento interno de la agencia. OJO con eso: ese
+   documento es el manual de venta -como contestar objeciones, como
+   escribir la propuesta, el pitch para mandar por WhatsApp, la
+   arquitectura- y nada de eso va aca. Mostrarle al cliente el libreto
+   con el que se lo esta vendiendo es la forma mas rapida de perderlo.
+
+   De todo el documento se publica solo lo que es para el cliente: que
+   hace, que gana y que le vamos a pedir.
+
+   Dos reglas del propio documento que se respetan al pie:
+
+   - Sin porcentajes de mejora. Dice textual "no prometer porcentajes":
+     no se pueden garantizar y dejan expuesta a la agencia. Se promete
+     el sistema y la velocidad de respuesta, no el resultado.
+   - Sin precio. Dice "nunca tirar un precio antes de tener la 1, la 3
+     y la 5". Por eso este es el unico bloque del sitio que no lleva
+     numero, y lo dice de frente en vez de esconderlo.
+   ================================================================== */
+const modulosIA = (t) => [
+  {
+    ic: Bot,
+    tt: t("Un asistente que conoce tu negocio de verdad", "An assistant that actually knows your business"),
+    d: t("No un bot genérico. Se lo alimenta con tu ficha comercial: productos, precios, plazos, y qué se puede prometer y qué no. Atiende en varios idiomas, en segundos, de madrugada y los feriados.", "Not a generic bot. It's fed with your commercial sheet: products, prices, lead times, and what can and can't be promised. It answers in several languages, in seconds, at 3am and on holidays."),
+  },
+  {
+    ic: Target,
+    tt: t("Captación que aparece en el momento justo", "Capture that shows up at the right moment"),
+    d: t("La página sabe qué está mirando cada visitante y se ofrece cuando corresponde: si estuvo con los precios, habla de precios. No es el cartelito que salta siempre igual y que todo el mundo cierra sin leer.", "The page knows what each visitor is looking at and steps in when it makes sense: if they were on pricing, it talks pricing. Not the popup that always fires the same and everyone closes unread."),
+  },
+  {
+    ic: TrendingUp,
+    tt: t("Cada consulta llega con puntaje y resumen", "Every enquiry arrives scored and summarized"),
+    d: t("Esto es lo que cambia el día a día: abrís el celular y en dos segundos sabés a quién llamar primero, sin leer veinte mensajes para encontrar los dos que valen.", "This is what changes the day to day: you open your phone and in two seconds you know who to call first, without reading twenty messages to find the two that matter."),
+    demo: true,
+  },
+  {
+    ic: LayoutDashboard,
+    tt: t("Un panel donde vive todo", "One panel where everything lives"),
+    d: t("Cada conversación, cada cliente y en qué quedó cada uno. Con aviso al teléfono cuando entra algo. Nada se pierde en un mail.", "Every conversation, every client and where each one stands. With a phone alert when something comes in. Nothing gets lost in an inbox."),
+  },
+];
+
+/* Los argumentos del documento son siete y dice usar los que apliquen,
+   no los siete de corrido. Van los cuatro que valen para cualquier rubro. */
+const porQueIA = (t) => [
+  {
+    tt: t("El problema no es la web fea, es el cliente que se fue", "The problem isn't an ugly site, it's the client who left"),
+    d: t("Entra alguien a las once de la noche, no encuentra lo que busca y se va. Nunca supiste que existió.", "Someone comes in at eleven at night, doesn't find what they're after and leaves. You never knew they existed."),
+  },
+  {
+    tt: t("El primero que contesta se lleva la venta", "Whoever answers first gets the sale"),
+    d: t("Ninguna persona puede contestar en un minuto a las tres de la mañana. Esto sí.", "No person can reply within a minute at three in the morning. This can."),
+  },
+  {
+    tt: t("No es traer más gente, es no desperdiciar la que ya entra", "It's not more traffic, it's not wasting the traffic you have"),
+    d: t("Antes de gastar más en publicidad conviene arreglar dónde cae la que ya estás pagando.", "Before spending more on ads it pays to fix where the ones you already pay for land."),
+  },
+  {
+    tt: t("Es tuyo, no alquilado", "It's yours, not rented"),
+    d: t("No es una suscripción a una plataforma que mañana sube el precio o cierra. Queda en tu dominio y con tus datos.", "It's not a subscription to a platform that raises its price or shuts down tomorrow. It stays on your domain, with your data."),
+  },
+];
+
 const proyectos = (t) => [
   {
     ic: Rocket, tt: "MVP", desde: 3430,
@@ -5106,6 +5245,8 @@ export default function StudioB2B() {
   const PROYECTOS = useMemo(() => proyectos(t), [t]);
   const APPWEB_GRUPOS = useMemo(() => appWebGrupos(t), [t]);
   const SIETE_DIAS = useMemo(() => sieteDias(t), [t]);
+  const MODULOS_IA = useMemo(() => modulosIA(t), [t]);
+  const POR_QUE_IA = useMemo(() => porQueIA(t), [t]);
   /* Lo que cuelga de cada entrada del menu. Los numeros salen de los mismos
      datos que publica la pagina -PLANES y las constantes de la app web- y no
      escritos aca: si maniana cambia un precio, el menu cambia solo. */
@@ -5880,6 +6021,90 @@ export default function StudioB2B() {
               a leer el resto. Es el mismo componente: una sola fuente para
               los dos lugares, asi no hay dos versiones que se desincronicen. */}
           <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} compacto />
+
+          {/* ---- el paquete con IA ----
+              Va despues de la app web porque se monta encima de ella: es la
+              misma aplicacion, pero atendiendo. Y es el unico bloque del
+              sitio sin precio, por decision del manual: sin saber cuantas
+              consultas entran y cuanto vale un cliente, cualquier numero es
+              un invento. Eso se dice de frente, no se esconde. */}
+          <div className="s2b-ia" id="paquete-ia">
+            <div className="s2b-ia-cab s2b-rv">
+              <div className="s2b-eyebrow">{t("Paquete nuevo", "New package")}</div>
+              <h3 className="s2b-ia-tt">
+                {t("Tu web hoy es un folleto.", "Your site today is a brochure.")}{" "}
+                <b>{t("La convertimos en un vendedor.", "We turn it into a salesperson.")}</b>
+              </h3>
+              <p className="s2b-ia-d">
+                {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing.")}
+              </p>
+            </div>
+
+            <div className="s2b-ia-grid">
+              {MODULOS_IA.map((m, i) => {
+                const I = m.ic;
+                return (
+                  <article className={"s2b-ia-mod s2b-rv" + (m.demo ? " is-demo" : "")} key={m.tt} style={{ transitionDelay: (i % 2) * 70 + "ms" }}>
+                    <span className="s2b-ia-n">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="s2b-ia-ic"><I size={19} /></span>
+                    <h4>{m.tt}</h4>
+                    <p>{m.d}</p>
+
+                    {/* El ejemplo de la calificacion: es lo que hace entender
+                        la diferencia con un chatbot comun, asi que se dibuja
+                        como llega de verdad al telefono y no se cuenta. */}
+                    {m.demo && (
+                      <div className="s2b-ia-ficha" aria-label={t("Ejemplo de un contacto calificado", "Example of a scored lead")}>
+                        <div className="s2b-ia-ficha-top">
+                          <b>🔥 {t("Cliente caliente", "Hot lead")}</b>
+                          <span>87/100</span>
+                        </div>
+                        <p>{t("Quiere arrancar en marzo, tiene el presupuesto, compara con dos proveedores.", "Wants to start in March, has the budget, is comparing two vendors.")}</p>
+                        <p className="s2b-ia-ficha-frena">
+                          <em>{t("Lo frena:", "Held up by:")}</em> {t("no sabe los plazos de entrega.", "doesn't know the delivery times.")}
+                        </p>
+                        <p className="s2b-ia-ficha-paso">
+                          👉 {t("Siguiente paso: mandarle la cotización y los plazos en el mismo mensaje.", "Next step: send the quote and the timeline in the same message.")}
+                        </p>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="s2b-ia-porque s2b-rv">
+              <span className="s2b-ia-rot">{t("Por qué cambiar una web común por esto", "Why swap a regular site for this")}</span>
+              <div>
+                {POR_QUE_IA.map((x) => (
+                  <div key={x.tt}>
+                    <h5>{x.tt}</h5>
+                    <p>{x.d}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="s2b-ia-pie s2b-rv">
+              <div className="s2b-ia-precio">
+                <b>{t("El precio sale después de tres preguntas", "The price comes after three questions")}</b>
+                <p>
+                  {t("Cuántas consultas recibís hoy, cuánto vale un cliente cerrado para vos y si tenés precios publicables. Sin esas tres respuestas cualquier número que te pasemos es un invento, y preferimos no inventar.", "How many enquiries you get today, what a closed client is worth to you, and whether you have publishable prices. Without those three answers any number we give you is made up, and we'd rather not make things up.")}
+                </p>
+              </div>
+              <div className="s2b-ia-pedimos">
+                <b>{t("Lo que te vamos a pedir", "What we'll need from you")}</b>
+                <ul>
+                  <li><Clock size={14} /> {t("Dos horas tuyas: una para contarnos el negocio y otra para aprobar.", "Two hours of your time: one to tell us the business, one to approve.")}</li>
+                  <li><FileText size={14} /> {t("La ficha comercial: precios, plazos y qué NO se puede afirmar nunca. Es el primer entregable, no un detalle.", "The commercial sheet: prices, lead times and what must never be claimed. It's the first deliverable, not a detail.")}</li>
+                  <li><ShieldCheck size={14} /> {t("Si ya tenés web, no hay que tirarla: esto se monta encima.", "If you already have a site, it doesn't get thrown away: this goes on top of it.")}</li>
+                </ul>
+                <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
+                  {t("Quiero que me lo muestren", "Show me how it'd look")} <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
 
           {/* ---- lo que se presupuesta ---- */}
           <div className="s2b-proy" id="proyectos">
