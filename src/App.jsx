@@ -1064,7 +1064,12 @@ const CSS = `
 .s2b-ia { margin-top: 70px; padding-top: 56px; border-top: 1px solid var(--line); }
 .s2b-ia-cab { display: grid; gap: 24px; align-items: start; }
 .s2b-ia-cab > div:first-child { max-width: 66ch; }
-.s2b .s2b-ia-tt { font-size: clamp(26px,3.6vw,40px); }
+/* Mas grande que un h2 normal -llega a 64 contra 50- porque es el gancho
+   del servicio y lo primero que tiene que frenar a alguien que scrollea.
+   El balance parte los renglones parejos en vez de dejar una palabra
+   colgando, que en un titular de este tamano se ve de lejos. */
+.s2b .s2b-ia-tt { font-size: clamp(32px,5.4vw,64px); letter-spacing: -.035em;
+  line-height: 1.02; text-wrap: balance; }
 .s2b .s2b-ia-tt b { font-weight: 600; background: linear-gradient(100deg, var(--violet), var(--lilac));
   -webkit-background-clip: text; background-clip: text; color: transparent; }
 .s2b-ia-d { margin-top: 14px; font-size: 15px; color: var(--muted); line-height: 1.62;
@@ -1126,6 +1131,13 @@ const CSS = `
   text-decoration-color: rgba(255,255,255,.22); }
 .s2b-ia-vs-ahora { font-size: 14.5px; line-height: 1.5; color: var(--title); font-weight: 600; }
 .s2b-ia-vs-flecha { color: var(--lilac); justify-self: start; }
+
+/* los dos botones del demo: el de ver pesa, el de compartir no */
+.s2b-ia-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 22px; }
+.s2b .s2b-ia-acciones .s2b-appweb-link { margin-top: 0; }
+.s2b-ia-demo-pie { display: flex; gap: 9px; align-items: flex-start; margin-top: 12px;
+  font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 52ch; }
+.s2b-ia-demo-pie svg { flex: none; margin-top: 3px; color: var(--lilac); }
 
 .s2b-ia-porque { margin-top: 40px; }
 .s2b-ia-rot { display: block; margin-bottom: 16px; font-family: var(--mono); font-size: 10px;
@@ -2895,6 +2907,10 @@ const sieteDias = (t) => [
      puede pagarlo no escribe, y el que escribe ya sabe de que estamos
      hablando.
    ================================================================== */
+/* Una de verdad, en produccion. Va aparte y con nombre porque el dia que
+   cambie el demo se cambia aca y no hay que buscarlo en el JSX. */
+const IA_DEMO = "https://ntg-business.vercel.app/";
+
 const IA_SETUP = 1200;
 const IA_MES = 70;
 
@@ -6131,10 +6147,23 @@ export default function StudioB2B() {
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing.")}
               </p>
-                <button className="s2b-appweb-link" onClick={copiarIA}>
-                  {copiadoIA ? <Check size={14} /> : <Share2 size={14} />}
-                  {copiadoIA ? t("Link copiado", "Link copied") : t("Copiar el link para pasárselo a alguien", "Copy the link to send it to someone")}
-                </button>
+                {/* Ver una andando convence mas que cualquier parrafo, asi
+                    que el demo va primero y el compartir despues. Se aclara
+                    que es de un cliente real y no una maqueta: una demo de
+                    mentira se nota y juega en contra. */}
+                <div className="s2b-ia-acciones">
+                  <a className="s2b-btn s2b-btn--chrome" href={IA_DEMO} target="_blank" rel="noopener noreferrer">
+                    {t("Ver una andando", "See a live one")} <ArrowUpRight size={16} />
+                  </a>
+                  <button className="s2b-appweb-link" onClick={copiarIA}>
+                    {copiadoIA ? <Check size={14} /> : <Share2 size={14} />}
+                    {copiadoIA ? t("Link copiado", "Link copied") : t("Copiar el link para pasárselo a alguien", "Copy the link to send it to someone")}
+                  </button>
+                </div>
+                <p className="s2b-ia-demo-pie">
+                  <MonitorPlay size={14} aria-hidden="true" />
+                  {t("Es la de un cliente nuestro, en producción y recibiendo consultas de verdad. No es una maqueta.", "It belongs to a client of ours, in production and taking real enquiries. It isn't a mockup.")}
+                </p>
               </div>
 
               {/* La caja del precio al lado del titulo, igual que en la app
