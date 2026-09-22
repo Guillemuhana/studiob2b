@@ -1132,6 +1132,19 @@ const CSS = `
 .s2b-ia-vs-ahora { font-size: 14.5px; line-height: 1.5; color: var(--title); font-weight: 600; }
 .s2b-ia-vs-flecha { color: var(--lilac); justify-self: start; }
 
+/* la captura del demo, en el mismo marco de navegador que los casos de
+   clientes: asi se lee como un trabajo de verdad y no como un dibujo */
+.s2b-ia-demo { display: block; margin-top: 34px; }
+.s2b-ia-demo .s2b-shot { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.s2b-ia-demo:hover .s2b-shot { transform: translateY(-4px); }
+.s2b-ia-demo-rot { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 14px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--muted); }
+.s2b-ia-demo-rot svg { flex: none; color: var(--lilac); }
+.s2b-ia-demo-rot em { display: inline-flex; align-items: center; gap: 5px; font-style: normal;
+  color: var(--lilac); }
+.s2b-ia-demo:hover .s2b-ia-demo-rot em { color: #fff; }
+
 /* los dos botones del demo: el de ver pesa, el de compartir no */
 .s2b-ia-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 22px; }
 .s2b .s2b-ia-acciones .s2b-appweb-link { margin-top: 0; }
@@ -2956,6 +2969,18 @@ const porQueIA = (t) => [
   {
     tt: t("Es tuyo, no alquilado", "It's yours, not rented"),
     d: t("No es una suscripción a una plataforma que mañana sube el precio o cierra. Queda en tu dominio y con tus datos.", "It's not a subscription to a platform that raises its price or shuts down tomorrow. It stays on your domain, with your data."),
+  },
+  {
+    tt: t("Tus mejores clientes se pierden entre los curiosos", "Your best clients get buried among the browsers"),
+    d: t("Veinte consultas por semana suenan bien hasta que ves que dos eran de verdad. Sin calificación se atienden por orden de llegada, que es el peor orden posible.", "Twenty enquiries a week sounds good until you see two were real. Without scoring they get handled in arrival order, which is the worst possible order."),
+  },
+  {
+    tt: t("Cuesta menos que medio sueldo y no se toma vacaciones", "It costs less than half a salary and never takes a holiday"),
+    d: t("No reemplaza a un vendedor: le saca de encima el trabajo de filtrar y le deja solo las llamadas que valen.", "It doesn't replace a salesperson: it takes the filtering off their plate and leaves them only the calls worth making."),
+  },
+  {
+    tt: t("En tu rubro casi nadie lo tiene todavía", "Almost nobody in your field has it yet"),
+    d: t("La mayoría de los competidores sigue con un formulario de contacto de hace diez años. La diferencia se siente en el primer minuto.", "Most competitors are still running a contact form from ten years ago. The difference shows in the first minute."),
   },
 ];
 
@@ -6203,6 +6228,10 @@ export default function StudioB2B() {
                  t("Te dice quién es, qué quiere, para cuándo y qué lo frena.", "It tells you who they are, what they want, by when and what's holding them up.")],
                 [t("Contestás cuando podés, y a veces al otro día.", "You reply when you can, sometimes the next day."),
                  t("Contesta en segundos, también domingos y feriados.", "It replies in seconds, Sundays and holidays too.")],
+                [t("Si te escriben en otro idioma, se pierde la consulta.", "If they write in another language, the enquiry is lost."),
+                 t("Atiende en el idioma en el que le hablen.", "It answers in whatever language they use.")],
+                [t("No sabés cuánta gente entró ni qué fue a buscar.", "You don't know how many came in or what they were after."),
+                 t("Sabés quién entró, qué miró y qué preguntó.", "You know who came in, what they looked at and what they asked.")],
               ].map(([a, b]) => (
                 <div className="s2b-ia-vs-fila" key={a}>
                   <p className="s2b-ia-vs-antes">{a}</p>
@@ -6211,6 +6240,26 @@ export default function StudioB2B() {
                 </div>
               ))}
             </div>
+
+            {/* La captura del demo, con el asistente abierto. Un link a
+                ciegas no muestra nada: esto se ve antes de decidir si hacer
+                clic, y el marco de navegador es el mismo que usan los casos
+                de clientes, para que se lea como un trabajo y no como un
+                dibujo. */}
+            <a className="s2b-ia-demo s2b-rv" href={IA_DEMO} target="_blank" rel="noopener noreferrer">
+              <div className="s2b-shot">
+                <img
+                  src="/trabajos/demo-appweb-ia.jpg"
+                  alt={t("La web de Ninit Group con el asistente abierto, atendiendo a un visitante", "Ninit Group's site with the assistant open, serving a visitor")}
+                  loading="lazy" width={1400} height={788}
+                />
+              </div>
+              <span className="s2b-ia-demo-rot">
+                <MonitorPlay size={15} aria-hidden="true" />
+                {t("Ninit Group · el asistente atendiendo, en vivo", "Ninit Group · the assistant at work, live")}
+                <em>{t("Abrir", "Open")} <ArrowUpRight size={14} /></em>
+              </span>
+            </a>
 
             {/* Antes de los cuatro modulos, que es la pagina. Sin esto el
                 bloque se leia como "una IA" suelta y no como lo que es: una
