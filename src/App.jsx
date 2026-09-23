@@ -262,23 +262,75 @@ const CSS = `
 /* ---------- el desplegable ----------
    Nace oscuro: el sitio es oscuro y una caja clara colgando del header se
    ve pegada encima. */
-.s2b-pop { position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%);
-  width:min(620px, 84vw); z-index:90; padding:14px;
-  border-radius:20px; border:1px solid rgba(167,140,255,.2);
-  background:rgba(14,10,30,.96); backdrop-filter:blur(20px) saturate(150%);
-  box-shadow:0 40px 90px -34px rgba(0,0,0,.9); }
+/* ---------- el desplegable del menu ----------
+   Antes aparecia de golpe, pegado al borde de arriba y con las entradas
+   apretadas una contra otra. Tres cosas lo arreglan:
+
+   - Entra: baja unos pixeles y se desvanece, en 180 ms. Sin eso el ojo no
+     sigue de donde salio la caja y el salto se siente brusco.
+   - Se apoya: una punta de flecha lo une al boton que lo abrio, asi se
+     lee de cual cuelga cuando hay dos menus al lado.
+   - Respira: cada entrada tiene su caja, su aire y su flecha a la
+     derecha, que aparece al pasar por encima. Toda la fila es tocable,
+     no solo el texto.
+
+   El hueco de 10 px entre el boton y la caja se cubre con un ::before
+   invisible: sin eso, al bajar el mouse desde el boton el menu se cierra
+   a mitad de camino. */
+.s2b-pop { position:absolute; top:calc(100% + 12px); left:50%;
+  width:min(620px, 84vw); z-index:90; padding:16px;
+  border-radius:22px; border:1px solid rgba(167,140,255,.22);
+  background:
+    radial-gradient(520px circle at 20% -20%, rgba(109,74,255,.22), transparent 62%),
+    rgba(13,10,28,.97);
+  backdrop-filter:blur(22px) saturate(160%);
+  box-shadow:0 44px 100px -36px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.06);
+  transform-origin:top center;
+  animation:s2b-pop-entra .18s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes s2b-pop-entra {
+  from { opacity:0; transform:translateX(-50%) translateY(-8px) scale(.985); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+}
+/* el puente que evita que se cierre al bajar el mouse */
+.s2b-pop::before { content:''; position:absolute; left:0; right:0; top:-14px; height:14px; }
+/* la punta que lo une al boton */
+.s2b-pop::after { content:''; position:absolute; top:-6px; left:50%; width:12px; height:12px;
+  transform:translateX(-50%) rotate(45deg); border-radius:2px;
+  background:rgba(13,10,28,.97); border-left:1px solid rgba(167,140,255,.22);
+  border-top:1px solid rgba(167,140,255,.22); }
+@media (prefers-reduced-motion: reduce) { .s2b-pop { animation:none; transform:translateX(-50%); } }
+
 .s2b-pop-cab { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
-  padding:2px 8px 12px; margin-bottom:8px; border-bottom:1px solid rgba(167,140,255,.14); }
-.s2b-pop-cab b { font-family:var(--display); font-size:14px; color:#fff; }
+  padding:4px 10px 13px; margin-bottom:10px; border-bottom:1px solid rgba(167,140,255,.14); }
+.s2b-pop-cab b { font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--muted); font-weight:400; }
 .s2b-pop-cab span { font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--lilac); }
-.s2b-pop-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
-.s2b .s2b-pop-grid button { display:grid; grid-template-columns:32px 1fr; gap:11px; align-items:center;
-  width:100%; text-align:left; padding:10px 9px; border-radius:13px; transition:background .2s; }
-.s2b .s2b-pop-grid button:hover { background:rgba(167,140,255,.12); }
-.s2b-pop-grid .ic { width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
-  color:var(--lilac); background:rgba(167,140,255,.14); border:1px solid rgba(167,140,255,.24); }
-.s2b-pop-grid b { display:block; font-family:var(--display); font-weight:600; font-size:13.5px; color:#fff; line-height:1.25; }
-.s2b-pop-grid em { font-family:var(--mono); font-style:normal; font-size:10px; letter-spacing:.08em; color:var(--muted); }
+
+.s2b-pop-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.s2b .s2b-pop-grid button { position:relative; display:grid; grid-template-columns:36px 1fr 14px;
+  gap:12px; align-items:center; width:100%; text-align:left;
+  padding:12px 12px; border-radius:15px;
+  border:1px solid transparent;
+  transition:background .18s, border-color .18s, transform .18s; }
+.s2b .s2b-pop-grid button:hover { background:rgba(167,140,255,.13);
+  border-color:rgba(167,140,255,.24); transform:translateX(2px); }
+.s2b-pop-grid .ic { width:36px; height:36px; border-radius:11px; display:grid; place-items:center;
+  color:var(--lilac); background:rgba(167,140,255,.14); border:1px solid rgba(167,140,255,.24);
+  transition:background .18s, color .18s; }
+.s2b .s2b-pop-grid button:hover .ic { background:rgba(167,140,255,.26); color:#fff; }
+.s2b-pop-grid b { display:block; font-family:var(--display); font-weight:600; font-size:14.5px;
+  color:#fff; line-height:1.25; }
+.s2b-pop-grid em { display:block; margin-top:3px; font-family:var(--mono); font-style:normal;
+  font-size:10.5px; letter-spacing:.06em; color:var(--muted); line-height:1.4; }
+/* la flecha aparece recien al pasar por encima: seis fijas serian ruido */
+.s2b-pop-grid button::after { content:'→'; font-size:14px; color:var(--lilac);
+  opacity:0; transform:translateX(-4px); transition:opacity .18s, transform .18s; }
+.s2b-pop-grid button:hover::after { opacity:1; transform:translateX(0); }
+
+/* el chevron del boton gira cuando su menu esta abierto */
+.s2b-menu button.top svg:last-of-type { transition:transform .2s; }
+.s2b-menu button.top[aria-expanded="true"] { color:#fff; background:rgba(255,255,255,.08); }
+.s2b-menu button.top[aria-expanded="true"] svg:last-of-type { transform:rotate(180deg); }
 
 
 .s2b-burger { display:none; padding:8px; color:#fff; }
@@ -1727,7 +1779,27 @@ const CSS = `
   transition: background .2s, transform .2s, border-color .2s;
 }
 .s2b-wa-chips button:hover { background:#E9FBF2; border-color:rgba(18,140,126,.5); transform:translateX(2px); }
-.s2b-wa-cta { width:100%; display:flex; align-items:center; justify-content:center; gap:9px; padding:14px; font-size:14.5px; font-weight:700; color:#fff; background: linear-gradient(140deg,#1FA855,#128C7E); transition:filter .2s; }
+/* el producto principal, marcado: quien abre el globo no viene a elegir
+   entre cinco cosas iguales, viene a que le digan por donde empezar */
+.s2b .s2b-wa-chips button.is-fuerte { background:#E9FBF2; border-color:rgba(18,140,126,.45);
+  box-shadow:0 0 0 1px rgba(18,140,126,.3), 0 8px 20px -12px rgba(18,140,126,.6); font-weight:700; }
+.s2b .s2b-wa-chips button.is-fuerte:hover { background:#DDF6EA; }
+.s2b-wa-chips button i { display:block; margin-bottom:3px; font-style:normal; font-family:var(--mono);
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#0E7A6E; }
+/* el pie del globo: los dos numeros, el de Argentina primero */
+.s2b-wa-pie { display:grid; }
+.s2b-wa-cta { width:100%; display:flex; align-items:center; justify-content:center; gap:11px;
+  padding:13px 14px; font-size:14px; font-weight:700; color:#fff; text-align:left;
+  background: linear-gradient(140deg,#1FA855,#128C7E); transition:filter .2s; }
+.s2b-wa-cta span { display:grid; line-height:1.2; }
+.s2b-wa-cta em { font-style:normal; font-weight:500; font-size:12px; opacity:.85;
+  font-family:var(--mono); letter-spacing:.02em; margin-top:2px; }
+.s2b-wa-cta svg { flex:none; }
+/* el de Miami no es WhatsApp sino una llamada: va en otro color para que
+   nadie espere que se abra la app y se encuentre con el telefono */
+.s2b .s2b-wa-cta--us { color:#0E2A3F; background:linear-gradient(140deg,#EAF3FA,#CFE3F2);
+  border-top:1px solid rgba(0,0,0,.08); }
+.s2b .s2b-wa-cta--us em { opacity:.7; }
 .s2b-wa-cta:hover { filter:brightness(1.09); }
 .s2b-wa-cta .s2b-wa-ico { width:19px; height:19px; }
 
@@ -2479,6 +2551,11 @@ const CSS = `
   box-shadow: 0 20px 44px -12px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .s2b .s2b-wa-cta { color: #fff; background: linear-gradient(140deg, #1FA855, #128C7E); }
+/* Esta regla del tema oscuro le ganaba al color del boton de Miami, asi que
+   el de llamar quedaba verde como el de WhatsApp y los dos parecian lo
+   mismo. Se repite aca, despues, para que gane el que corresponde. */
+.s2b .s2b-wa-cta.s2b-wa-cta--us { color: #0E2A3F;
+  background: linear-gradient(140deg, #EAF3FA, #CFE3F2); }
 .s2b .s2b-wa-x { color: rgba(255,255,255,.85); }
 .s2b .s2b-wa-x:hover { color: #fff; background: rgba(255,255,255,.2); }
 
@@ -3485,11 +3562,30 @@ const FORM_TO = "guillemuhana@gmail.com";
 const FORM_VACIO = { nombre: "", empresa: "", email: "", tel: "", tipo: "", etapa: "", presupuesto: "", msg: "" };
 const WA_NUM = "5493515931673";
 const WA_SHOW = "+54 9 351 593-1673";
+/* La linea de Miami. No es WhatsApp: es un telefono de Estados Unidos, asi
+   que va con tel: y no con wa.me, que mandaria a la app equivocada. */
+const TEL_US = "+13059278255";
+const TEL_US_SHOW = "+1 (305) 927-8255";
 const waLink = (msg) => "https://wa.me/" + WA_NUM + "?text=" + encodeURIComponent(msg);
+/* Lo que se le ofrece a alguien que abre el globo de WhatsApp. El primero
+   va destacado -`fuerte`- porque es el producto principal de la casa y
+   porque quien entra por aca no viene a elegir entre cuatro cosas iguales:
+   viene a que le digan por donde empezar.
+
+   Los textos estan escritos en primera persona y ya completos: el que toca
+   no tiene que escribir nada, y del otro lado llega una consulta que se
+   entiende sin preguntar de que se trata. */
 const waChips = (t) => [
-  t("Hola, quiero un agente de IA para mi empresa.", "Hi, I'd like an AI agent for my company."),
-  t("Hola, necesito desarrollar un software a medida.", "Hi, I need custom software built."),
-  t("Hola, quiero hacerles una consulta.", "Hi, I have a question for you."),
+  { fuerte: true, txt: t("Quiero una app web inteligente", "I want a smart web app"),
+    msg: t("Hola Studio B2B, quiero una app web inteligente con IA. ¿Me cuentan cómo sigue?", "Hi Studio B2B, I want a smart web app with AI. Can you tell me how it works?") },
+  { txt: t("Necesito una página web", "I need a website"),
+    msg: t("Hola Studio B2B, necesito una página web para mi negocio.", "Hi Studio B2B, I need a website for my business.") },
+  { txt: t("Quiero un agente de IA", "I want an AI agent"),
+    msg: t("Hola Studio B2B, quiero un agente de IA para mi empresa.", "Hi Studio B2B, I'd like an AI agent for my company.") },
+  { txt: t("Necesito software a medida", "I need custom software"),
+    msg: t("Hola Studio B2B, necesito desarrollar un software a medida.", "Hi Studio B2B, I need custom software built.") },
+  { txt: t("Tengo otra consulta", "I have another question"),
+    msg: t("Hola Studio B2B, quiero hacerles una consulta.", "Hi Studio B2B, I have a question for you.") },
 ];
 
 /* La primera pregunta del formulario, agrupada por los dos publicos del sitio.
@@ -5210,14 +5306,29 @@ function WhatsAppBubble({ t, chips, subida, oculta }) {
             <button className="s2b-wa-x" onClick={() => setOpen(false)} aria-label={t("Cerrar", "Close")}><X size={16} /></button>
           </div>
           <div className="s2b-wa-body">
-            <p className="s2b-wa-msg">{t("¡Hola! 👋 Contanos qué necesitás y seguimos la charla por WhatsApp.", "Hi there! 👋 Tell us what you need and we'll keep the conversation on WhatsApp.")}</p>
+            <p className="s2b-wa-msg">{t("¡Hola! 👋 Tocá lo que necesitás y seguimos por WhatsApp.", "Hi there! 👋 Tap what you need and we'll keep going on WhatsApp.")}</p>
             <div className="s2b-wa-chips">
-              {chips.map((c) => <button key={c} onClick={() => go(c)}>{c}</button>)}
+              {chips.map((c) => (
+                <button key={c.txt} className={c.fuerte ? "is-fuerte" : ""} onClick={() => go(c.msg)}>
+                  {c.fuerte && <i>{t("Lo más pedido", "Most requested")}</i>}
+                  {c.txt}
+                </button>
+              ))}
             </div>
           </div>
-          <button className="s2b-wa-cta" onClick={() => go("Hola Studio B2B, quiero hacerles una consulta.")}>
-            <WhatsappGlyph /> {t("Abrir WhatsApp", "Open WhatsApp")}
-          </button>
+          {/* Los dos numeros, con la ciudad al lado. Primero el de Argentina,
+              que es la sede. Sin la ciudad, dos telefonos juntos hacen dudar
+              a cual llamar, que es peor que tener uno solo. */}
+          <div className="s2b-wa-pie">
+            <button className="s2b-wa-cta" onClick={() => go(t("Hola Studio B2B, quiero hacerles una consulta.", "Hi Studio B2B, I have a question for you."))}>
+              <WhatsappGlyph />
+              <span>{t("WhatsApp Argentina", "WhatsApp Argentina")}<em>{WA_SHOW}</em></span>
+            </button>
+            <a className="s2b-wa-cta s2b-wa-cta--us" href={"tel:" + TEL_US}>
+              <Phone size={17} />
+              <span>{t("Llamar a Miami", "Call Miami")}<em>{TEL_US_SHOW}</em></span>
+            </a>
+          </div>
         </div>
       )}
       <button
@@ -5791,6 +5902,7 @@ export default function StudioB2B() {
             {t("Contanos qué necesitás. Te respondemos en menos de 24 horas hábiles con una primera lectura del problema y una propuesta de diagnóstico. La primera llamada no se cobra.", "Tell us what you need. We reply within 24 business hours with a first read of the problem and a discovery proposal. The first call is free.")}
           </p>
           <a className="s2b-cline" style={{ textDecoration: "none" }} href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer"><Phone size={17} /> {WA_SHOW}</a>
+          <a className="s2b-cline" style={{ textDecoration: "none" }} href={"tel:" + TEL_US}><Phone size={17} /> {TEL_US_SHOW} <em style={{ fontStyle: "normal", color: "#9E97C4", fontSize: 13 }}>· Miami</em></a>
           <div className="s2b-cline"><MapPin size={17} /> {t("Córdoba, Argentina · Miami, EE.UU.", "Córdoba, Argentina · Miami, USA")}</div>
           <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 12 }}>
             <Quote size={20} style={{ color: "var(--lilac)" }} />
@@ -6007,6 +6119,9 @@ export default function StudioB2B() {
                   camino corto y no hay por que hacerlo bajar hasta el pie */}
               <a className="s2b-drawer-wa" href={waLink(t("Hola Studio B2B, quiero hacerles una consulta.", "Hi Studio B2B, I'd like to ask you something."))} target="_blank" rel="noopener noreferrer">
                 <WhatsappGlyph /> WhatsApp {WA_SHOW}
+              </a>
+              <a className="s2b-drawer-wa" style={{ color: "var(--lilac)" }} href={"tel:" + TEL_US}>
+                <Phone size={17} /> {TEL_US_SHOW} · Miami
               </a>
               <span className="s2b-drawer-loc"><MapPin size={13} /> {t("Córdoba, Argentina · Miami, EE.UU.", "Córdoba, Argentina · Miami, USA")}</span>
             </div>
@@ -7191,9 +7306,16 @@ export default function StudioB2B() {
               <div>
                 <h5>{t("Contacto", "Contact")}</h5>
                 <ul>
-                  <li><a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a></li>
-                  <li>{t("Córdoba, Argentina", "Córdoba, Argentina")}</li>
-                  <li>{t("Miami, Estados Unidos", "Miami, United States")}</li>
+                  {/* cada oficina con su numero al lado: un telefono suelto
+                      sin ciudad no le sirve a nadie */}
+                  <li>
+                    {t("Córdoba, Argentina", "Córdoba, Argentina")}<br />
+                    <a href={waLink("Hola Studio B2B, quiero hacerles una consulta.")} target="_blank" rel="noopener noreferrer">WhatsApp {WA_SHOW}</a>
+                  </li>
+                  <li>
+                    {t("Miami, Estados Unidos", "Miami, United States")}<br />
+                    <a href={"tel:" + TEL_US}>{TEL_US_SHOW}</a>
+                  </li>
                 </ul>
               </div>
             </div>

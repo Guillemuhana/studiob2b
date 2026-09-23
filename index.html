@@ -7,16 +7,19 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <title>Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial</title>
+    <title>Studio B2B | Desarrollo de Apps, Software a Medida e IA · Córdoba y Miami</title>
     <meta
       name="description"
-      content="Desarrollamos aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina."
+      content="Aplicaciones web inteligentes, software a medida, CRM y agentes de IA para empresas. Oficinas en Córdoba, Argentina y Miami, Estados Unidos. Atendemos en español e inglés."
     />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="author" content="Studio B2B" />
     <link rel="canonical" href="https://sb2b.vercel.app/" />
 
-    <!-- señales locales: dónde estamos y a quién le vendemos -->
+    <!-- Señales locales. Las etiquetas geo.* admiten una sola ubicación por
+         página, así que llevan la sede -Córdoba-; la segunda oficina entra
+         por el esquema de abajo, que sí acepta varias sucursales con su
+         propio teléfono y su propio horario. -->
     <meta name="geo.region" content="AR-X" />
     <meta name="geo.placename" content="Córdoba, Argentina" />
     <meta name="geo.position" content="-31.4201;-64.1888" />
@@ -25,10 +28,10 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Studio B2B" />
     <meta property="og:locale" content="es_AR" />
-    <meta property="og:title" content="Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial" />
+    <meta property="og:title" content="Studio B2B | Desarrollo de Apps, Software a Medida e IA · Córdoba y Miami" />
     <meta
       property="og:description"
-      content="Aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina."
+      content="Aplicaciones web inteligentes, software a medida, CRM y agentes de IA para empresas. Córdoba, Argentina y Miami, Estados Unidos."
     />
     <meta property="og:url" content="https://sb2b.vercel.app/" />
     <meta property="og:image" content="https://sb2b.vercel.app/og.png" />
@@ -40,7 +43,7 @@
     <meta name="twitter:title" content="Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial" />
     <meta
       name="twitter:description"
-      content="Aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina."
+      content="Aplicaciones web inteligentes, software a medida, CRM y agentes de IA para empresas. Córdoba, Argentina y Miami, Estados Unidos."
     />
     <meta name="twitter:image" content="https://sb2b.vercel.app/og.png" />
 
@@ -64,10 +67,26 @@
             "url": "https://sb2b.vercel.app/",
             "logo": "https://sb2b.vercel.app/logo.png",
             "image": "https://sb2b.vercel.app/og.png",
-            "description": "Estudio de producto digital e inteligencia artificial. Desarrollamos software a medida, apps móviles y agentes de IA para empresas de Córdoba, Buenos Aires y toda Argentina.",
+            "description": "Estudio de producto digital e inteligencia artificial. Desarrollamos aplicaciones web inteligentes, software a medida, apps móviles y agentes de IA para empresas de Córdoba y de Miami.",
             "slogan": "Impulsamos tecnología que rinde en producción y escala con tu negocio",
             "foundingDate": "2015",
             "telephone": "+5493515931673",
+            "contactPoint": [
+              {
+                "@type": "ContactPoint",
+                "telephone": "+5493515931673",
+                "contactType": "sales",
+                "areaServed": "AR",
+                "availableLanguage": ["es", "en"]
+              },
+              {
+                "@type": "ContactPoint",
+                "telephone": "+13059278255",
+                "contactType": "sales",
+                "areaServed": "US",
+                "availableLanguage": ["en", "es"]
+              }
+            ],
             "priceRange": "$$",
             "currenciesAccepted": "ARS, USD",
             "knowsLanguage": ["es-AR", "en"],
@@ -77,6 +96,32 @@
               "addressRegion": "Córdoba",
               "addressCountry": "AR"
             },
+            "location": [
+              {
+                "@type": "Place",
+                "name": "Studio B2B · Córdoba",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Córdoba",
+                  "addressRegion": "Córdoba",
+                  "addressCountry": "AR"
+                },
+                "geo": { "@type": "GeoCoordinates", "latitude": -31.4201, "longitude": -64.1888 },
+                "telephone": "+5493515931673"
+              },
+              {
+                "@type": "Place",
+                "name": "Studio B2B · Miami",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Miami",
+                  "addressRegion": "FL",
+                  "addressCountry": "US"
+                },
+                "geo": { "@type": "GeoCoordinates", "latitude": 25.7617, "longitude": -80.1918 },
+                "telephone": "+13059278255"
+              }
+            ],
             "geo": {
               "@type": "GeoCoordinates",
               "latitude": -31.4201,
@@ -90,6 +135,7 @@
               { "@type": "AdministrativeArea", "name": "Provincia de Buenos Aires" },
               { "@type": "Country", "name": "Argentina" },
               { "@type": "City", "name": "Miami" },
+              { "@type": "AdministrativeArea", "name": "Florida" },
               { "@type": "Country", "name": "Estados Unidos" }
             ],
             "serviceType": [
