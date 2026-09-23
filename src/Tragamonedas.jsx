@@ -356,7 +356,26 @@ function Marca({ icono }) {
   );
 }
 
-function Simbolo({ id }) {
+/* En la maquina de Pecifa los simbolos son las caras de la conduccion: el
+   escudo es el gran premio y cada premio menor tiene su cara. Los ids no
+   cambian -son los que guarda el servidor-, cambia solo lo que se ve. Las
+   monedas de adorno y el HUD siguen siendo monedas: van con `dibujo`. */
+const FOTO = (n) => `/pecifa/${String(n).padStart(2, "0")}.jpg`;
+const FOTOS = {
+  logo: "/clientes/pecifa.png",
+  diamante: FOTO(1), lingote: FOTO(2), moneda: FOTO(3),
+  rayo: FOTO(4), chip: FOTO(5), estrella: FOTO(6),
+  ...Object.fromEntries(Array.from({ length: 11 }, (_, i) => ["p" + String(i + 7).padStart(2, "0"), FOTO(i + 7)])),
+};
+
+function Simbolo({ id, dibujo }) {
+  if (!dibujo && FOTOS[id]) {
+    return (
+      <span className={"s2b-tm-sim s2b-tm-sim--foto" + (id === "logo" ? " s2b-tm-sim--escudo" : "")}>
+        <img src={FOTOS[id]} alt="" aria-hidden="true" draggable="false" />
+      </span>
+    );
+  }
   if (id === "logo") {
     return (
       <span className="s2b-tm-sim s2b-tm-sim--logo">
@@ -459,7 +478,7 @@ function Lluvia({ tipo = "moneda", cantidad }) {
           <img key={i} src="/logo.png" alt="" style={g} />
         ) : (
           <span key={i} className="s2b-tm-gota" style={g}>
-            <Simbolo id="moneda" />
+            <Simbolo id="moneda" dibujo />
           </span>
         )
       )}
@@ -499,9 +518,12 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [tiras, setTiras] = useState(() => {
     const base = premioGuardado
       ? grillaDe(premioGuardado).grilla
-      : [["lingote", "diamante", "logo"], ["estrella", "moneda", "diamante"],
-         ["rayo", "logo", "moneda"], ["moneda", "lingote", "chip"],
-         ["diamante", "estrella", "rayo"]];
+      /* la primera pantalla va fija y mezcla caras de premio con las de
+         relleno, sin ninguna linea armada: nadie tiene que creer que gano
+         antes de girar */
+      : [["p07", "diamante", "logo"], ["estrella", "p09", "lingote"],
+         ["p11", "logo", "moneda"], ["rayo", "p13", "chip"],
+         ["p15", "p08", "p16"]];
     return base.map((col) => armarTambor(col));
   });
   /* el angulo de cada tambor; siempre baja, nunca vuelve para atras */
@@ -545,6 +567,12 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const cortarSonido = useRef(null);
   const audio = useRef(null);
   const montado = useRef(true);
+
+  /* las caras se piden apenas abre la maquina: si llegan tarde, el primer
+     giro muestra rodillos con huecos */
+  useEffect(() => {
+    Object.values(FOTOS).forEach((src) => { const im = new Image(); im.src = src; });
+  }, []);
 
   useEffect(() => {
     montado.current = true;
@@ -874,7 +902,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
               <div className="s2b-tm-monedas" aria-hidden="true">
                 {MONEDAS.map((m, i) => (
                   <span key={i} className="s2b-tm-moneda" style={m}>
-                    <Simbolo id="moneda" />
+                    <Simbolo id="moneda" dibujo />
                   </span>
                 ))}
               </div>
@@ -895,7 +923,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         de los rodillos, todo esta abajo, al alcance del pulgar. */}
                     <div className="s2b-tm-hud">
                       <span className="s2b-tm-hud-saldo">
-                        <Simbolo id="moneda" />
+                        <Simbolo id="moneda" dibujo />
                         <b>{sinTope ? "∞" : restantes}</b>
                         <small>{libre ? t("modo prueba", "test mode") : t("jugadas", "spins")}</small>
                       </span>
@@ -1269,7 +1297,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                     </>
                   ) : (
                     <>
-                      <div className="s2b-tm-premio-sim s2b-tm-premio-sim--nada"><Simbolo id="chip" /></div>
+                      <div className="s2b-tm-premio-sim s2b-tm-premio-sim--nada"><Simbolo id="chip" dibujo /></div>
                       <h3 className="s2b-tm-premio-tit">{t(resultado.premio.es, resultado.premio.en)}</h3>
                       <p className="s2b-tm-premio-det">{t(resultado.premio.detalle_es, resultado.premio.detalle_en)}</p>
                       {restantes > 0 ? (
@@ -1337,6 +1365,19 @@ const CSS_TM = `
 .s2b-tm-sim { position:relative; display:grid; place-items:center; flex:none; }
 .s2b-tm-sim > svg, .s2b-tm-sim > img { width:100%; height:100%; object-fit:contain; display:block; }
 .s2b-tm-sim > svg { filter: drop-shadow(0 5px 10px rgba(0,0,0,.6)); }
+
+/* las caras: un medallon con aro de oro, como una ficha de casino */
+.s2b-tm-sim--foto {
+  border-radius:50%; padding:6%;
+  background: conic-gradient(from 210deg, #FFF6D0, #F9D858, #D09A1C, #7C4E06, #F9D858, #FFF6D0);
+  box-shadow: 0 6px 14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.45);
+}
+.s2b-tm-sim--foto { overflow:hidden; aspect-ratio:1; }
+/* alto en auto + aspect-ratio: en la celda el medallon tiene alto auto, y un
+   100% contra eso deja la foto en su tamano natural, desbordada */
+.s2b-tm-sim.s2b-tm-sim--foto > img { height:auto; aspect-ratio:1; border-radius:50%; object-fit:cover; -webkit-user-drag:none; user-select:none; }
+.s2b-tm-sim.s2b-tm-sim--escudo > img { object-fit:contain; background:#fff; padding:5%; }
+.s2b-tm-sim--escudo { box-shadow: 0 0 22px rgba(255,200,80,.55), 0 6px 14px rgba(0,0,0,.55); }
 
 .s2b-tm-sim--logo::before {
   content:''; position:absolute; inset:-16%; border-radius:50%; pointer-events:none;
