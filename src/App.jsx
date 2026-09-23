@@ -1188,29 +1188,60 @@ const CSS = `
 }
 
 /* ---- la promo ----
-   El sello arriba a la derecha y el precio viejo tachado al lado del
-   nuevo: sin el tachado, un numero suelto no se lee como oferta. Los dos
-   pagos van en su propia caja porque "40% y el resto" es la pregunta que
-   sigue al precio, no un detalle del pie. */
-.s2b-ia-caja.is-promo { position:relative; border-color:rgba(127,227,168,.42);
-  background:linear-gradient(160deg, rgba(31,168,85,.14), rgba(0,0,0,.34) 62%); }
-.s2b-promo-sello { position:absolute; top:-11px; right:18px;
-  padding:5px 13px; border-radius:999px;
+   Naranja y no verde: el verde ya es el de WhatsApp en todo el sitio, asi
+   que una oferta en verde se confunde con un boton de contacto. El naranja
+   no lo usa nada mas, entonces cuando aparece se sabe que es esto.
+
+   El sello late despacio -dos segundos- porque en una tarjeta quieta es lo
+   unico que se mueve y es ahi donde tiene que caer el ojo. Y el numero
+   lleva un resplandor detras en vez de un borde: un borde mas, al lado de
+   los que ya tiene la caja, se pierde.
+   ================================================================== */
+.s2b-ia-caja.is-promo { position:relative; overflow:hidden;
+  border-color:rgba(255,138,76,.5);
+  background:
+    radial-gradient(120% 80% at 80% -10%, rgba(255,138,76,.26), transparent 62%),
+    linear-gradient(160deg, rgba(90,38,10,.5), rgba(0,0,0,.42) 64%);
+  box-shadow:0 30px 70px -40px rgba(255,138,76,.75); }
+/* la cinta de luz que cruza la caja cada tanto */
+.s2b-ia-caja.is-promo::after { content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(100deg, transparent 38%, rgba(255,200,150,.16) 50%, transparent 62%);
+  transform:translateX(-120%); animation:s2b-promo-luz 4.5s ease-in-out infinite; }
+@keyframes s2b-promo-luz { 0%,62% { transform:translateX(-120%); } 88%,100% { transform:translateX(120%); } }
+
+.s2b-promo-sello { position:absolute; top:16px; right:16px; z-index:2;
+  display:inline-flex; align-items:center; gap:7px;
+  padding:6px 15px; border-radius:999px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+  font-weight:700; color:#3A1400;
+  background:linear-gradient(120deg,#FFD9A8,#FF9A4C 52%,#FF6B2C);
+  box-shadow:0 12px 28px -10px rgba(255,138,76,.95);
+  animation:s2b-promo-late 2s ease-in-out infinite; }
+@keyframes s2b-promo-late { 50% { transform:scale(1.06); box-shadow:0 16px 36px -10px rgba(255,138,76,1); } }
+@media (prefers-reduced-motion: reduce) {
+  .s2b-promo-sello, .s2b-ia-caja.is-promo::after { animation:none; }
+  .s2b-ia-caja.is-promo::after { opacity:0; }
+}
+
+.s2b-promo-desde { display:block; margin-bottom:2px; font-style:normal;
   font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
-  font-weight:700; color:#06301A;
-  background:linear-gradient(120deg,#8FEAB0,#4AE083 55%,#1FA855);
-  box-shadow:0 10px 24px -12px rgba(31,168,85,.95); }
-.s2b-ia-caja.is-promo .s2b-ia-num b { color:#8FEAB0; }
-.s2b-ia-caja.is-promo .s2b-ia-num em s { color:var(--muted); opacity:.8; }
+  color:#FFB27A; }
+.s2b-ia-caja.is-promo { padding-top:30px; }
+.s2b-ia-caja.is-promo .s2b-ia-num b { position:relative; color:#FFC79A;
+  text-shadow:0 0 34px rgba(255,138,76,.65); }
+.s2b-ia-caja.is-promo .s2b-ia-num em s { color:var(--muted); opacity:.75; }
+.s2b-ia-caja.is-promo .s2b-ia-num--mes { border-top-color:rgba(255,138,76,.26); }
+.s2b-ia-caja.is-promo .s2b-ia-num--mes b { color:var(--lilac); text-shadow:none; }
+
 .s2b-promo-pagos { list-style:none; margin:16px 0 0; padding:14px 0 0; display:grid; gap:10px;
-  border-top:1px solid rgba(127,227,168,.24); }
+  border-top:1px solid rgba(255,138,76,.28); }
 .s2b-promo-pagos li { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
 .s2b-promo-pagos b { font-family:var(--display); font-size:19px; font-weight:700; color:#fff; }
 .s2b-promo-pagos em { font-style:normal; font-family:var(--mono); font-size:10px; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--muted); }
-.s2b-promo-pago-corto { display:block; margin-top:10px; font-size:13px; color:#8FEAB0; line-height:1.5; }
-/* el boton de la promo es verde: va a WhatsApp, no a un formulario */
-.s2b .s2b-promo-cta { color:#fff;
+  text-transform:uppercase; color:#FFB27A; }
+.s2b-promo-pago-corto { display:block; margin-top:10px; font-size:13px; color:#FFB27A; line-height:1.5; }
+/* el boton sigue verde: va a WhatsApp, y ahi el verde no decora, avisa */
+.s2b .s2b-promo-cta { position:relative; z-index:2; color:#fff;
   background:linear-gradient(150deg,#4AE083,#1FA855 62%,#128C7E);
   box-shadow:0 14px 34px -14px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.3); }
 .s2b-promo-cta .s2b-wa-ico { width:17px; height:17px; }
@@ -3154,7 +3185,11 @@ const IA_MES = 70;
 const PROMO = {
   activa: true,
   hasta: null,
-  pesos: 950000,
+  pesos: 750000,
+  /* "desde" y no un precio cerrado: el piso arranca aca y sube segun la
+     estructura del proyecto. Los dos pagos que se muestran son sobre el
+     piso, que es lo unico que se puede afirmar sin haber visto el caso. */
+  desde: true,
   senia: 0.4,
 };
 const promoVigente = () => PROMO.activa && (!PROMO.hasta || Date.now() <= Date.parse(PROMO.hasta + "T23:59:59"));
@@ -6527,6 +6562,7 @@ export default function StudioB2B() {
             <div className={"s2b-appweb-precio s2b-ia-caja" + (promoVigente() ? " is-promo" : "")}>
               {promoVigente() && <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>}
               <span className="s2b-ia-num">
+                {promoVigente() && PROMO.desde && <i className="s2b-promo-desde">{t("desde", "from")}</i>}
                 <b>{promoVigente() ? pesosAR(PROMO.pesos) : "US$ " + IA_SETUP.toLocaleString("es-AR")}</b>
                 <em>
                   {t("la puesta en marcha, una sola vez", "setup, one time")}
@@ -6679,6 +6715,7 @@ export default function StudioB2B() {
                   <>
                     <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>
                     <span className="s2b-ia-num">
+                      {PROMO.desde && <i className="s2b-promo-desde">{t("desde", "from")}</i>}
                       <b>{pesosAR(PROMO.pesos)}</b>
                       <em>
                         {t("la puesta en marcha, una sola vez", "setup, one time")}
