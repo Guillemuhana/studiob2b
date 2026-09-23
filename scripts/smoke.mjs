@@ -65,7 +65,12 @@ try {
     "hero renderizado": "Impulsamos tecnolog",
     "nav con logo": "/logo.png",
     "terminal de agentes": "agente-comercial",
-    "bloque de tecnologias": "potencian nuestras soluciones",
+    /* La pared de logos de tecnologias salio del home: se miraba, no ayudaba
+       a decidir y costaba una pantalla entera. En su lugar se vigila lo que
+       si tiene que estar en el home. Ojo: el smoke mira solo "/", asi que
+       la marca tiene que existir en el home y no en otra pagina. */
+    "la cadena comercial": "conseguimos",
+    "aplicaciones web": "Aplicaciones web",
     "burbuja de WhatsApp": "s2b-wa-fab",
     "fondo neuronal": "s2b-neural",
   };
