@@ -382,6 +382,15 @@ const CSS = `
 .s2b .s2b-drawer button.dl:active { background:rgba(167,140,255,.16); border-color:rgba(167,140,255,.34); }
 .s2b-drawer button.dl > svg { flex:none; color:var(--lilac); opacity:.7; }
 
+/* el grupo abierto se marca, para que se vea de cual cuelgan los hijos */
+.s2b-dl-grupo.is-abierto > .dl { background:rgba(167,140,255,.14); border-color:rgba(167,140,255,.32); }
+.s2b-dl-grupo > .dl[aria-expanded="true"] svg { transform:rotate(180deg); }
+.s2b-drawer-nav .dl svg { transition:transform .22s; }
+.s2b-dl-hijos { display:grid; gap:2px; padding:8px 0 4px;
+  animation:s2b-dl-abre .2s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes s2b-dl-abre { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .s2b-dl-hijos { animation:none; } }
+
 /* los hijos de un desplegable: sangrados, sin caja propia y mas chicos,
    para que se lea que cuelgan del de arriba y no compitan con el */
 .s2b .s2b-drawer button.dl--hijo { justify-content:flex-start;
@@ -2052,6 +2061,15 @@ const CSS = `
 /* el telefono adentro de la puerta va mas chico: la puerta no es el hero */
 .s2b-door .s2b-phone { width: 202px; }
 .s2b-door .s2b-phone-scr { min-height: 254px; }
+
+/* el telefono con la captura adentro: la pantalla deja de tener relleno
+   propio, la imagen la llena entera y el nombre va debajo del marco */
+.s2b-phone--foto { margin: 0 auto; }
+.s2b-phone--foto .s2b-phone-scr { padding: 0; min-height: 0; display: block; }
+.s2b-phone--foto img { display: block; width: 100%; height: auto; }
+.s2b-phone--foto figcaption { margin-top: 14px; text-align: center;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--muted); line-height: 1.5; }
 .s2b-door-in { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; }
 /* el resplandor que se enciende al pasar por encima */
 .s2b-door::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0;
@@ -5403,6 +5421,21 @@ function UiPanel({ claro, titulo, kpis = [], barras = [], filas = [] }) {
   );
 }
 
+/* El mismo marco de telefono, pero con una captura real adentro en vez de
+   un wireframe. Un dibujo abstracto no prueba nada; una app que existe,
+   si. Por eso lleva el nombre debajo: sin decir de quien es, una captura
+   se lee como una maqueta mas. */
+function UiTelefonoFoto({ src, alt, pie }) {
+  return (
+    <figure className="s2b-phone s2b-phone--foto">
+      <div className="s2b-phone-scr">
+        <img src={src} alt={alt} loading="lazy" width={657} height={1280} />
+      </div>
+      {pie && <figcaption>{pie}</figcaption>}
+    </figure>
+  );
+}
+
 function UiTelefono({ titulo, sub, cards = [], cta }) {
   return (
     <div className="s2b-phone" aria-hidden="true">
@@ -5550,6 +5583,8 @@ export default function StudioB2B() {
      pintado en que se suscribio */
   const drawerRef = useRef(false);
   const [drawer, setDrawer] = useState(false);
+  /* que grupo del menu del celular esta abierto, o null */
+  const [cajon, setCajon] = useState(null);
   const [tab, setTab] = useState("soft");
   const [qi, setQi] = useState(0);
   const celular = useCelular();
@@ -5844,7 +5879,7 @@ export default function StudioB2B() {
   }, [esDiaProg]);
 
   const goTo = useCallback((id) => {
-    setDrawer(false); setPop(null);
+    setDrawer(false); setPop(null); setCajon(null);
     if (RUTAS[id]) { irA(id); return; }
     /* las anclas con direccion propia la dejan en la barra, asi la persona
        puede copiar el link de donde esta parada */
@@ -6101,29 +6136,45 @@ export default function StudioB2B() {
                 esto, lo unico que estaba adentro de "Precios" -entre otras
                 cosas, las aplicaciones web- no se podia alcanzar desde el
                 menu del telefono. */}
+            {/* Un acordeon y no todo desplegado. Con los diez hijos abiertos
+                el cajon eran quince filas y habia que scrollear el menu para
+                encontrar el menu. Ahora arranca en cinco entradas limpias y
+                se abre la que a uno le interesa; el chevron dice cual tiene
+                algo adentro. */}
             <nav className="s2b-drawer-nav">
               {NAV_LINKS.map((n) => {
                 const menu = n.pop && POPS[n.pop];
+                const abierto = cajon === n.id;
                 return (
-                  <React.Fragment key={n.id}>
-                    <button className={"dl" + (n.id === "jugar" ? " is-jugar" : "")} onClick={() => goTo(n.id)}>
+                  <div className={"s2b-dl-grupo" + (abierto ? " is-abierto" : "")} key={n.id}>
+                    <button
+                      className={"dl" + (n.id === "jugar" ? " is-jugar" : "")}
+                      aria-expanded={menu ? abierto : undefined}
+                      onClick={() => (menu ? setCajon(abierto ? null : n.id) : goTo(n.id))}
+                    >
                       <span>{n.label}</span>
-                      <ArrowUpRight size={17} aria-hidden="true" />
+                      {menu
+                        ? <ChevronDown size={18} aria-hidden="true" />
+                        : <ArrowUpRight size={17} aria-hidden="true" />}
                       {n.id === "jugar" && <i className="s2b-luz" aria-hidden="true" />}
                     </button>
-                    {menu && menu.items.map((it) => {
-                      const I = it.ic;
-                      return (
-                        <button key={it.tt} className={"dl dl--hijo" + (it.listo ? " is-listo" : "")} onClick={() => goTo(it.to)}>
-                          <I size={16} aria-hidden="true" />
-                          <span>
-                            {it.listo && <i className="s2b-pop-listo">{it.listo}</i>}
-                            {it.tt}<em>{it.d}</em>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </React.Fragment>
+                    {menu && abierto && (
+                      <div className="s2b-dl-hijos">
+                        {menu.items.map((it) => {
+                          const I = it.ic;
+                          return (
+                            <button key={it.tt} className={"dl dl--hijo" + (it.listo ? " is-listo" : "")} onClick={() => goTo(it.to)}>
+                              <I size={16} aria-hidden="true" />
+                              <span>
+                                {it.listo && <i className="s2b-pop-listo">{it.listo}</i>}
+                                {it.tt}<em>{it.d}</em>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </nav>
@@ -6785,11 +6836,10 @@ export default function StudioB2B() {
                           ]}
                         />
                       ) : (
-                        <UiTelefono
-                          sub="MVP · v0.1"
-                          titulo={t("Tu producto", "Your product")}
-                          cards={[t("Registro", "Sign up"), t("Panel", "Dashboard")]}
-                          cta={t("Empezar", "Get started")}
+                        <UiTelefonoFoto
+                          src="/trabajos/idea-fewmin.jpg"
+                          alt={t("Fewmin, la app de pedidos que desarrollamos para Miami, funcionando en un teléfono", "Fewmin, the delivery app we built for Miami, running on a phone")}
+                          pie={t("Fewmin · de una idea a una app andando en Miami", "Fewmin · from an idea to a live app in Miami")}
                         />
                       )}
                     </div>
