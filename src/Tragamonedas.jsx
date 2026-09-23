@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { claveGuardada, headerClave } from "./clave.js";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import confetti from "canvas-confetti";
@@ -65,9 +66,11 @@ async function pedirJugada(metodo) {
   const llave = llaveDePrueba();
   const r = await fetch(API, {
     method: metodo,
-    headers: llave
-      ? { Accept: "application/json", "x-sb2b-libre": llave }
-      : { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      ...headerClave(claveGuardada()),
+      ...(llave ? { "x-sb2b-libre": llave } : {}),
+    },
     cache: "no-store",
   });
   if (!r.ok) throw new Error("api " + r.status);

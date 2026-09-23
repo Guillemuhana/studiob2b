@@ -18,7 +18,7 @@
    con sal, asi que la IP nunca se guarda en claro ni sale de esta funcion.
    ================================================================== */
 
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 
 const URL_SB = process.env.SUPABASE_URL;
 const KEY_SB = process.env.SUPABASE_ANON_KEY;
@@ -33,7 +33,24 @@ const TOPE = 3;
    copia del link sin querer. */
 const LIBRE = process.env.SB2B_LIBRE;
 
+/* La contrasena de la puerta. La pantalla que la pide esta en el navegador,
+   pero quien la hace valer es este archivo: sin ella la API no gira ni
+   consulta, asi que saltearse la pantalla desde el inspector no sirve de
+   nada. Se cambia en Vercel con SB2B_CLAVE_JUGAR, sin tocar codigo. */
+const CLAVE = process.env.SB2B_CLAVE_JUGAR || "pecifajuega";
+
 const sha = (s) => createHash("sha256").update(s).digest("hex");
+
+/* Viaja con encodeURIComponent porque un header no acepta acentos ni la ene.
+   Se compara sin mayusculas ni espacios de mas -en el celular el teclado
+   pone la primera en mayuscula solo- y en tiempo constante. */
+function claveOk(bruta) {
+  let clave = "";
+  try { clave = decodeURIComponent(String(bruta || "")); } catch { return false; }
+  const a = Buffer.from(sha(clave.trim().toLowerCase()), "hex");
+  const b = Buffer.from(sha(CLAVE.trim().toLowerCase()), "hex");
+  return timingSafeEqual(a, b);
+}
 
 /* x-forwarded-for llega como "cliente, proxy1, proxy2": el primero es el que
    importa. Vercel lo arma el mismo, asi que no lo puede falsear el cliente. */
@@ -75,6 +92,13 @@ export default async function handler(req, res) {
   const huella = sha(`${SAL}|${ip}|${navegador}|${idioma}`);
   const ipHash = sha(`${SAL}|${ip}`);
   const libre = !!LIBRE && req.headers["x-sb2b-libre"] === LIBRE;
+
+  if (!libre && !claveOk(req.headers["x-sb2b-clave"])) {
+    /* un respiro antes de contestar, para que probar claves de a miles no
+       sea gratis */
+    await new Promise((r) => setTimeout(r, 600));
+    return res.status(401).json({ error: "clave incorrecta" });
+  }
 
   try {
     if (req.method === "GET") {

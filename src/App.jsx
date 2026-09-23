@@ -19,7 +19,9 @@ const DiaDelProgramador = lazy(() => import("./DiaDelProgramador.jsx"));
 
 /* El casino vive en su propia pagina y se lleva el confeti y el motor de
    animacion, asi que tambien va aparte: quien no entra a /jugar no lo baja. */
-const Tragamonedas = lazy(() => import("./Tragamonedas.jsx"));
+/* La puerta de /jugar va adelante: pide la contrasena de Pecifa y recien
+   despues trae la maquina, con la galeria de la conduccion abajo. */
+const JugarPecifa = lazy(() => import("./JugarPecifa.jsx"));
 
 /* El saludo dura un dia: el 13 de septiembre esta, el 14 la pagina vuelve a
    ser la de siempre. Con ?dia=1 en la URL se puede abrir fuera de fecha, para
@@ -6937,7 +6939,7 @@ export default function StudioB2B() {
       {/* ============ JUGAR (pagina aparte) ============ */}
       {vista === "jugar" && (
         <Suspense fallback={<div style={{ minHeight: 620 }} aria-hidden="true" />}>
-          <Tragamonedas t={t} waLink={waLink} irA={irA} />
+          <JugarPecifa t={t} waLink={waLink} irA={irA} />
         </Suspense>
       )}
 
