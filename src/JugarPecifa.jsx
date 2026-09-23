@@ -85,9 +85,9 @@ function Puerta({ t, irA, alAbrir }) {
           </div>
 
           <div className="s2b-pf-caja">
-            <div className="s2b-eyebrow">{t("Pecifa Nacional · Acceso exclusivo", "Pecifa Nacional · Members only")}</div>
+            <div className="s2b-eyebrow">{t("Acceso exclusivo para afiliados", "Members only")}</div>
             <h2 className="s2b-h2 s2b-pf-h2">
-              {t("Esta máquina es", "This machine is")} <b>{t("para afiliados", "for members")}</b>
+              {t("Jugá con", "Play with")} <b>Pecifa Nacional</b>
             </h2>
             <p className="s2b-pf-lead">
               {t("Ingresá la contraseña para entrar a jugar.", "Enter the password to start playing.")}
