@@ -1187,6 +1187,34 @@ const CSS = `
   .s2b-ia-corto { grid-template-columns: 1.35fr .65fr; gap: 40px; align-items: start; padding: 36px 34px; }
 }
 
+/* ---- la promo ----
+   El sello arriba a la derecha y el precio viejo tachado al lado del
+   nuevo: sin el tachado, un numero suelto no se lee como oferta. Los dos
+   pagos van en su propia caja porque "40% y el resto" es la pregunta que
+   sigue al precio, no un detalle del pie. */
+.s2b-ia-caja.is-promo { position:relative; border-color:rgba(127,227,168,.42);
+  background:linear-gradient(160deg, rgba(31,168,85,.14), rgba(0,0,0,.34) 62%); }
+.s2b-promo-sello { position:absolute; top:-11px; right:18px;
+  padding:5px 13px; border-radius:999px;
+  font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  font-weight:700; color:#06301A;
+  background:linear-gradient(120deg,#8FEAB0,#4AE083 55%,#1FA855);
+  box-shadow:0 10px 24px -12px rgba(31,168,85,.95); }
+.s2b-ia-caja.is-promo .s2b-ia-num b { color:#8FEAB0; }
+.s2b-ia-caja.is-promo .s2b-ia-num em s { color:var(--muted); opacity:.8; }
+.s2b-promo-pagos { list-style:none; margin:16px 0 0; padding:14px 0 0; display:grid; gap:10px;
+  border-top:1px solid rgba(127,227,168,.24); }
+.s2b-promo-pagos li { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
+.s2b-promo-pagos b { font-family:var(--display); font-size:19px; font-weight:700; color:#fff; }
+.s2b-promo-pagos em { font-style:normal; font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); }
+.s2b-promo-pago-corto { display:block; margin-top:10px; font-size:13px; color:#8FEAB0; line-height:1.5; }
+/* el boton de la promo es verde: va a WhatsApp, no a un formulario */
+.s2b .s2b-promo-cta { color:#fff;
+  background:linear-gradient(150deg,#4AE083,#1FA855 62%,#128C7E);
+  box-shadow:0 14px 34px -14px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.3); }
+.s2b-promo-cta .s2b-wa-ico { width:17px; height:17px; }
+
 /* el sello de nuevo: es lo que hace que alguien que ya conoce el sitio
    frene y lo lea en vez de pasarlo de largo */
 .s2b-ia-nuevo { display: inline-flex; align-items: center; margin-bottom: 14px;
@@ -2532,6 +2560,13 @@ const CSS = `
   background: linear-gradient(180deg, #7E5EFF 0%, #6D4AFF 46%, #5432DE 100%);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.26), 0 12px 26px -14px rgba(109,74,255,.9);
 }
+/* El boton de la promo va a WhatsApp y por eso es verde. La regla de arriba
+   -del tema oscuro, y posterior a la del boton- lo pintaba de violeta como
+   cualquier otro primario, y quedaba sin decir adonde manda. */
+.s2b .s2b-btn.s2b-promo-cta { color:#fff;
+  background:linear-gradient(150deg,#4AE083,#1FA855 62%,#128C7E);
+  box-shadow:0 14px 34px -14px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.3); }
+.s2b .s2b-btn.s2b-promo-cta:hover { filter:brightness(1.06); }
 .s2b .s2b-btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 18px 36px -14px rgba(109,74,255,1); }
 
 .s2b .s2b-btn--chrome {
@@ -3099,6 +3134,31 @@ const IA_DEMO = "https://ntg-business.vercel.app/";
 
 const IA_SETUP = 1200;
 const IA_MES = 70;
+
+/* ==================================================================
+   La promocion.
+
+   Se prende y se apaga desde aca. `activa` en false devuelve el precio
+   normal en dolares y hace desaparecer todo lo de la promo; no hay que
+   tocar nada mas ni acordarse de sacar un cartel.
+
+   `hasta` es opcional: con una fecha, la promo cae sola ese dia a la
+   noche; en null no vence. Va en null a proposito porque el link se usa
+   en publicidad paga, y una promo que se apaga sola a mitad de campania
+   deja los avisos apuntando a un precio que ya no existe.
+
+   El pago: 40% al empezar y 60% al entregar. Se escribe con los dos
+   numeros calculados y no a mano, asi no se puede desincronizar de la
+   cifra de arriba.
+   ================================================================== */
+const PROMO = {
+  activa: true,
+  hasta: null,
+  pesos: 950000,
+  senia: 0.4,
+};
+const promoVigente = () => PROMO.activa && (!PROMO.hasta || Date.now() <= Date.parse(PROMO.hasta + "T23:59:59"));
+const pesosAR = (n) => "$" + n.toLocaleString("es-AR");
 
 const modulosIA = (t) => [
   {
@@ -6464,11 +6524,20 @@ export default function StudioB2B() {
                 {t("Ver todo lo que incluye", "See everything it includes")} <ArrowRight size={15} />
               </button>
             </div>
-            <div className="s2b-appweb-precio s2b-ia-caja">
+            <div className={"s2b-appweb-precio s2b-ia-caja" + (promoVigente() ? " is-promo" : "")}>
+              {promoVigente() && <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>}
               <span className="s2b-ia-num">
-                <b>US$ {IA_SETUP.toLocaleString("es-AR")}</b>
-                <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>
+                <b>{promoVigente() ? pesosAR(PROMO.pesos) : "US$ " + IA_SETUP.toLocaleString("es-AR")}</b>
+                <em>
+                  {t("la puesta en marcha, una sola vez", "setup, one time")}
+                  {promoVigente() && <> · <s>US$ {IA_SETUP.toLocaleString("es-AR")}</s></>}
+                </em>
               </span>
+              {promoVigente() && (
+                <span className="s2b-promo-pago-corto">
+                  {t("40% al comenzar y el resto al finalizar", "40% to start and the rest on delivery")}
+                </span>
+              )}
               <span className="s2b-ia-num s2b-ia-num--mes">
                 <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
                 <em>{t("para que siga andando", "to keep it running")}</em>
@@ -6605,18 +6674,54 @@ export default function StudioB2B() {
                   web de arriba: cuanto sale es lo primero que se busca, y
                   tenerlo abajo de todo obligaba a leer el bloque entero
                   para enterarse. */}
-              <div className="s2b-appweb-precio s2b-ia-caja">
-                <span className="s2b-ia-num">
-                  <b>US$ {IA_SETUP.toLocaleString("es-AR")}</b>
-                  <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>
-                </span>
-                <span className="s2b-ia-num s2b-ia-num--mes">
-                  <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
-                  <em>{t("para que siga andando", "to keep it running")}</em>
-                </span>
-                <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("contacto")}>
-                  {t("Quiero que me lo muestren", "Show me how it'd look")} <ArrowRight size={16} />
-                </button>
+              <div className={"s2b-appweb-precio s2b-ia-caja" + (promoVigente() ? " is-promo" : "")}>
+                {promoVigente() ? (
+                  <>
+                    <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>
+                    <span className="s2b-ia-num">
+                      <b>{pesosAR(PROMO.pesos)}</b>
+                      <em>
+                        {t("la puesta en marcha, una sola vez", "setup, one time")}
+                        {" · "}
+                        <s>US$ {IA_SETUP.toLocaleString("es-AR")}</s>
+                      </em>
+                    </span>
+                    {/* los dos pagos calculados, no escritos: si cambia la
+                        cifra de arriba, estos cambian solos */}
+                    <ul className="s2b-promo-pagos">
+                      <li>
+                        <b>{pesosAR(Math.round(PROMO.pesos * PROMO.senia))}</b>
+                        <em>{t("al comenzar", "to start")} · {Math.round(PROMO.senia * 100)}%</em>
+                      </li>
+                      <li>
+                        <b>{pesosAR(PROMO.pesos - Math.round(PROMO.pesos * PROMO.senia))}</b>
+                        <em>{t("al finalizar", "on delivery")}</em>
+                      </li>
+                    </ul>
+                    <span className="s2b-ia-num s2b-ia-num--mes">
+                      <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
+                      <em>{t("para que siga andando", "to keep it running")}</em>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="s2b-ia-num">
+                      <b>US$ {IA_SETUP.toLocaleString("es-AR")}</b>
+                      <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>
+                    </span>
+                    <span className="s2b-ia-num s2b-ia-num--mes">
+                      <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
+                      <em>{t("para que siga andando", "to keep it running")}</em>
+                    </span>
+                  </>
+                )}
+                <a
+                  className="s2b-btn s2b-btn--primary s2b-promo-cta"
+                  href={waLink(t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI."))}
+                  target="_blank" rel="noopener noreferrer"
+                >
+                  <WhatsappGlyph /> {t("Solicitá tu demo gratis", "Request your free demo")}
+                </a>
               </div>
             </div>
 
