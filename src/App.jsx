@@ -3225,26 +3225,38 @@ const precioIACorto = (t) =>
     : "US$ " + IA_SETUP.toLocaleString("es-AR"))
   + (MOSTRAR_MES ? " + " + IA_MES + t("/mes", "/mo") : "");
 
-/* Lo que va incluido y el adicional, debajo del precio. El adicional se
-   cotiza aparte: depende de que datos haya que guardar y que tiene que
-   hacer la IA con ellos. */
-function IncluyeIA({ t, extra, setExtra }) {
+/* Lo que va incluido y los adicionales, debajo del precio. Los adicionales
+   se cotizan aparte: dependen de que datos haya que guardar, que tiene que
+   hacer la IA con ellos y que gestiones internas lleva la empresa. */
+const EXTRAS_IA = (t) => [
+  { id: "datos", tt: t("Base de datos + IA", "Database + AI"), msj: t("base de datos + IA", "database + AI") },
+  { id: "panel", tt: t("Panel de gestión interna para tu empresa", "Internal management panel for your company"), msj: t("panel de gestión interna", "internal management panel") },
+];
+
+function IncluyeIA({ t, extras, setExtras }) {
+  const lista = EXTRAS_IA(t);
+  const alternar = (id) => setExtras((xs) => (xs.includes(id) ? xs.filter((x) => x !== id) : [...xs, id]));
   return (
     <ul className="s2b-ia-incluye">
       <li><Check size={15} /> {t("Dominio incluido", "Domain included")}</li>
       <li><Check size={15} /> {t("Servidor propio incluido", "Your own server included")}</li>
       <li><Check size={15} /> {t("Posicionamiento SEO profesional, optimizado con IA", "Professional SEO, optimized with AI")}</li>
-      {setExtra ? (
-        <li>
-          <label className={"s2b-ia-extra" + (extra ? " is-on" : "")}>
-            <input type="checkbox" checked={extra} onChange={(e) => setExtra(e.target.checked)} />
-            <span className="s2b-ia-extra-caja" aria-hidden="true">{extra ? <Check size={13} /> : <Plus size={13} />}</span>
-            <span>{t("Sumar base de datos + IA", "Add database + AI")}<small>{t("opcional · se cotiza aparte", "optional · quoted separately")}</small></span>
-          </label>
-        </li>
-      ) : (
-        <li className="is-extra"><Plus size={15} /> {t("Opcional: base de datos + IA", "Optional: database + AI")}</li>
-      )}
+      {setExtras
+        ? lista.map((x) => {
+            const on = extras.includes(x.id);
+            return (
+              <li key={x.id}>
+                <label className={"s2b-ia-extra" + (on ? " is-on" : "")}>
+                  <input type="checkbox" checked={on} onChange={() => alternar(x.id)} />
+                  <span className="s2b-ia-extra-caja" aria-hidden="true">{on ? <Check size={13} /> : <Plus size={13} />}</span>
+                  <span>{t("Sumar ", "Add ") + x.tt.charAt(0).toLowerCase() + x.tt.slice(1)}<small>{t("opcional · se cotiza aparte", "optional · quoted separately")}</small></span>
+                </label>
+              </li>
+            );
+          })
+        : lista.map((x) => (
+            <li className="is-extra" key={x.id}><Plus size={15} /> {t("Opcional: ", "Optional: ") + x.tt.charAt(0).toLowerCase() + x.tt.slice(1)}</li>
+          ))}
     </ul>
   );
 }
@@ -5752,8 +5764,8 @@ export default function StudioB2B() {
      direccion sale del origen donde esta corriendo y no escrita a mano,
      asi el boton sirve igual en una preview o en local. */
   const [copiadoIA, setCopiadoIA] = useState(false);
-  /* el adicional de base de datos + IA, marcado o no, viaja en el mensaje */
-  const [extraIA, setExtraIA] = useState(false);
+  /* los adicionales que marco la persona; viajan en el mensaje de WhatsApp */
+  const [extrasIA, setExtrasIA] = useState([]);
   const copiarIA = useCallback(() => {
     const url = window.location.origin + RUTAS["paquete-ia"];
     const listo = () => { setCopiadoIA(true); setTimeout(() => setCopiadoIA(false), 2200); };
@@ -6793,14 +6805,17 @@ export default function StudioB2B() {
                     )}
                   </>
                 )}
-                <IncluyeIA t={t} extra={extraIA} setExtra={setExtraIA} />
+                <IncluyeIA t={t} extras={extrasIA} setExtras={setExtrasIA} />
                 {/* si marco el adicional, el mensaje ya lo dice: asi no hay que
                     repetirlo en el chat */}
                 <a
                   className="s2b-btn s2b-btn--primary s2b-promo-cta"
-                  href={waLink(extraIA
-                    ? t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA, con base de datos + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI, with the database + AI add-on.")
-                    : t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI."))}
+                  href={waLink(
+                    t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI")
+                    + (extrasIA.length
+                      ? t(", con ", ", with ") + EXTRAS_IA(t).filter((x) => extrasIA.includes(x.id)).map((x) => x.msj).join(t(" y ", " and "))
+                      : "")
+                    + ".")}
                   target="_blank" rel="noopener noreferrer"
                 >
                   <WhatsappGlyph /> {t("Solicitá tu demo gratis", "Request your free demo")}
