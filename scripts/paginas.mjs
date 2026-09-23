@@ -31,7 +31,7 @@ const PAGINAS = [
     archivo: "app-web-inteligente.html",
     ruta: "/app-web-inteligente",
     titulo: "App web inteligente + IA | Tu web que atiende y califica | Studio B2B",
-    desc: "Obtené tu app web inteligente: vende por vos las 24 horas. Atiende en segundos, califica cada consulta y te la entrega lista para llamar. Desde $750.000, dominio incluido. Solicitá tu demo gratis.",
+    desc: "Obtené tu app web inteligente: vende por vos las 24 horas. Atiende en segundos, califica cada consulta y te la entrega lista para llamar. Desde $750.000, dominio y servidor propio incluidos. Solicitá tu demo gratis.",
     img: "/og-app-web-inteligente.png",
   },
   {

@@ -3232,6 +3232,7 @@ function IncluyeIA({ t, extra, setExtra }) {
   return (
     <ul className="s2b-ia-incluye">
       <li><Check size={15} /> {t("Dominio incluido", "Domain included")}</li>
+      <li><Check size={15} /> {t("Servidor propio incluido", "Your own server included")}</li>
       {setExtra ? (
         <li>
           <label className={"s2b-ia-extra" + (extra ? " is-on" : "")}>
