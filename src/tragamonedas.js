@@ -17,11 +17,11 @@
    al hilo, no cual simbolo. El logo es el unico con premio propio -los cinco
    logos son el mayor-; los demas pagan por cantidad. */
 export const SIMBOLOS = ["logo", "diamante", "lingote", "moneda", "rayo", "chip", "estrella",
-  /* Las otras once caras de la conduccion de Pecifa van solo de relleno: no
+  /* Las otras doce caras de la conduccion de Pecifa van solo de relleno: no
      pagan nada propio, pero asi aparecen todas en los rodillos. Los premios
      los siguen pagando los siete de arriba, que son los que conoce el
      servidor. */
-  ...Array.from({ length: 11 }, (_, i) => "p" + String(i + 7).padStart(2, "0"))];
+  ...Array.from({ length: 12 }, (_, i) => "p" + String(i + 7).padStart(2, "0"))];
 
 /* Todos los premios son porcentajes de descuento sobre el presupuesto, no
    montos fijos: asi el premio acompana al tamano del proyecto en vez de

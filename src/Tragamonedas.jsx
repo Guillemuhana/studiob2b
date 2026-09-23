@@ -362,10 +362,10 @@ function Marca({ icono }) {
    monedas de adorno y el HUD siguen siendo monedas: van con `dibujo`. */
 const FOTO = (n) => `/pecifa/${String(n).padStart(2, "0")}.jpg`;
 const FOTOS = {
-  logo: "/clientes/pecifa.png",
+  logo: "/pecifa/escudo.webp",
   diamante: FOTO(1), lingote: FOTO(2), moneda: FOTO(3),
   rayo: FOTO(4), chip: FOTO(5), estrella: FOTO(6),
-  ...Object.fromEntries(Array.from({ length: 11 }, (_, i) => ["p" + String(i + 7).padStart(2, "0"), FOTO(i + 7)])),
+  ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => ["p" + String(i + 7).padStart(2, "0"), FOTO(i + 7)])),
 };
 
 function Simbolo({ id, dibujo }) {
@@ -1376,8 +1376,9 @@ const CSS_TM = `
 /* alto en auto + aspect-ratio: en la celda el medallon tiene alto auto, y un
    100% contra eso deja la foto en su tamano natural, desbordada */
 .s2b-tm-sim.s2b-tm-sim--foto > img { height:auto; aspect-ratio:1; border-radius:50%; object-fit:cover; -webkit-user-drag:none; user-select:none; }
-.s2b-tm-sim.s2b-tm-sim--escudo > img { object-fit:contain; background:#fff; padding:5%; }
-.s2b-tm-sim--escudo { box-shadow: 0 0 22px rgba(255,200,80,.55), 0 6px 14px rgba(0,0,0,.55); }
+/* el escudo ya trae su propio aro de oro: va sin el medallon, solo con brillo */
+.s2b-tm-sim.s2b-tm-sim--escudo { padding:0; background:none; overflow:visible; box-shadow:none; }
+.s2b-tm-sim.s2b-tm-sim--escudo > img { object-fit:contain; filter: drop-shadow(0 0 12px rgba(255,200,80,.7)) drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
 
 .s2b-tm-sim--logo::before {
   content:''; position:absolute; inset:-16%; border-radius:50%; pointer-events:none;

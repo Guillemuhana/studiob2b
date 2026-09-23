@@ -11,7 +11,7 @@ const Tragamonedas = lazy(cargarMaquina);
    recortadas en cuadrado con la cara al centro. El nombre y el cargo van
    vacios hasta tenerlos confirmados: si estan, aparecen debajo de la foto;
    si no, la foto va sola. */
-const DIRIGENTES = Array.from({ length: 17 }, (_, i) => ({
+const DIRIGENTES = Array.from({ length: 18 }, (_, i) => ({
   src: `/pecifa/${String(i + 1).padStart(2, "0")}.jpg`,
   n: "",
   r: "",
@@ -80,7 +80,7 @@ function Puerta({ t, irA, alAbrir }) {
               ))}
             </div>
             <div className="s2b-pf-escudo">
-              <img src="/clientes/pecifa.png" alt="" width="107" height="108" />
+              <img src="/pecifa/escudo.webp" alt="" width="480" height="480" />
             </div>
           </div>
 
@@ -153,7 +153,7 @@ function Conduccion({ t }) {
       <section className="s2b-sec s2b-sec--sm">
         <div className="s2b-wrap">
           <div className="s2b-pf-dir-top">
-            <img className="s2b-pf-dir-escudo" src="/clientes/pecifa.png" alt="Pecifa" width="107" height="108" loading="lazy" />
+            <img className="s2b-pf-dir-escudo" src="/pecifa/escudo.webp" alt="Pecifa" width="480" height="480" loading="lazy" />
             <div className="s2b-eyebrow">{t("Pecifa Nacional", "Pecifa Nacional")}</div>
             <h2 className="s2b-h2 s2b-pf-h2">
               {t("Nuestra", "Our")} <b>{t("conducción", "leadership")}</b>
@@ -268,10 +268,9 @@ const CSS_PF = `
 .s2b-pf-escudo {
   position:absolute; left:50%; top:50%; width:44%; aspect-ratio:1; transform:translate(-50%,-50%);
   display:grid; place-items:center; border-radius:50%;
-  background:#fff;
-  box-shadow: 0 0 0 6px rgba(249,216,88,.18), 0 0 70px rgba(255,190,70,.35), 0 24px 50px -18px rgba(0,0,0,.8);
+  box-shadow: 0 0 70px rgba(255,190,70,.4), 0 24px 50px -18px rgba(0,0,0,.8);
 }
-.s2b-pf-escudo img { width:78%; height:auto; display:block; }
+.s2b-pf-escudo img { width:100%; height:auto; display:block; }
 @keyframes s2b-pf-gira { to { transform: rotate(360deg); } }
 
 /* ---------- el formulario ---------- */
@@ -316,8 +315,8 @@ const CSS_PF = `
 .s2b-pf-dir .s2b-eyebrow { color: var(--oro2); }
 .s2b .s2b-pf-dir-top .s2b-pf-lead { text-align:center; }
 .s2b-pf-dir-escudo {
-  width:84px; height:84px; object-fit:contain; margin-bottom:20px; padding:6px; border-radius:50%;
-  background:#fff; box-shadow: 0 0 0 5px rgba(249,216,88,.2), 0 0 50px rgba(255,190,70,.3);
+  width:96px; height:96px; object-fit:contain; margin-bottom:20px; border-radius:50%;
+  box-shadow: 0 0 50px rgba(255,190,70,.35);
 }
 .s2b-pf-grilla {
   list-style:none; margin:48px auto 0; padding:0; max-width:1040px;
