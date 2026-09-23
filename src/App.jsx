@@ -2073,7 +2073,14 @@ const CSS = `
 .s2b-door-rot::before { content: ""; width: 22px; height: 1px; background: currentColor; opacity: .5; }
 .s2b-door h3 { font-size: clamp(21px,2.5vw,30px); line-height: 1.16; margin-bottom: 13px; max-width: 17ch; }
 .s2b-door > .s2b-door-in > p { color: var(--muted); font-size: 15.3px; max-width: 42ch; }
-.s2b-door-tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 20px 0 26px; }
+/* Los tres momentos de cada camino. Reemplazan a la pared de etiquetas:
+   una lista corta con tilde se lee en dos segundos y dice que se lleva la
+   persona, no como se llama la tecnologia. */
+.s2b-door-pasos { list-style: none; margin: 22px 0 26px; padding: 0; display: grid; gap: 11px; }
+.s2b-door-pasos li { display: flex; gap: 11px; align-items: flex-start;
+  font-size: 14.5px; line-height: 1.5; color: var(--text); }
+.s2b-door-pasos svg { flex: none; margin-top: 3px; color: var(--lilac); }
+.s2b-door--emp .s2b-door-pasos svg { color: #8FB4FF; }
 /* la pieza de interfaz que le pone cara a cada camino */
 .s2b-door-vis { margin: 26px 0 28px; position: relative; }
 .s2b-door-vis::before { content: ""; position: absolute; inset: -12% -6%; z-index: 0; pointer-events: none;
@@ -2722,7 +2729,14 @@ const ayuda = (t) => [
     rot: t("Para empresas", "For businesses"),
     tt: t("Software diseñado alrededor de tu negocio.", "Software built around your business."),
     d: t("Creamos sistemas personalizados para reemplazar procesos manuales, planillas de Excel, WhatsApp y herramientas desconectadas.", "We build custom systems to replace manual processes, spreadsheets and disconnected tools."),
-    tags: ["CRM", t("Presupuestos", "Quotes"), t("Clientes", "Clients"), t("Inventario", "Inventory"), t("Ventas", "Sales"), t("Automatización", "Automation"), t("IA", "AI"), "Dashboards"],
+    /* Eran ocho etiquetas sueltas -CRM, Ventas, Dashboards- que nombran
+       piezas y no resultados. Tres frases de lo que la persona se lleva
+       dicen mas y se leen de un vistazo. */
+    pasos: [
+      t("Un solo lugar en vez de Excel, WhatsApp y planillas sueltas", "One place instead of spreadsheets, WhatsApp and scattered files"),
+      t("Tu equipo lo usa desde el primer día, sin capacitaciones eternas", "Your team uses it from day one, no endless training"),
+      t("Se conecta con las herramientas que ya tenés funcionando", "It connects to the tools you already have running"),
+    ],
     cta: t("Quiero mejorar mi empresa", "Improve my business"), to: "empresas",
   },
   {
@@ -2730,7 +2744,13 @@ const ayuda = (t) => [
     rot: t("Tengo una idea", "I have an idea"),
     tt: t("Convertí tu idea en un producto real.", "Turn your idea into a real product."),
     d: t("Te acompañamos desde la definición de la idea hasta el diseño, el desarrollo y el lanzamiento.", "We help from concept and strategy through design, development and launch."),
-    tags: ["Mobile App", "Web App", "Marketplace", "SaaS", "MVP", "Platform", "AI App"],
+    /* Idem: "SaaS, MVP, Platform" es vocabulario nuestro, no de alguien que
+       recien tiene una idea. Se cambia por los tres momentos del camino. */
+    pasos: [
+      t("Definimos juntos qué construir primero y qué puede esperar", "We decide together what to build first and what can wait"),
+      t("Lo ves funcionando antes de poner toda la plata", "You see it working before putting in all the money"),
+      t("Salís a probarlo con usuarios de verdad, no con una maqueta", "You launch it with real users, not with a mockup"),
+    ],
     cta: t("Quiero desarrollar mi idea", "Build my idea"), to: "idea",
   },
 ];
@@ -6774,9 +6794,11 @@ export default function StudioB2B() {
                       )}
                     </div>
 
-                    <div className="s2b-door-tags">
-                      {a.tags.map((c) => <span className="s2b-chip" key={c}>{c}</span>)}
-                    </div>
+                    <ul className="s2b-door-pasos">
+                      {a.pasos.map((c) => (
+                        <li key={c}><Check size={15} aria-hidden="true" />{c}</li>
+                      ))}
+                    </ul>
                     <button className={"s2b-btn " + (esEmpresa ? "s2b-btn--chrome" : "s2b-btn--primary")} onClick={() => goTo(a.to)}>
                       {a.cta} <ArrowRight size={16} />
                     </button>
