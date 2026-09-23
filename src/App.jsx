@@ -6337,7 +6337,6 @@ export default function StudioB2B() {
         </div>
       </section>}
 
-          el precio y un link para volver aca. */}
       {vista === "aplicaciones" && <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="aplicaciones">
         <div className="s2b-wrap">
           <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} waLink={waLink} />
@@ -6752,16 +6751,6 @@ export default function StudioB2B() {
           </ol>
         </div>
       </section>
-
-      {/* ============ CUATRO PASOS, CON LOS DIAS ============
-          Va pegada a la cadena: arriba queda lo que se gana, aca abajo en
-          cuanto tiempo. "¿Y esto cuanto tarda?" es la pregunta que frena la
-          decision, y se contesta mejor con un dia al lado de cada paso que
-
-      {/* ============ APLICACIONES WEB ============
-          Seccion propia y no un bloque adentro de precios: es el producto
-          principal de la agencia, y lo que es principal no se lee al final
-          de una pagina de precios. La version corta sigue estando alla, con
 
       {/* ============ EL PROBLEMA DE UNA EMPRESA ============ */}
       <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="empresas">
