@@ -23,102 +23,64 @@ export const SIMBOLOS = ["logo", "diamante", "lingote", "moneda", "rayo", "chip"
      servidor. */
   ...Array.from({ length: 12 }, (_, i) => "p" + String(i + 7).padStart(2, "0"))];
 
-/* Todos los premios son porcentajes de descuento sobre el presupuesto, no
-   montos fijos: asi el premio acompana al tamano del proyecto en vez de
-   perder valor con la inflacion.
-
-   Los pesos suman 100, asi que cada uno se lee directo como probabilidad.
-   Tocar estos numeros es tocar la promocion entera, y hay que tocarlos
-   tambien en la funcion sb2b_jugar de Postgres, que es la que sortea. */
+/* Los premios son puntos para el ranking de Pecifa. Los pesos suman 100, asi
+   que cada uno se lee directo como probabilidad, y son los mismos de la
+   funcion sb2b_jugar de Postgres, que es la que sortea. Los puntos los anota
+   sb2b_sumar: si se tocan aca, hay que tocarlos alla tambien. */
+const DET_5 = {
+  detalle_es: "Cinco iguales en una línea. Los puntos ya se sumaron a tu nombre en el ranking.",
+  detalle_en: "Five in a row on one line. The points are already added to your name on the leaderboard.",
+};
 export const PREMIOS = [
   {
-    id: "logo",
-    simbolo: "logo",
-    iguales: 5,
-    peso: 10,
-    rango: "GRAN PREMIO",
-    monto: "30%",
-    es: "30% de descuento en tu proyecto",
-    en: "30% off your project",
-    detalle_es: "Se canjea por diseño web profesional, una app a medida o un sistema a medida, sobre el presupuesto final del primer proyecto que hagamos juntos.",
-    detalle_en: "Redeem it for professional web design, a custom app or a custom system, off the final quote of the first project we build together.",
+    id: "logo", simbolo: "logo", iguales: 5, peso: 10, puntos: 1000,
+    rango: "GRAN PREMIO", monto: "1.000",
+    es: "¡1.000 puntos!", en: "1,000 points!",
+    ...DET_5,
   },
   {
-    id: "diamante",
-    simbolo: "diamante",
-    iguales: 5,
-    peso: 12,
-    rango: "MAYOR",
-    monto: "20%",
-    es: "20% de descuento en tu proyecto",
-    en: "20% off your project",
-    detalle_es: "Se canjea por diseño web profesional, una app a medida o un sistema a medida, sobre el presupuesto final del primer proyecto que hagamos juntos.",
-    detalle_en: "Redeem it for professional web design, a custom app or a custom system, off the final quote of the first project we build together.",
+    id: "diamante", simbolo: "diamante", iguales: 5, peso: 12, puntos: 500,
+    rango: "MAYOR", monto: "500",
+    es: "¡500 puntos!", en: "500 points!",
+    ...DET_5,
   },
   {
-    id: "lingote",
-    simbolo: "lingote",
-    iguales: 5,
-    peso: 14,
-    rango: "MENOR",
-    monto: "15%",
-    es: "15% de descuento en tu proyecto",
-    en: "15% off your project",
-    detalle_es: "Se canjea por diseño web profesional, una app a medida o un sistema a medida, sobre el presupuesto final del primer proyecto que hagamos juntos.",
-    detalle_en: "Redeem it for professional web design, a custom app or a custom system, off the final quote of the first project we build together.",
+    id: "lingote", simbolo: "lingote", iguales: 5, peso: 14, puntos: 300,
+    rango: "MENOR", monto: "300",
+    es: "¡300 puntos!", en: "300 points!",
+    ...DET_5,
   },
   {
-    id: "moneda",
-    simbolo: "moneda",
-    iguales: 5,
-    peso: 16,
-    rango: "MINI",
-    monto: "10%",
-    es: "10% de descuento en tu proyecto",
-    en: "10% off your project",
-    detalle_es: "Se canjea por diseño web profesional, una app a medida o un sistema a medida, sobre el presupuesto final del primer proyecto que hagamos juntos.",
-    detalle_en: "Redeem it for professional web design, a custom app or a custom system, off the final quote of the first project we build together.",
+    id: "moneda", simbolo: "moneda", iguales: 5, peso: 16, puntos: 200,
+    rango: "MINI", monto: "200",
+    es: "¡200 puntos!", en: "200 points!",
+    ...DET_5,
   },
   {
     id: "bonus3",
     /* simbolo en null: estos no los paga un simbolo fijo sino una cantidad de
        iguales. grillaDe() usa "iguales" para armar la linea, e "icono" es
        solo para mostrarlo en la tabla y la marquesina. */
-    simbolo: null,
-    icono: "giro",
-    iguales: 3,
-    peso: 9,
-    rango: "BONUS",
-    monto: "+1",
-    es: "¡BONUS! Otro intento",
-    en: "BONUS! Another spin",
-    detalle_es: "Tres iguales: esta jugada no te la contamos.",
-    detalle_en: "Three in a row: this spin is on us.",
+    simbolo: null, icono: "giro", iguales: 3, peso: 9, puntos: 50,
+    rango: "BONUS", monto: "50",
+    es: "¡BONUS! +50 puntos", en: "BONUS! +50 points",
+    detalle_es: "Tres iguales: sumás 50 puntos y esta jugada no te la contamos.",
+    detalle_en: "Three in a row: 50 points and this spin is on us.",
   },
   {
     id: "bonus4",
-    simbolo: null,
-    icono: "giro",
-    iguales: 4,
-    peso: 5,
-    rango: "SUPER BONUS",
-    monto: "+2",
-    es: "¡SUPER BONUS! Dos jugadas más",
-    en: "SUPER BONUS! Two more spins",
-    detalle_es: "Cuatro iguales: te devolvemos la jugada y te regalamos otra.",
-    detalle_en: "Four in a row: we give this spin back and add another.",
+    simbolo: null, icono: "giro", iguales: 4, peso: 5, puntos: 100,
+    rango: "SUPER BONUS", monto: "100",
+    es: "¡SUPER BONUS! +100 puntos", en: "SUPER BONUS! +100 points",
+    detalle_es: "Cuatro iguales: sumás 100 puntos y te regalamos otra jugada.",
+    detalle_en: "Four in a row: 100 points and a free extra spin.",
   },
   {
-    id: null,
-    simbolo: null,
-    iguales: 0,
-    peso: 34,
-    rango: "",
-    monto: "",
-    es: "Esta vez no salió",
-    en: "Not this time",
-    detalle_es: "Igual te queda el diagnóstico gratuito: la primera llamada nunca se cobra.",
-    detalle_en: "You still get the free diagnosis: the first call is always free.",
+    id: null, simbolo: null, iguales: 0, peso: 34, puntos: 10,
+    rango: "", monto: "10",
+    es: "Esta vez no salió", en: "Not this time",
+    detalle_es: "Igual sumás 10 puntos por jugar. Probá de nuevo.",
+    detalle_en: "You still get 10 points for playing. Try again.",
   },
 ];
 

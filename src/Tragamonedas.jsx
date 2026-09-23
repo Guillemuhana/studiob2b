@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { claveGuardada, headerClave } from "./clave.js";
+import { claveGuardada, headerClave, nombreGuardado, headerNombre, EVENTO_RANKING } from "./clave.js";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import confetti from "canvas-confetti";
@@ -69,6 +69,7 @@ async function pedirJugada(metodo) {
     headers: {
       Accept: "application/json",
       ...headerClave(claveGuardada()),
+      ...headerNombre(nombreGuardado()),
       ...(llave ? { "x-sb2b-libre": llave } : {}),
     },
     cache: "no-store",
@@ -363,9 +364,11 @@ function Marca({ icono }) {
 const FOTO = (n) => `/pecifa/${String(n).padStart(2, "0")}.jpg`;
 const FOTOS = {
   logo: "/pecifa/escudo.webp",
-  diamante: FOTO(1), lingote: FOTO(2), moneda: FOTO(3),
-  rayo: FOTO(4), chip: FOTO(5), estrella: FOTO(6),
-  ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => ["p" + String(i + 7).padStart(2, "0"), FOTO(i + 7)])),
+  diamante: FOTO(13), lingote: FOTO(1), moneda: FOTO(2),
+  rayo: FOTO(3), chip: FOTO(4), estrella: FOTO(5),
+  /* el resto de la conduccion, de relleno */
+  ...Object.fromEntries([6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18]
+    .map((n, i) => ["p" + String(i + 7).padStart(2, "0"), FOTO(n)])),
 };
 
 function Simbolo({ id, dibujo }) {
@@ -474,11 +477,11 @@ function Lluvia({ tipo = "moneda", cantidad }) {
   return (
     <div className="s2b-tm-lluvia" aria-hidden="true">
       {gotas.map((g, i) =>
-        tipo === "logo" ? (
-          <img key={i} src="/logo.png" alt="" style={g} />
+        tipo === "logo" || tipo === "moneda" ? (
+          <img key={i} src={FOTOS.logo} alt="" style={g} />
         ) : (
           <span key={i} className="s2b-tm-gota" style={g}>
-            <Simbolo id="moneda" dibujo />
+            <Simbolo id="logo" />
           </span>
         )
       )}
@@ -536,6 +539,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const [fase, setFase] = useState("listo");
   const [restantes, setRestantes] = useState(TOPE);
   const [ganados, setGanados] = useState([]);
+  /* los puntos del jugador en el ranking y lo que sumo la ultima tirada */
+  const [puntos, setPuntos] = useState(null);
+  const [sumo, setSumo] = useState(null);
   const [libre, setLibre] = useState(false);
   /* El tope vive en la base (sb2b_config_num). Si esta abierto, el servidor
      devuelve un numero grande y no tiene sentido mostrar "9999 / 3": se
@@ -597,6 +603,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
         setLibre(!!d.libre);
         setRestantes(typeof d.restantes === "number" ? d.restantes : TOPE);
         setGanados((d.jugadas || []).filter((j) => j.codigo));
+        if (d.mios && typeof d.mios.total === "number") setPuntos(d.mios.total);
         const ultima = (d.jugadas || [])[d.jugadas.length - 1];
         if (ultima) {
           const premio = premioDe(ultima.premio);
@@ -650,6 +657,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
     setBonus(null);
     setCartel(null);
     setLluvia(null);
+    setSumo(null);
     son("palanca");
 
     /* Se le pide el resultado al servidor antes de mover nada: los rodillos
@@ -740,6 +748,11 @@ export default function Tragamonedas({ t, waLink, irA }) {
       if (!montado.current) return;
       setResultado({ premio, codigo });
       setFase("listo");
+      /* los puntos se muestran recien cuando frena el ultimo rodillo, no
+         cuando contesta el servidor: si no, el marcador canta el premio */
+      setSumo(typeof datos.puntos === "number" ? datos.puntos : premio.puntos);
+      if (typeof datos.total === "number") setPuntos(datos.total);
+      try { window.dispatchEvent(new Event(EVENTO_RANKING)); } catch {}
       guardarJugada(premio, codigo);
       if (codigo) setGanados((g) => [...g, { premio: premio.id, codigo, canjeado: false }]);
 
@@ -762,6 +775,11 @@ export default function Tragamonedas({ t, waLink, irA }) {
           relojes.current.push(setTimeout(() => montado.current && setLluvia(null), 3000));
         }
         relojes.current.push(setTimeout(() => montado.current && setCartel(null), 2600));
+        relojes.current.push(setTimeout(() => {
+          if (!montado.current) return;
+          setAviso(t(`+${premio.puntos} puntos sumados al ranking`, `+${premio.puntos} points added to the leaderboard`));
+          relojes.current.push(setTimeout(() => montado.current && setAviso(""), 3600));
+        }, 2600));
       } else if (premio.id) {
         /* Cinco iguales. Los cinco del logo son el premio mayor de la maquina
            y se anuncian distinto: cartel propio y lluvia de logos en vez de
@@ -769,10 +787,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
         const mayor = premio.id === "logo";
         setCartel({
           nivel: mayor ? "mayor" : "grande",
-          texto: mayor ? t("¡SÚPER GRAN PREMIO!", "MEGA JACKPOT!") : t("¡GRAN PREMIO!", "JACKPOT!"),
+          texto: mayor ? t("¡GRAN PREMIO!", "JACKPOT!") : t(`¡+${premio.puntos} PUNTOS!`, `+${premio.puntos} POINTS!`),
           sub: mayor
-            ? t("Cinco logos · el premio más alto", "Five logos · the top prize")
-            : t("Cinco iguales", "Five in a row"),
+            ? t("Cinco escudos · 1.000 puntos", "Five crests · 1,000 points")
+            : t("Cinco caras iguales", "Five matching faces"),
         });
         son("gano", true);
         festejar(true);
@@ -789,7 +807,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
         }, mayor ? 2600 : 1700));
       } else {
         son("perdio");
-        setAviso(t("Esta vez no salió. Probá de nuevo.", "Not this time. Give it another spin."));
+        setAviso(t("Esta vez no salió · +10 puntos por jugar", "Not this time · +10 points for playing"));
         relojes.current.push(setTimeout(() => montado.current && setAviso(""), 3600));
       }
     }, (reducido ? 260 : tiempos[RODILLOS - 1]) + 420));
@@ -806,16 +824,6 @@ export default function Tragamonedas({ t, waLink, irA }) {
     return () => { document.body.style.overflow = antes; };
   }, [abierto]);
 
-  const copiar = async () => {
-    if (!resultado?.codigo) return;
-    try {
-      await navigator.clipboard.writeText(resultado.codigo);
-      setCopiado(true);
-      setTimeout(() => montado.current && setCopiado(false), 1800);
-    } catch {
-      /* queda a la vista para copiarlo a mano */
-    }
-  };
 
   /* Se arma con location y no con una direccion escrita a mano: asi el link
      que se comparte es el de donde esta la persona, y no manda a produccion a
@@ -823,8 +831,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
   const SALTO = String.fromCharCode(10);
   const enlace = typeof location !== "undefined" ? location.origin + "/jugar" : "";
   const textoCompartir = t(
-    "Probá suerte en la máquina de Studio B2B: podés ganar hasta 30% de descuento en tu proyecto.",
-    "Try your luck on the Studio B2B slot machine: you can win up to 30% off your project."
+    "Jugá con Pecifa Nacional y sumá puntos en el ranking.",
+    "Play with Pecifa Nacional and climb the leaderboard."
   );
   const [enlaceCopiado, setEnlaceCopiado] = useState(false);
   const [hayNativo, setHayNativo] = useState(false);
@@ -851,7 +859,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
 
   const compartirNativo = async () => {
     try {
-      await navigator.share({ title: "Studio B2B", text: textoCompartir, url: enlace });
+      await navigator.share({ title: "Pecifa Nacional", text: textoCompartir, url: enlace });
     } catch {
       /* si la persona cierra la hoja de compartir no es un error */
     }
@@ -867,11 +875,6 @@ export default function Tragamonedas({ t, waLink, irA }) {
     }
   };
 
-  const mensajeWa = (r) =>
-    r?.codigo
-      ? `Hola Studio B2B, jugué en la web y gané ${r.premio.es}. Mi código es ${r.codigo}.`
-      : "Hola Studio B2B, jugué en la web y quiero mi diagnóstico gratuito.";
-
   const ganador = resultado?.premio?.id;
 
   return (
@@ -884,14 +887,14 @@ export default function Tragamonedas({ t, waLink, irA }) {
           <div className="s2b-wrap">
 
             <div className="s2b-tm-top">
-              <div className="s2b-eyebrow">{t("Casino Studio B2B", "Studio B2B Casino")}</div>
+              <div className="s2b-eyebrow">{t("Pecifa Nacional · Ranking", "Pecifa Nacional · Leaderboard")}</div>
               <h2 className="s2b-h2 s2b-tm-h2">
-                {t("Girá y", "Spin and")} <b>{t("llevate tu descuento", "take your discount")}</b>
+                {t("Girá y", "Spin and")} <b>{t("sumá puntos", "score points")}</b>
               </h2>
               <p className="s2b-lead s2b-tm-lead">
                 {t(
-                  "Sin registro y sin pagar nada. Se paga de izquierda a derecha en cualquiera de las cinco líneas: tres iguales dan bonus, cuatro dan súper bonus y cinco, tu descuento.",
-                  "No sign-up and nothing to pay. Wins pay left to right on any of the five lines: three of a kind is a bonus, four is a super bonus, and five is your discount."
+                  "Cada tirada suma a tu nombre en el ranking. Se paga de izquierda a derecha en las cinco líneas: tres iguales dan bonus, cuatro súper bonus y cinco escudos, el gran premio de 1.000 puntos.",
+                  "Every spin adds to your name on the leaderboard. Wins pay left to right on all five lines: three of a kind is a bonus, four a super bonus, and five crests the 1,000-point jackpot."
                 )}
               </p>
             </div>
@@ -902,7 +905,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
               <div className="s2b-tm-monedas" aria-hidden="true">
                 {MONEDAS.map((m, i) => (
                   <span key={i} className="s2b-tm-moneda" style={m}>
-                    <Simbolo id="moneda" dibujo />
+                    <Simbolo id="logo" />
                   </span>
                 ))}
               </div>
@@ -921,9 +924,19 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         una maquina de sala. Los botones bajaron a la consola:
                         en una maquina de verdad no hay nada que apretar arriba
                         de los rodillos, todo esta abajo, al alcance del pulgar. */}
+                    <div className="s2b-tm-topper">
+                      <i className="s2b-tm-topper-luces" aria-hidden="true" />
+                      <img src={FOTOS.logo} alt="" width="480" height="480" />
+                      <span className="s2b-tm-topper-txt">
+                        <b>PECIFA NACIONAL</b>
+                        <small>{t("Girá · sumá · ganá", "Spin · score · win")}</small>
+                      </span>
+                      <img src={FOTOS.logo} alt="" width="480" height="480" />
+                    </div>
+
                     <div className="s2b-tm-hud">
                       <span className="s2b-tm-hud-saldo">
-                        <Simbolo id="moneda" dibujo />
+                        <Simbolo id="logo" />
                         <b>{sinTope ? "∞" : restantes}</b>
                         <small>{libre ? t("modo prueba", "test mode") : t("jugadas", "spins")}</small>
                       </span>
@@ -956,7 +969,10 @@ export default function Tragamonedas({ t, waLink, irA }) {
                             alTerminar={() => {
                               if (!montado.current) return;
                               setBonus(null);
-                              setAbierto(true);
+                              /* sin ventana: los puntos ya estan en el marcador
+                                 y en el ranking, alcanza con decirlo */
+                              setAviso(t(`+${bonus.puntos} puntos sumados al ranking`, `+${bonus.puntos} points added to the leaderboard`));
+                              relojes.current.push(setTimeout(() => montado.current && setAviso(""), 4200));
                               son("gano", bonus.id === "logo");
                               if (bonus.id === "logo") festejar(true);
                             }}
@@ -1038,8 +1054,9 @@ export default function Tragamonedas({ t, waLink, irA }) {
                           <b>{sinTope ? "∞" : `${restantes} / ${TOPE}`}</b>
                         </div>
                         <div className={"s2b-tm-caja s2b-tm-caja--win" + (resultado?.premio?.id ? " is-pago" : "")}>
-                          <small>{t("PREMIO", "WIN")}</small>
-                          <b>{resultado?.premio?.id ? resultado.premio.monto : "—"}</b>
+                          <small>{t("TUS PUNTOS", "YOUR POINTS")}</small>
+                          <b>{puntos == null ? "—" : puntos.toLocaleString("es-AR")}</b>
+                          {sumo != null && fase !== "girando" && <em className="s2b-tm-sumo" key={puntos}>+{sumo.toLocaleString("es-AR")}</em>}
                         </div>
                       </div>
 
@@ -1077,12 +1094,11 @@ export default function Tragamonedas({ t, waLink, irA }) {
                         {restantes <= 0 && sincronizado && !sinTope ? (
                           <button
                             className="s2b-tm-spin s2b-tm-spin--visto"
-                            onClick={() => resultado && setAbierto(true)}
-                            disabled={!resultado}
+                            disabled
                           >
                             <i className="s2b-tm-spin-brillo" aria-hidden="true" />
                             <Gift className="s2b-tm-spin-ico" aria-hidden="true" />
-                            <b>{ganados.length ? t("PREMIOS", "PRIZES") : t("SIN JUGADAS", "NO SPINS")}</b>
+                            <b>{t("SIN JUGADAS", "NO SPINS")}</b>
                           </button>
                         ) : (
                           <button
@@ -1131,7 +1147,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                   transition={{ duration: 0.5, delay: i * 0.06 }}
                 >
                   <span className="s2b-tm-jack-rango">{p.rango}</span>
-                  <span className="s2b-tm-jack-monto">{p.monto}</span>
+                  <span className="s2b-tm-jack-monto">{p.monto}<small> PTS</small></span>
                   <Simbolo id={p.simbolo || p.icono} />
                 </motion.div>
               ))}
@@ -1191,14 +1207,12 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 <h3><ShieldCheck size={16} /> {t("Cómo funciona", "How it works")}</h3>
                 <ul>
                   <li><Clock size={14} /> {sinTope
-                    ? t("Por ahora podés girar las veces que quieras: la promoción está abierta.", "For now you can spin as many times as you like: the promotion is open.")
-                    : t("Tres jugadas por conexión. Se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Three spins per connection. They are counted on our server, so opening another window or clearing your history won't add more.")}</li>
-                  <li><ShieldCheck size={14} /> {t("El sorteo y el código se generan en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the code are generated on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
-                  <li><Layers size={14} /> {t("Los descuentos NO son acumulables: si ganás más de uno, se usa uno solo. Al canjear el que elijas, los demás quedan anulados.", "Discounts are NOT cumulative: if you win more than one, only one is used. When you redeem the one you pick, the rest are voided.")}</li>
-                  <li><Sparkles size={14} /> {t("El descuento se canjea por diseño web profesional, una app a medida o un sistema a medida: lo que necesites construir.", "The discount can be redeemed for professional web design, a custom app or a custom system: whatever you need built.")}</li>
-                  <li><Sparkles size={14} /> {t("Cada código es único, se aplica sobre el presupuesto final de un proyecto nuevo y se canjea una sola vez.", "Every code is unique, applies to the final quote of a new project and can be redeemed only once.")}</li>
+                    ? t("Podés girar las veces que quieras: cada tirada suma.", "Spin as many times as you like: every spin counts.")
+                    : t("Las jugadas se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Spins are counted on our server, so opening another window or clearing your history won't add more.")}</li>
+                  <li><Sparkles size={14} /> {t("Cinco escudos de Pecifa: 1.000 puntos. Cinco caras iguales: 500, 300 o 200 según cuál.", "Five Pecifa crests: 1,000 points. Five matching faces: 500, 300 or 200 depending on the face.")}</li>
+                  <li><Layers size={14} /> {t("Tres iguales suman 50 y devuelven la jugada; cuatro suman 100 y regalan otra. Si no sale nada, igual sumás 10.", "Three in a row add 50 and give the spin back; four add 100 and a free spin. No win still adds 10.")}</li>
                   <li><RotateCw size={14} /> {t("Se paga de izquierda a derecha en las cinco líneas: la del medio, la de arriba, la de abajo y las dos diagonales.", "Wins pay left to right on all five lines: middle, top, bottom and both diagonals.")}</li>
-                  <li><ArrowRight size={14} /> {t("Para reclamarlo, mandanos el código por WhatsApp. Vale 30 días desde la jugada.", "To claim it, send us the code on WhatsApp. Valid for 30 days from the spin.")}</li>
+                  <li><ShieldCheck size={14} /> {t("El sorteo y los puntos se deciden en nuestro servidor, no en tu navegador, y las probabilidades son exactamente las de la tabla.", "The draw and the points are decided on our server, not in your browser, and the odds are exactly the ones in the table.")}</li>
                 </ul>
                 <button className="s2b-link s2b-tm-volver" onClick={() => irA("home")}>
                   <ArrowLeft size={15} /> {t("Volver al inicio", "Back to home")}
@@ -1212,8 +1226,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 todo y el resto de las apps que la persona ya usa. Los botones
                 sueltos quedan para escritorio, donde ese menu no existe. */}
             <div className="s2b-tm-compartir">
-              <h3><Share2 size={15} /> {t("Pasale el juego a alguien", "Share the game")}</h3>
-              <p>{t("Si conocés a alguien que necesita software, que pruebe suerte.", "If you know someone who needs software, let them try their luck.")}</p>
+              <h3><Share2 size={15} /> {t("Invitá a un compañero", "Invite a colleague")}</h3>
+              <p>{t("Pasale el link a otro afiliado para que se sume al ranking. La contraseña se la das vos.", "Send the link to another member so they join the leaderboard. You give them the password.")}</p>
 
               <div className="s2b-tm-compartir-bts">
                 {hayNativo && (
@@ -1271,53 +1285,33 @@ export default function Tragamonedas({ t, waLink, irA }) {
                       halo con una regla al hijo directo, y esa regla le pisaba
                       el position:absolute al boton de cerrar */}
                   <div className="s2b-tm-premio-in">
-                  {resultado.premio.id ? (
-                    <>
-                      <div className="s2b-tm-premio-sim"><Simbolo id={resultado.premio.simbolo || resultado.premio.icono} /></div>
-                      <span className="s2b-tm-premio-rango">{resultado.premio.rango}</span>
-                      <h3 className="s2b-tm-premio-tit">{t(resultado.premio.es, resultado.premio.en)}</h3>
-                      <p className="s2b-tm-premio-det">{t(resultado.premio.detalle_es, resultado.premio.detalle_en)}</p>
+                  <div className={"s2b-tm-premio-sim" + (resultado.premio.id ? "" : " s2b-tm-premio-sim--nada")}>
+                    {resultado.premio.id
+                      ? <Simbolo id={resultado.premio.simbolo || resultado.premio.icono} />
+                      : <Simbolo id="chip" dibujo />}
+                  </div>
+                  {resultado.premio.rango && <span className="s2b-tm-premio-rango">{resultado.premio.rango}</span>}
+                  <h3 className="s2b-tm-premio-tit">{t(resultado.premio.es, resultado.premio.en)}</h3>
+                  <p className="s2b-tm-premio-det">{t(resultado.premio.detalle_es, resultado.premio.detalle_en)}</p>
 
-                      <button className="s2b-tm-codigo" onClick={copiar} title={t("Copiar código", "Copy code")}>
-                        <span>{resultado.codigo}</span>
-                        {copiado ? <Check size={16} /> : <Copy size={16} />}
-                      </button>
+                  {/* lo que sumo y el total, en grande: es lo unico que importa */}
+                  <div className="s2b-tm-premio-pts">
+                    <div><small>{t("SUMASTE", "YOU GOT")}</small><b>+{(sumo ?? resultado.premio.puntos).toLocaleString("es-AR")}</b></div>
+                    {puntos != null && <div><small>{t("TU TOTAL", "YOUR TOTAL")}</small><b>{puntos.toLocaleString("es-AR")}</b></div>}
+                  </div>
 
-                      <a
-                        className="s2b-btn s2b-btn--primary s2b-btn--aura s2b-tm-reclamar"
-                        href={waLink(mensajeWa(resultado))}
-                        target="_blank" rel="noopener noreferrer"
-                      >
-                        {t("Reclamar por WhatsApp", "Claim on WhatsApp")} <ArrowRight size={16} />
-                      </a>
-                      <span className="s2b-tm-chico">
-                        {t("Guardá el código: vale 30 días.", "Keep the code: valid for 30 days.")}
-                        {restantes > 0 && !sinTope && " · " + t(`Te quedan ${restantes} jugadas`, `${restantes} spins left`)}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="s2b-tm-premio-sim s2b-tm-premio-sim--nada"><Simbolo id="chip" dibujo /></div>
-                      <h3 className="s2b-tm-premio-tit">{t(resultado.premio.es, resultado.premio.en)}</h3>
-                      <p className="s2b-tm-premio-det">{t(resultado.premio.detalle_es, resultado.premio.detalle_en)}</p>
-                      {restantes > 0 ? (
-                        <button
-                          className="s2b-btn s2b-btn--primary s2b-btn--aura s2b-tm-reclamar"
-                          onClick={() => setAbierto(false)}
-                        >
-                          {t(`Probar de nuevo · te quedan ${restantes}`, `Try again · ${restantes} left`)} <ArrowRight size={16} />
-                        </button>
-                      ) : (
-                        <a
-                          className="s2b-btn s2b-btn--chrome s2b-btn--aura s2b-tm-reclamar"
-                          href={waLink(mensajeWa(resultado))}
-                          target="_blank" rel="noopener noreferrer"
-                        >
-                          {t("Quiero mi diagnóstico gratis", "I want my free diagnosis")} <ArrowRight size={16} />
-                        </a>
-                      )}
-                    </>
-                  )}
+                  <button
+                    className="s2b-btn s2b-btn--primary s2b-btn--aura s2b-tm-reclamar"
+                    onClick={() => setAbierto(false)}
+                  >
+                    {t("Seguir jugando", "Keep playing")} <ArrowRight size={16} />
+                  </button>
+                  <button
+                    className="s2b-link s2b-tm-ver-ranking"
+                    onClick={() => { setAbierto(false); setTimeout(() => document.getElementById("ranking")?.scrollIntoView({ behavior: "smooth", block: "start" }), 250); }}
+                  >
+                    {t("Ver el ranking", "See the leaderboard")}
+                  </button>
                   </div>
                 </motion.div>
               </motion.div>
@@ -1342,7 +1336,8 @@ const CSS_TM = `
 .s2b-tm-band {
   overflow:hidden;
   --oro1:#FFF6D0; --oro2:#F9D858; --oro3:#D09A1C; --oro4:#7C4E06;
-  --rojo1:#B8213B; --rojo2:#7A1024; --rojo3:#3D0714; --rojo4:#1E040B;
+  /* la laca azul de Pecifa: los nombres quedaron de cuando era terciopelo rojo */
+  --rojo1:#2F74D8; --rojo2:#143E8E; --rojo3:#0A2159; --rojo4:#040D2A;
 }
 .s2b-tm-band::before {
   content:''; position:absolute; inset:-20% -10% auto -10%; height:130%; pointer-events:none;
@@ -1354,6 +1349,8 @@ const CSS_TM = `
 }
 .s2b-tm-top { position:relative; text-align:center; display:grid; justify-items:center; }
 .s2b-tm-h2 { max-width:22ch; }
+.s2b-tm-h2 b { background: linear-gradient(100deg, #F9D858, #FFF6D0 50%, #D09A1C); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.s2b-tm-band .s2b-eyebrow { color:#F9D858; }
 /* el encabezado del casino esta centrado a proposito: ahi el justificado
    desarma el bloque en vez de ordenarlo */
 .s2b-tm-lead { margin-left:auto; margin-right:auto; text-align:center; }
@@ -1397,7 +1394,7 @@ const CSS_TM = `
   position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px;
   padding:11px 13px; border-radius:14px;
   border:1px solid rgba(249,216,88,.38);
-  background:linear-gradient(160deg, rgba(184,33,59,.55), rgba(61,7,20,.78));
+  background:linear-gradient(160deg, rgba(47,116,216,.5), rgba(10,33,89,.82));
   box-shadow:inset 0 1px 0 rgba(255,246,208,.28), 0 10px 26px -16px rgba(0,0,0,.9); }
 .s2b-tm-jack .s2b-tm-sim { width:36px; height:36px; grid-row:span 2; }
 .s2b-tm-jack-rango { grid-column:1; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:var(--oro2); }
@@ -1443,6 +1440,38 @@ const CSS_TM = `
 .s2b-tm-cuerpo { position:relative; border-radius:clamp(14px,2vw,24px); padding:clamp(10px,1.6vw,16px);
   background:linear-gradient(180deg, var(--rojo2) 0%, var(--rojo3) 56%, var(--rojo4) 100%);
   box-shadow:inset 0 2px 0 rgba(0,0,0,.55), inset 0 -2px 0 rgba(255,246,208,.14); }
+
+/* ---------- el cartel de arriba ----------
+   Como el topper de una maquina de sala: una placa con el nombre y un borde
+   de lamparitas que corren. Las lamparitas son un degrade de puntos que se
+   desplaza, no decenas de elementos. */
+.s2b-tm-topper { position:relative; display:flex; align-items:center; justify-content:center; gap:clamp(10px,2vw,20px);
+  margin-bottom:clamp(10px,1.4vw,14px); padding:clamp(10px,1.6vw,14px) clamp(14px,2vw,22px);
+  border-radius:clamp(12px,1.6vw,18px);
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(90,160,255,.45), transparent 60%),
+    linear-gradient(180deg, #0E2A6B, #06143A);
+  box-shadow: inset 0 0 0 2px rgba(249,216,88,.7), inset 0 0 0 6px rgba(4,13,42,.9), inset 0 0 0 7px rgba(249,216,88,.35),
+              0 10px 30px -14px rgba(0,0,0,.9); overflow:hidden; }
+.s2b-tm-topper-luces { position:absolute; inset:3px; border-radius:inherit; pointer-events:none; opacity:.9;
+  background:
+    radial-gradient(circle, #FFF3B0 0 2px, rgba(255,210,80,.55) 2.5px, transparent 4px) 0 0 / 18px 100% repeat-x,
+    radial-gradient(circle, #FFF3B0 0 2px, rgba(255,210,80,.55) 2.5px, transparent 4px) 9px 100% / 18px 8px repeat-x;
+  -webkit-mask: linear-gradient(#000 0 8px, transparent 8px calc(100% - 8px), #000 calc(100% - 8px));
+          mask: linear-gradient(#000 0 8px, transparent 8px calc(100% - 8px), #000 calc(100% - 8px));
+  animation: s2b-tm-bombitas 1.4s linear infinite; }
+.s2b-tm-mueble.is-girando .s2b-tm-topper-luces { animation-duration:.35s; }
+@keyframes s2b-tm-bombitas { to { background-position: 18px 0, -9px 100%; } }
+.s2b-tm-topper img { position:relative; width:clamp(34px,5.4vw,54px); height:auto; flex:none;
+  filter: drop-shadow(0 0 10px rgba(255,200,80,.6)) drop-shadow(0 3px 6px rgba(0,0,0,.6)); }
+.s2b-tm-topper-txt { position:relative; display:grid; justify-items:center; line-height:1; gap:5px; }
+.s2b-tm-topper-txt b { font-family:var(--display); font-weight:700; letter-spacing:.06em; white-space:nowrap;
+  font-size:clamp(17px,3.3vw,32px);
+  background: linear-gradient(180deg, #FFFBE6 0%, #F9D858 45%, #C98A12 55%, #FFE58A 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 2px 0 rgba(60,30,0,.8)) drop-shadow(0 0 14px rgba(255,200,80,.35)); }
+.s2b-tm-topper-txt small { font-family:var(--mono); font-size:clamp(8.5px,1.1vw,10.5px); letter-spacing:.32em; color:#A9C8FF; text-transform:uppercase; }
+@media (prefers-reduced-motion: reduce) { .s2b-tm-topper-luces { animation:none; } }
 
 /* ---------- la barra de arriba ---------- */
 .s2b-tm-hud { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:clamp(9px,1.3vw,13px); }
@@ -1496,7 +1525,7 @@ const CSS_TM = `
       #5BE58F 34px 47px, transparent 47px 51px,
       #3FC4FF 51px 64px, transparent 64px 68px,
       #A96BFF 68px 81px, transparent 81px 85px),
-    linear-gradient(180deg, #16020A, #16020A);
+    linear-gradient(180deg, #030A1F, #030A1F);
   background-size:100% 85px, 100% 100%;
   box-shadow:0 0 14px rgba(255,255,255,.55), 0 0 26px rgba(255,120,190,.35), inset 0 0 5px rgba(0,0,0,.6); }
 .s2b-tm-riel--izq { left:clamp(4px,.8vw,7px); }
@@ -1508,6 +1537,11 @@ const CSS_TM = `
    en el mueble de verdad */
 .s2b-tm-ventanas { position:relative; z-index:1; display:grid; grid-template-columns:repeat(5,1fr); gap:0;
   border-radius:9px; overflow:hidden; box-shadow:0 0 0 2px rgba(208,154,28,.5); }
+.s2b-tm-ventanas::after { content:''; position:absolute; inset:0; z-index:5; pointer-events:none; border-radius:inherit;
+  background:
+    linear-gradient(112deg, transparent 0 18%, rgba(255,255,255,.22) 24%, rgba(255,255,255,.05) 34%, transparent 40% 62%, rgba(255,255,255,.1) 70%, transparent 76%),
+    linear-gradient(180deg, rgba(255,255,255,.16), transparent 22%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 10px 24px rgba(0,0,0,.35), inset 0 -10px 24px rgba(0,0,0,.35); }
 .s2b-tm-pilar { position:absolute; top:0; bottom:0; width:clamp(2px,.3vw,3px); transform:translateX(-50%);
   z-index:4; pointer-events:none;
   background:linear-gradient(180deg, var(--oro1), var(--oro3) 46%, var(--oro4) 52%, var(--oro2) 100%);
@@ -1518,7 +1552,7 @@ const CSS_TM = `
    escala solo, sin un solo numero en px. */
 .s2b-tm-ventana { position:relative; aspect-ratio:1 / 2.79; overflow:hidden;
   container-type:size;
-  background:linear-gradient(180deg,#3A0811,#1B0309 50%,#3A0811);
+  background:linear-gradient(180deg,#CFD5E2,#FBFCFF 50%,#CFD5E2);
   filter:blur(0); transition:filter .45s ease-out; }
 .s2b-tm-ventana.is-rodando { filter:blur(1.4px); transition:filter .12s ease-in; }
 .s2b-tm-persp { position:absolute; inset:0; perspective:186.6cqh; perspective-origin:50% 50%; }
@@ -1548,11 +1582,11 @@ const CSS_TM = `
 /* la sombra propia del cilindro: cada cara se apaga segun cuanto se fue para
    atras, y eso es lo que da el volumen que una tira plana no puede dar */
 .s2b-tm-cara::before { content:''; position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(184,33,59,.42), rgba(30,4,11,.5)); }
+  background:none; }
 
 .s2b-tm-cara .s2b-tm-sim { position:relative; z-index:1; width:66%; aspect-ratio:1; height:auto; }
 /* el simbolo que pago late despues de la frenada */
-.s2b-tm-cara.is-premiada::before { background:linear-gradient(180deg, rgba(249,216,88,.42), rgba(208,154,28,.22));
+.s2b-tm-cara.is-premiada::before { background:linear-gradient(180deg, rgba(255,226,120,.85), rgba(240,180,40,.55));
   box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }
 /* Se encienden de izquierda a derecha con 90 ms entre uno y otro, que es como
    se lee una linea que paga: el ojo sigue el orden en que se cobra en vez de
@@ -1713,7 +1747,7 @@ const CSS_TM = `
   grid-template-columns:1fr auto; grid-template-areas:"marcadores girar" "mandos girar";
   align-items:center;
   border-radius:14px; border:1px solid rgba(249,216,88,.3);
-  background:linear-gradient(180deg,#1C0912 0%,#0A0407 100%);
+  background:linear-gradient(180deg,#0B1B45 0%,#040B22 100%);
   box-shadow:inset 0 1px 0 rgba(249,216,88,.28), inset 0 10px 22px rgba(0,0,0,.75); }
 .s2b-tm-marcadores { grid-area:marcadores; display:flex; align-items:stretch; gap:clamp(6px,1.2vw,12px); }
 /* Los botones se reparten el ancho, como la fila de la maquina de sala:
@@ -1724,9 +1758,9 @@ const CSS_TM = `
 
 .s2b-tm-caja { flex:1 1 0; min-width:0; display:grid; align-content:center; justify-items:center; gap:2px;
   padding:8px 10px; border-radius:11px; text-align:center;
-  border:2px solid rgba(249,216,88,.55); background:linear-gradient(180deg, rgba(0,0,0,.75), rgba(30,6,14,.6));
+  border:2px solid rgba(249,216,88,.55); background:linear-gradient(180deg, rgba(0,0,0,.7), rgba(6,20,58,.65));
   box-shadow:inset 0 3px 9px rgba(0,0,0,.8); }
-.s2b-tm-caja small { font-family:var(--mono); font-size:clamp(7.5px,1.5vw,8.5px); letter-spacing:.14em; color:#E0BE8C; }
+.s2b-tm-caja small { font-family:var(--mono); font-size:clamp(7.5px,1.5vw,8.5px); letter-spacing:.14em; color:#A9C8FF; }
 .s2b-tm-caja b { font-family:var(--display); font-size:clamp(14px,3.4vw,21px); font-weight:700; color:#fff; line-height:1.1;
   white-space:nowrap; text-shadow:0 0 12px rgba(255,214,120,.35); }
 /* el marcador de lo que se gano es el que manda, como en la maquina de la
@@ -1982,6 +2016,15 @@ const CSS_TM = `
   font-family:var(--mono); font-size:16px; letter-spacing:.1em; transition:background .2s, border-color .2s; }
 .s2b .s2b-tm-codigo:hover { background:rgba(249,216,88,.22); }
 .s2b-tm-reclamar { width:100%; justify-content:center; margin-top:6px; }
+.s2b-tm-premio-pts { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:10px; margin:22px 0 18px; }
+.s2b-tm-premio-pts > div { padding:12px 10px; border-radius:14px; border:1px solid rgba(249,216,88,.35); background:rgba(249,216,88,.08); display:grid; gap:2px; }
+.s2b-tm-premio-pts small { font-family:var(--mono); font-size:10px; letter-spacing:.2em; color:var(--oro2); }
+.s2b-tm-premio-pts b { font-family:var(--display); font-size:28px; line-height:1.1; color:#fff; }
+.s2b .s2b-tm-ver-ranking { display:block; margin:14px auto 0; color:#C9C2E6; font-size:14px; }
+.s2b .s2b-tm-ver-ranking:hover { color:#fff; }
+.s2b-tm-caja { position:relative; }
+.s2b-tm-sumo { position:absolute; right:10px; top:6px; font-style:normal; font-family:var(--mono); font-size:12px; font-weight:700; color:#7CFFB2; text-shadow:0 0 10px rgba(124,255,178,.6); animation: s2b-tm-sube 1.6s ease-out both; }
+@keyframes s2b-tm-sube { 0% { opacity:0; transform:translateY(8px); } 15% { opacity:1; transform:none; } 80% { opacity:1; } 100% { opacity:.85; } }
 .s2b-tm-chico { display:block; margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:#9E97C4; }
 
 /* ==================================================================

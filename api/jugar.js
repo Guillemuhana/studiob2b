@@ -52,6 +52,16 @@ function claveOk(bruta) {
   return timingSafeEqual(a, b);
 }
 
+/* El nombre del jugador, para el ranking de Pecifa. Viaja codificado como la
+   clave; si no viene o no se lee, se juega igual y la jugada no suma. */
+function nombreDe(req) {
+  try {
+    return decodeURIComponent(String(req.headers["x-sb2b-nombre"] || "")).replace(/\s+/g, " ").trim().slice(0, 40);
+  } catch {
+    return "";
+  }
+}
+
 /* x-forwarded-for llega como "cliente, proxy1, proxy2": el primero es el que
    importa. Vercel lo arma el mismo, asi que no lo puede falsear el cliente. */
 function ipDe(req) {
@@ -101,6 +111,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    /* GET /api/jugar?ranking=1 -> la tabla de posiciones. Va detras de la
+       misma clave que la maquina, asi que solo la ven los que juegan. */
+    if (req.method === "GET" && req.query?.ranking) {
+      const filas = (await rpc("sb2b_ranking_top", { p_secreto: SECRETO, p_limite: 20 })) || [];
+      return res.status(200).json({ ranking: filas });
+    }
+
     if (req.method === "GET") {
       const filas = (await rpc("sb2b_consultar", {
         p_secreto: SECRETO,
@@ -108,7 +125,20 @@ export default async function handler(req, res) {
         p_ip_hash: ipHash,
         p_libre: libre,
       })) || [];
+      /* los puntos de este jugador, para pintar el marcador al entrar */
+      let mios = null;
+      const nombre = nombreDe(req);
+      if (nombre) {
+        try {
+          const r = await rpc("sb2b_mis_puntos", { p_secreto: SECRETO, p_huella: huella, p_nombre: nombre, p_libre: libre });
+          const f = Array.isArray(r) ? r[0] : null;
+          if (f) mios = { total: Number(f.total), jugadas: Number(f.jugadas), puesto: f.puesto == null ? null : Number(f.puesto) };
+        } catch (e) {
+          console.error("[ranking]", e.message);
+        }
+      }
       return res.status(200).json({
+        mios,
         /* las jugadas de la IP cuentan para el tope, pero solo viajan las de
            este navegador: en una oficina todos comparten IP y el codigo del
            companero no tiene por que aparecer -ni poder reclamarse- aca */
@@ -138,7 +168,28 @@ export default async function handler(req, res) {
     if (j.agotado) {
       return res.status(200).json({ agotado: true, restantes: 0 });
     }
+
+    /* Los puntos se anotan aca, con el premio que acaba de dar la base: el
+       navegador no dice cuanto gano, solo quien es. Si el ranking falla, la
+       jugada vale igual. */
+    let puntos = null;
+    let total = null;
+    const nombre = nombreDe(req);
+    if (nombre) {
+      try {
+        const r = await rpc("sb2b_sumar", {
+          p_secreto: SECRETO, p_huella: huella, p_nombre: nombre, p_premio: j.premio, p_libre: libre,
+        });
+        const fila = Array.isArray(r) ? r[0] : null;
+        if (fila) { puntos = fila.puntos; total = Number(fila.total); }
+      } catch (e) {
+        console.error("[ranking]", e.message);
+      }
+    }
+
     return res.status(200).json({
+      puntos,
+      total,
       premio: j.premio,
       codigo: j.codigo,
       creado: j.creado,

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { KeyRound, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
-import { claveGuardada, guardarClave, olvidarClave, headerClave } from "./clave.js";
+import { KeyRound, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, UserRound, Trophy, Crown, Pencil } from "lucide-react";
+import {
+  claveGuardada, guardarClave, olvidarClave, headerClave,
+  nombreGuardado, guardarNombre, limpiarNombre, headerNombre, EVENTO_RANKING,
+} from "./clave.js";
 
 /* La maquina se baja mientras la persona escribe la contrasena: cuando
    aprieta "Entrar" ya esta en el navegador y no hay un segundo de espera. */
@@ -39,22 +42,32 @@ async function probarClave(clave) {
 }
 
 function Puerta({ t, irA, alAbrir }) {
-  const [clave, setClave] = useState("");
+  const [nombre, setNombre] = useState(() => nombreGuardado());
+  /* si vuelve a cambiar el nombre, la clave ya la puso: no se la pedimos */
+  const [clave, setClave] = useState(() => claveGuardada());
   const [ver, setVer] = useState(false);
   const [estado, setEstado] = useState("");      // "", "probando", "mal", "error"
   const [sacudir, setSacudir] = useState(0);
   const campo = useRef(null);
 
-  useEffect(() => { campo.current?.focus({ preventScroll: true }); }, []);
+  const campoNombre = useRef(null);
+  useEffect(() => {
+    (nombre ? campo.current : campoNombre.current)?.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const nombreOk = limpiarNombre(nombre).length >= 2;
 
   const entrar = async (e) => {
     e.preventDefault();
     const c = clave.trim();
+    const n = limpiarNombre(nombre);
+    if (n.length < 2) { setEstado("nombre"); campoNombre.current?.focus(); return; }
     if (!c || estado === "probando") return;
     setEstado("probando");
     const r = await probarClave(c);
     if (r === "ok") {
       guardarClave(c);
+      guardarNombre(n);
       alAbrir();
       return;
     }
@@ -90,10 +103,25 @@ function Puerta({ t, irA, alAbrir }) {
               {t("Jugá con", "Play with")} <b>Pecifa Nacional</b>
             </h2>
             <p className="s2b-pf-lead">
-              {t("Ingresá la contraseña para entrar a jugar.", "Enter the password to start playing.")}
+              {t("Poné tu nombre para aparecer en el ranking y la contraseña para entrar.", "Enter your name to appear on the leaderboard, and the password to get in.")}
             </p>
 
             <form className="s2b-pf-form" onSubmit={entrar} noValidate>
+              <label className={"s2b-pf-campo" + (estado === "nombre" ? " is-mal" : "")}>
+                <UserRound size={18} aria-hidden="true" />
+                <input
+                  ref={campoNombre}
+                  type="text"
+                  value={nombre}
+                  maxLength={40}
+                  onChange={(e) => { setNombre(e.target.value); if (estado === "nombre") setEstado(""); }}
+                  placeholder={t("Tu nombre y apellido", "Your full name")}
+                  aria-label={t("Tu nombre", "Your name")}
+                  autoComplete="name"
+                  autoCapitalize="words"
+                  spellCheck={false}
+                />
+              </label>
               <label className={"s2b-pf-campo" + (estado === "mal" ? " is-mal" : "")} key={sacudir}>
                 <KeyRound size={18} aria-hidden="true" />
                 <input
@@ -123,7 +151,7 @@ function Puerta({ t, irA, alAbrir }) {
               <button
                 type="submit"
                 className="s2b-btn s2b-btn--primary s2b-btn--aura s2b-pf-entrar"
-                disabled={!clave.trim() || estado === "probando"}
+                disabled={!clave.trim() || !nombreOk || estado === "probando"}
               >
                 {estado === "probando"
                   ? <><Loader2 size={16} className="s2b-pf-rueda" /> {t("Verificando…", "Checking…")}</>
@@ -131,6 +159,7 @@ function Puerta({ t, irA, alAbrir }) {
               </button>
 
               <p id="s2b-pf-msj" className="s2b-pf-msj" role="alert">
+                {estado === "nombre" && t("Poné tu nombre para sumar en el ranking.", "Enter your name to score on the leaderboard.")}
                 {estado === "mal" && t("Esa no es la contraseña. Probá de nuevo.", "That's not the password. Try again.")}
                 {estado === "error" && t("No pudimos verificarla. Revisá tu conexión y probá otra vez.", "We couldn't check it. Check your connection and try again.")}
               </p>
@@ -141,6 +170,93 @@ function Puerta({ t, irA, alAbrir }) {
             </button>
           </div>
 
+        </div>
+      </section>
+    </div>
+  );
+}
+
+const MEDALLAS = ["oro", "plata", "bronce"];
+const numero = (n) => Number(n || 0).toLocaleString("es-AR");
+
+/* La tabla de posiciones. Se pide al entrar, despues de cada tirada -la
+   maquina avisa con un evento- y cada 20 segundos, para ver subir a los
+   demas mientras uno juega. */
+function Ranking({ t, alCambiarNombre }) {
+  const [filas, setFilas] = useState(null);
+  const [error, setError] = useState(false);
+  const yo = limpiarNombre(nombreGuardado()).toLowerCase();
+
+  useEffect(() => {
+    let vivo = true;
+    const pedir = async () => {
+      try {
+        const r = await fetch("/api/jugar?ranking=1", {
+          headers: { Accept: "application/json", ...headerClave(claveGuardada()), ...headerNombre(nombreGuardado()) },
+          cache: "no-store",
+        });
+        if (!r.ok) throw new Error("api " + r.status);
+        const d = await r.json();
+        if (vivo) { setFilas(d.ranking || []); setError(false); }
+      } catch {
+        if (vivo) setError(true);
+      }
+    };
+    pedir();
+    const cada = setInterval(pedir, 20000);
+    /* un respiro despues de la tirada, para que la base ya tenga la fila */
+    const alJugar = () => setTimeout(pedir, 400);
+    window.addEventListener(EVENTO_RANKING, alJugar);
+    return () => { vivo = false; clearInterval(cada); window.removeEventListener(EVENTO_RANKING, alJugar); };
+  }, []);
+
+  const podio = (filas || []).slice(0, 3);
+  const resto = (filas || []).slice(3);
+  const esYo = (f) => yo && String(f.nombre).toLowerCase() === yo;
+
+  return (
+    <div className="s2b-band s2b-pf-rk" id="ranking">
+      <section className="s2b-sec s2b-sec--sm">
+        <div className="s2b-wrap">
+          <div className="s2b-pf-dir-top">
+            <div className="s2b-eyebrow"><Trophy size={13} /> {t("Tabla de posiciones", "Leaderboard")}</div>
+            <h2 className="s2b-h2 s2b-pf-h2">{t("El", "The")} <b>ranking</b></h2>
+            <p className="s2b-pf-lead">
+              {t("Jugás como", "Playing as")} <b className="s2b-pf-yo">{nombreGuardado() || "—"}</b>
+              {" · "}
+              <button className="s2b-pf-cambiar" onClick={alCambiarNombre}><Pencil size={13} /> {t("Cambiar nombre", "Change name")}</button>
+            </p>
+          </div>
+
+          {filas === null && !error && <p className="s2b-pf-rk-vacio">{t("Cargando el ranking…", "Loading the leaderboard…")}</p>}
+          {error && filas === null && <p className="s2b-pf-rk-vacio">{t("No pudimos cargar el ranking. Probá recargar la página.", "We couldn't load the leaderboard. Try reloading.")}</p>}
+          {filas && filas.length === 0 && <p className="s2b-pf-rk-vacio">{t("Todavía no jugó nadie. ¡Girá y sé el primero!", "Nobody has played yet. Spin and be the first!")}</p>}
+
+          {podio.length > 0 && (
+            <ol className="s2b-pf-podio">
+              {podio.map((f, i) => (
+                <li key={f.nombre + i} className={"s2b-pf-podio-" + MEDALLAS[i] + (esYo(f) ? " is-yo" : "")}>
+                  <span className="s2b-pf-medalla">{i === 0 ? <Crown size={20} /> : i + 1}</span>
+                  <b className="s2b-pf-rk-nombre">{f.nombre}</b>
+                  <span className="s2b-pf-rk-pts">{numero(f.puntos)} <small>pts</small></span>
+                  <small className="s2b-pf-rk-jug">{numero(f.jugadas)} {Number(f.jugadas) === 1 ? t("tirada", "spin") : t("tiradas", "spins")}</small>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          {resto.length > 0 && (
+            <ol className="s2b-pf-lista" start={4}>
+              {resto.map((f, i) => (
+                <li key={f.nombre + i} className={esYo(f) ? "is-yo" : ""}>
+                  <span className="s2b-pf-lista-n">{i + 4}</span>
+                  <b className="s2b-pf-rk-nombre">{f.nombre}</b>
+                  <small className="s2b-pf-rk-jug">{numero(f.jugadas)} {t("tiradas", "spins")}</small>
+                  <span className="s2b-pf-rk-pts">{numero(f.puntos)} <small>pts</small></span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       </section>
     </div>
@@ -186,7 +302,7 @@ function Conduccion({ t }) {
 export default function JugarPecifa({ t, waLink, irA }) {
   /* con una clave guardada se revisa antes de abrir: si la cambiaron en el
      servidor, vuelve a la puerta en vez de mostrar una maquina que no gira */
-  const [fase, setFase] = useState(() => (claveGuardada() ? "revisando" : "cerrada"));
+  const [fase, setFase] = useState(() => (claveGuardada() && nombreGuardado() ? "revisando" : "cerrada"));
 
   useEffect(() => {
     cargarMaquina();
@@ -215,7 +331,7 @@ export default function JugarPecifa({ t, waLink, irA }) {
           <Suspense fallback={<div className="s2b-band s2b-band--dark" style={{ minHeight: 620 }} aria-hidden="true" />}>
             <Tragamonedas t={t} waLink={waLink} irA={irA} />
           </Suspense>
-          <Conduccion t={t} />
+          <Ranking t={t} alCambiarNombre={() => { setFase("cerrada"); window.scrollTo({ top: 0 }); }} />
         </>
       )}
     </>
@@ -333,6 +449,71 @@ const CSS_PF = `
 .s2b-pf-dirigente:hover .s2b-pf-aro { transform: translateY(-6px) scale(1.03); box-shadow: 0 26px 50px -18px rgba(0,0,0,.9), 0 0 36px rgba(249,216,88,.28); }
 .s2b-pf-dirigente b { font-family:var(--display); font-weight:600; color:var(--title); font-size:15px; line-height:1.25; }
 .s2b-pf-dirigente small { color:var(--oro2); font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; }
+
+
+/* ---------- el ranking ---------- */
+.s2b-pf-rk {
+  --oro1:#FFF6D0; --oro2:#F9D858; --oro3:#D09A1C; --oro4:#7C4E06;
+  background:
+    radial-gradient(640px circle at 50% 10%, rgba(249,216,88,.12), transparent 62%),
+    linear-gradient(180deg, #0D0A20, #0B0718);
+}
+.s2b-pf-rk .s2b-eyebrow { color: var(--oro2); }
+.s2b-pf-yo { color:#fff; font-weight:600; }
+.s2b .s2b-pf-cambiar { display:inline-flex; align-items:center; gap:5px; color:var(--oro2); font-size:14px; }
+.s2b .s2b-pf-cambiar:hover { color:var(--oro1); text-decoration:underline; }
+.s2b .s2b-pf-rk-vacio { text-align:center; color:var(--muted); margin-top:36px; }
+.s2b-pf-podio {
+  list-style:none; margin:44px auto 0; padding:0; max-width:880px;
+  display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); align-items:end; gap:16px;
+}
+.s2b-pf-podio li {
+  position:relative; display:grid; justify-items:center; text-align:center; gap:6px;
+  padding:28px 14px 22px; border-radius:22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow: 0 24px 50px -28px rgba(0,0,0,.9);
+}
+.s2b-pf-podio-oro { order:2; padding-top:40px !important; padding-bottom:34px !important;
+  border-color: rgba(249,216,88,.55) !important;
+  background: linear-gradient(180deg, rgba(249,216,88,.18), rgba(249,216,88,.03)) !important;
+  box-shadow: 0 0 60px -12px rgba(249,216,88,.35), 0 24px 50px -28px rgba(0,0,0,.9) !important; }
+.s2b-pf-podio-plata { order:1; }
+.s2b-pf-podio-bronce { order:3; }
+.s2b-pf-medalla {
+  width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
+  font-family:var(--display); font-weight:700; font-size:18px; color:#1E1405;
+  background: conic-gradient(from 200deg, #FFF6D0, #F9D858, #D09A1C, #7C4E06, #F9D858, #FFF6D0);
+  box-shadow: 0 6px 16px rgba(0,0,0,.5);
+}
+.s2b-pf-podio-plata .s2b-pf-medalla { background: conic-gradient(from 200deg, #FFFFFF, #D9DEE8, #9BA3B4, #5E6576, #D9DEE8, #FFFFFF); }
+.s2b-pf-podio-bronce .s2b-pf-medalla { background: conic-gradient(from 200deg, #FFE1C4, #E0A36A, #A86432, #5C3212, #E0A36A, #FFE1C4); }
+.s2b-pf-podio-oro .s2b-pf-medalla { width:54px; height:54px; }
+.s2b-pf-rk-nombre { font-family:var(--display); font-weight:600; color:var(--title); font-size:17px; line-height:1.2; overflow-wrap:anywhere; }
+.s2b-pf-rk-pts { font-family:var(--display); font-weight:700; font-size:26px; color:var(--oro2); line-height:1; }
+.s2b-pf-rk-pts small { font-size:12px; font-weight:500; color:var(--muted); }
+.s2b-pf-podio-oro .s2b-pf-rk-pts { font-size:34px; }
+.s2b-pf-rk-jug { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--muted); text-transform:uppercase; }
+.s2b-pf-podio li.is-yo, .s2b-pf-lista li.is-yo { outline:2px solid #7CFFB2; outline-offset:2px; }
+.s2b-pf-lista { list-style:none; margin:18px auto 0; padding:0; max-width:880px; display:grid; gap:8px; }
+.s2b-pf-lista li {
+  display:grid; grid-template-columns:40px minmax(0,1fr) auto auto; align-items:center; gap:14px;
+  padding:12px 18px; border-radius:14px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+}
+.s2b-pf-lista-n { font-family:var(--mono); font-size:14px; color:var(--muted); text-align:center; }
+.s2b-pf-lista .s2b-pf-rk-nombre { font-size:15.5px; }
+.s2b-pf-lista .s2b-pf-rk-pts { font-size:19px; }
+@media (max-width: 560px) {
+  .s2b-pf-podio { gap:8px; margin-top:32px; }
+  .s2b-pf-podio li { padding:20px 6px 16px; border-radius:16px; }
+  .s2b-pf-podio-oro { padding-top:28px !important; padding-bottom:22px !important; }
+  .s2b-pf-rk-nombre { font-size:14px; }
+  .s2b-pf-rk-pts, .s2b-pf-podio-oro .s2b-pf-rk-pts { font-size:20px; }
+  .s2b-pf-medalla { width:36px; height:36px; font-size:15px; }
+  .s2b-pf-podio-oro .s2b-pf-medalla { width:42px; height:42px; }
+  .s2b-pf-lista li { grid-template-columns:28px minmax(0,1fr) auto; gap:10px; padding:11px 12px; }
+  .s2b-pf-lista .s2b-pf-rk-jug { display:none; }
+}
 
 @media (max-width: 900px) {
   .s2b-pf-puerta { grid-template-columns: minmax(0,1fr); gap:36px; min-height:0; }

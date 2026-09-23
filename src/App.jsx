@@ -5915,7 +5915,7 @@ export default function StudioB2B() {
       vista === "aplicaciones" ? t("Aplicaciones web inteligentes | Studio B2B", "Smart web applications | Studio B2B") :
       vista === "paquete-ia" ? t("App web inteligente + IA | Studio B2B", "Smart web app + AI | Studio B2B") :
       vista === "preguntas" ? t("Preguntas frecuentes | Studio B2B", "Frequently asked questions | Studio B2B") :
-      vista === "jugar" ? t("Jugá y ganá tu descuento | Studio B2B", "Spin and win your discount | Studio B2B") :
+      vista === "jugar" ? t("Jugá con Pecifa Nacional | Ranking", "Play with Pecifa Nacional | Leaderboard") :
       t("Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial",
         "Studio B2B | Custom Software, Apps & AI Solutions");
     const d = document.querySelector('meta[name="description"]');
