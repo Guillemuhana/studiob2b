@@ -185,7 +185,9 @@ const numero = (n) => Number(n || 0).toLocaleString("es-AR");
 function Ranking({ t, alCambiarNombre }) {
   const [filas, setFilas] = useState(null);
   const [error, setError] = useState(false);
-  const yo = limpiarNombre(nombreGuardado()).toLowerCase();
+  /* igual que sb2b_norm en la base: sin mayusculas, acentos ni espacios de mas */
+  const norm = (n) => limpiarNombre(n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const yo = norm(nombreGuardado());
 
   useEffect(() => {
     let vivo = true;
@@ -212,7 +214,7 @@ function Ranking({ t, alCambiarNombre }) {
 
   const podio = (filas || []).slice(0, 3);
   const resto = (filas || []).slice(3);
-  const esYo = (f) => yo && String(f.nombre).toLowerCase() === yo;
+  const esYo = (f) => yo && norm(f.nombre) === yo;
 
   return (
     <div className="s2b-band s2b-pf-rk" id="ranking">
