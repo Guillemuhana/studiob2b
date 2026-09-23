@@ -3230,7 +3230,7 @@ const precioIACorto = (t) =>
    hacer la IA con ellos y que gestiones internas lleva la empresa. */
 const EXTRAS_IA = (t) => [
   { id: "datos", tt: t("Base de datos + IA", "Database + AI"), msj: t("base de datos + IA", "database + AI") },
-  { id: "panel", tt: t("Panel de gestión interna para tu empresa", "Internal management panel for your company"), msj: t("panel de gestión interna", "internal management panel") },
+  { id: "panel", tt: t("cPanel autogestionable + estadísticas", "Self-managed cPanel + analytics"), msj: t("cPanel autogestionable + estadísticas", "self-managed cPanel + analytics") },
 ];
 
 function IncluyeIA({ t, extras, setExtras }) {
@@ -3241,6 +3241,7 @@ function IncluyeIA({ t, extras, setExtras }) {
       <li><Check size={15} /> {t("Dominio incluido", "Domain included")}</li>
       <li><Check size={15} /> {t("Servidor propio incluido", "Your own server included")}</li>
       <li><Check size={15} /> {t("Posicionamiento SEO profesional, optimizado con IA", "Professional SEO, optimized with AI")}</li>
+      <li><Check size={15} /> {t("Máxima velocidad de carga", "Top loading speed")}</li>
       {setExtras
         ? lista.map((x) => {
             const on = extras.includes(x.id);
