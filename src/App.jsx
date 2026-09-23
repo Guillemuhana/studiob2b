@@ -3233,6 +3233,7 @@ function IncluyeIA({ t, extra, setExtra }) {
     <ul className="s2b-ia-incluye">
       <li><Check size={15} /> {t("Dominio incluido", "Domain included")}</li>
       <li><Check size={15} /> {t("Servidor propio incluido", "Your own server included")}</li>
+      <li><Check size={15} /> {t("Posicionamiento SEO profesional, optimizado con IA", "Professional SEO, optimized with AI")}</li>
       {setExtra ? (
         <li>
           <label className={"s2b-ia-extra" + (extra ? " is-on" : "")}>
@@ -6745,7 +6746,7 @@ export default function StudioB2B() {
                 <b>{t("Que venda por vos, las 24 horas.", "One that sells for you, 24/7.")}</b>
               </h3>
               <p className="s2b-ia-d">
-                {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing.")}
+                {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar, y que además te hace aparecer en Google: incluye posicionamiento SEO profesional, optimizado con IA. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono. Y lo construimos con las últimas tecnologías.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call, and gets you found on Google: professional SEO, optimized with AI, is included. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing. And we build it with the latest technology.")}
               </p>
                 {/* El boton de "ver una andando" se saco: la captura de abajo
                     ya es el link, y dos puertas a lo mismo hacen dudar cual
