@@ -79,7 +79,7 @@ async function pedirJugada(metodo) {
 }
 
 const premioDe = (id) => PREMIOS.find((p) => (p.id || "nada") === id) || PREMIOS[PREMIOS.length - 1];
-const TOPE = 3;
+const TOPE = 30;
 
 /* Las monedas que rodean el gabinete. Van escritas a mano y no sorteadas:
    sorteadas en cada pintado saltarian de lugar con cada giro. */
@@ -375,7 +375,12 @@ function Simbolo({ id, dibujo }) {
   if (!dibujo && FOTOS[id]) {
     return (
       <span className={"s2b-tm-sim s2b-tm-sim--foto" + (id === "logo" ? " s2b-tm-sim--escudo" : "")}>
-        <img src={FOTOS[id]} alt="" aria-hidden="true" draggable="false" />
+        {/* la cara va de fondo y no como <img>: dentro del tambor 3D Chrome no
+            recorta la imagen con el border-radius y asomaban las esquinas; un
+            fondo si queda siempre adentro del circulo */}
+        {id === "logo"
+          ? <img src={FOTOS[id]} alt="" aria-hidden="true" draggable="false" />
+          : <i className="s2b-tm-foto" style={{ backgroundImage: `url(${FOTOS[id]})` }} aria-hidden="true" />}
       </span>
     );
   }
@@ -681,8 +686,8 @@ export default function Tragamonedas({ t, waLink, irA }) {
       setFase("listo");
       setRestantes(0);
       setError(t(
-        "Ya usaste las 3 jugadas de esta conexión.",
-        "You've used all 3 spins from this connection."
+        "Ya usaste tus 30 jugadas de hoy. Mañana tenés 30 más.",
+        "You've used your 30 spins for today. You get 30 more tomorrow."
       ));
       return;
     }
@@ -1208,7 +1213,7 @@ export default function Tragamonedas({ t, waLink, irA }) {
                 <ul>
                   <li><Clock size={14} /> {sinTope
                     ? t("Podés girar las veces que quieras: cada tirada suma.", "Spin as many times as you like: every spin counts.")
-                    : t("Las jugadas se cuentan en nuestro servidor, así que abrir otra ventana o borrar el historial no suma jugadas.", "Spins are counted on our server, so opening another window or clearing your history won't add more.")}</li>
+                    : t("30 jugadas por día, que se renuevan a medianoche. Se cuentan en nuestro servidor: abrir otra ventana o borrar el historial no suma jugadas.", "30 spins a day, renewed at midnight. They're counted on our server: opening another window or clearing your history won't add more.")}</li>
                   <li><Sparkles size={14} /> {t("Cinco escudos de Pecifa: 1.000 puntos. Cinco caras iguales: 500, 300 o 200 según cuál.", "Five Pecifa crests: 1,000 points. Five matching faces: 500, 300 or 200 depending on the face.")}</li>
                   <li><Layers size={14} /> {t("Tres iguales suman 50 y devuelven la jugada; cuatro suman 100 y regalan otra. Si no sale nada, igual sumás 10.", "Three in a row add 50 and give the spin back; four add 100 and a free spin. No win still adds 10.")}</li>
                   <li><RotateCw size={14} /> {t("Se paga de izquierda a derecha en las cinco líneas: la del medio, la de arriba, la de abajo y las dos diagonales.", "Wins pay left to right on all five lines: middle, top, bottom and both diagonals.")}</li>
@@ -1365,14 +1370,16 @@ const CSS_TM = `
 
 /* las caras: un medallon con aro de oro, como una ficha de casino */
 .s2b-tm-sim--foto {
-  border-radius:50%; padding:6%;
+  border-radius:50%; padding:2.5%;
   background: conic-gradient(from 210deg, #FFF6D0, #F9D858, #D09A1C, #7C4E06, #F9D858, #FFF6D0);
   box-shadow: 0 6px 14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.45);
 }
-.s2b-tm-sim--foto { overflow:hidden; aspect-ratio:1; }
+.s2b-tm-sim--foto { aspect-ratio:1; }
 /* alto en auto + aspect-ratio: en la celda el medallon tiene alto auto, y un
    100% contra eso deja la foto en su tamano natural, desbordada */
 .s2b-tm-sim.s2b-tm-sim--foto > img { height:auto; aspect-ratio:1; border-radius:50%; object-fit:cover; -webkit-user-drag:none; user-select:none; }
+.s2b-tm-foto { display:block; width:100%; aspect-ratio:1; border-radius:50%; clip-path:circle(50%); background:#E6EAF2 center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
 /* el escudo ya trae su propio aro de oro: va sin el medallon, solo con brillo */
 .s2b-tm-sim.s2b-tm-sim--escudo { padding:0; background:none; overflow:visible; box-shadow:none; }
 .s2b-tm-sim.s2b-tm-sim--escudo > img { object-fit:contain; filter: drop-shadow(0 0 12px rgba(255,200,80,.7)) drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
@@ -1585,6 +1592,9 @@ const CSS_TM = `
   background:none; }
 
 .s2b-tm-cara .s2b-tm-sim { position:relative; z-index:1; width:66%; aspect-ratio:1; height:auto; }
+/* las caras van mas chicas que los dibujos: la perspectiva agranda la fila
+   del frente y el medallon se salia de la columna, cortado en los bordes */
+.s2b-tm-cara .s2b-tm-sim.s2b-tm-sim--foto { width:56%; }
 /* el simbolo que pago late despues de la frenada */
 .s2b-tm-cara.is-premiada::before { background:linear-gradient(180deg, rgba(255,226,120,.85), rgba(240,180,40,.55));
   box-shadow:inset 0 0 0 1px rgba(255,246,208,.7); }

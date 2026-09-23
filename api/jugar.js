@@ -26,7 +26,7 @@ const SECRETO = process.env.SB2B_SECRETO;
 const SAL = process.env.SB2B_SAL;
 /* solo para contestar cuando todavia no hay ninguna fila; el tope de verdad
    lo tiene la base, en sb2b_config_num */
-const TOPE = 3;
+const TOPE = 30;
 /* La llave de prueba: quien la trae juega sin tope y sus jugadas quedan
    marcadas como prueba, asi no ensucian las estadisticas ni le comen el cupo
    a nadie. Es un header y no un dato del cuerpo para que no se cuele por una
