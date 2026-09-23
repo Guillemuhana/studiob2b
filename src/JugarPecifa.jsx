@@ -186,7 +186,7 @@ function Ranking({ t, alCambiarNombre }) {
   const [filas, setFilas] = useState(null);
   const [error, setError] = useState(false);
   /* igual que sb2b_norm en la base: sin mayusculas, acentos ni espacios de mas */
-  const norm = (n) => limpiarNombre(n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const norm = (n) => limpiarNombre(n).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const yo = norm(nombreGuardado());
 
   useEffect(() => {
