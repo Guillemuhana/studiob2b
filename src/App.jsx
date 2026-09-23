@@ -1190,24 +1190,20 @@ const CSS = `
 }
 
 /* ---- la promo ----
-   Naranja y no verde: el verde ya es el de WhatsApp en todo el sitio, asi
-   que una oferta en verde se confunde con un boton de contacto. El naranja
-   no lo usa nada mas, entonces cuando aparece se sabe que es esto.
-
-   El sello late despacio -dos segundos- porque en una tarjeta quieta es lo
-   unico que se mueve y es ahi donde tiene que caer el ojo. Y el numero
-   lleva un resplandor detras en vez de un borde: un borde mas, al lado de
-   los que ya tiene la caja, se pierde.
+   Blanca y no de color: sobre el fondo oscuro del sitio el blanco es lo que
+   mas resalta, y no compite con el violeta de la marca ni con el verde de
+   WhatsApp. El sello late despacio -dos segundos- porque en una tarjeta
+   quieta es lo unico que se mueve y es ahi donde tiene que caer el ojo.
    ================================================================== */
 .s2b-ia-caja.is-promo { position:relative; overflow:hidden;
-  border-color:rgba(255,138,76,.5);
+  border-color:rgba(255,255,255,.55);
   background:
-    radial-gradient(120% 80% at 80% -10%, rgba(255,138,76,.26), transparent 62%),
-    linear-gradient(160deg, rgba(90,38,10,.5), rgba(0,0,0,.42) 64%);
-  box-shadow:0 30px 70px -40px rgba(255,138,76,.75); }
+    radial-gradient(120% 80% at 80% -10%, rgba(255,255,255,.16), transparent 62%),
+    linear-gradient(160deg, rgba(255,255,255,.07), rgba(0,0,0,.42) 64%);
+  box-shadow:0 30px 70px -40px rgba(255,255,255,.45), inset 0 1px 0 rgba(255,255,255,.25); }
 /* la cinta de luz que cruza la caja cada tanto */
 .s2b-ia-caja.is-promo::after { content:''; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(100deg, transparent 38%, rgba(255,200,150,.16) 50%, transparent 62%);
+  background:linear-gradient(100deg, transparent 38%, rgba(255,255,255,.14) 50%, transparent 62%);
   transform:translateX(-120%); animation:s2b-promo-luz 4.5s ease-in-out infinite; }
 @keyframes s2b-promo-luz { 0%,62% { transform:translateX(-120%); } 88%,100% { transform:translateX(120%); } }
 
@@ -1215,11 +1211,13 @@ const CSS = `
   display:inline-flex; align-items:center; gap:7px;
   padding:6px 15px; border-radius:999px;
   font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
-  font-weight:700; color:#3A1400;
-  background:linear-gradient(120deg,#FFD9A8,#FF9A4C 52%,#FF6B2C);
-  box-shadow:0 12px 28px -10px rgba(255,138,76,.95);
+  font-weight:700; color:#0B0718;
+  background:linear-gradient(180deg,#FFFFFF,#E4E6EE);
+  box-shadow:0 12px 28px -10px rgba(255,255,255,.6);
   animation:s2b-promo-late 2s ease-in-out infinite; }
-@keyframes s2b-promo-late { 50% { transform:scale(1.06); box-shadow:0 16px 36px -10px rgba(255,138,76,1); } }
+@keyframes s2b-promo-late { 50% { transform:scale(1.06); box-shadow:0 16px 36px -10px rgba(255,255,255,.8); } }
+/* otra regla de la caja le pisaba el color al texto y quedaba gris */
+.s2b .s2b-ia-caja .s2b-promo-sello { color:#0B0718; }
 @media (prefers-reduced-motion: reduce) {
   .s2b-promo-sello, .s2b-ia-caja.is-promo::after { animation:none; }
   .s2b-ia-caja.is-promo::after { opacity:0; }
@@ -1227,26 +1225,46 @@ const CSS = `
 
 .s2b-promo-desde { display:block; margin-bottom:2px; font-style:normal;
   font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
-  color:#FFB27A; }
+  color:#FFFFFF; opacity:.85; }
 .s2b-ia-caja.is-promo { padding-top:30px; }
-.s2b-ia-caja.is-promo .s2b-ia-num b { position:relative; color:#FFC79A;
-  text-shadow:0 0 34px rgba(255,138,76,.65); }
+.s2b-ia-caja.is-promo .s2b-ia-num b { position:relative; color:#FFFFFF;
+  text-shadow:0 0 30px rgba(255,255,255,.45); }
 .s2b-ia-caja.is-promo .s2b-ia-num em s { color:var(--muted); opacity:.75; }
-.s2b-ia-caja.is-promo .s2b-ia-num--mes { border-top-color:rgba(255,138,76,.26); }
+.s2b-ia-caja.is-promo .s2b-ia-num--mes { border-top-color:rgba(255,255,255,.2); }
 .s2b-ia-caja.is-promo .s2b-ia-num--mes b { color:var(--lilac); text-shadow:none; }
 
 .s2b-promo-pagos { list-style:none; margin:16px 0 0; padding:14px 0 0; display:grid; gap:10px;
-  border-top:1px solid rgba(255,138,76,.28); }
+  border-top:1px solid rgba(255,255,255,.2); }
 .s2b-promo-pagos li { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
 .s2b-promo-pagos b { font-family:var(--display); font-size:19px; font-weight:700; color:#fff; }
 .s2b-promo-pagos em { font-style:normal; font-family:var(--mono); font-size:10px; letter-spacing:.1em;
-  text-transform:uppercase; color:#FFB27A; }
-.s2b-promo-pago-corto { display:block; margin-top:10px; font-size:13px; color:#FFB27A; line-height:1.5; }
+  text-transform:uppercase; color:#D6D3E6; }
+.s2b-promo-pago-corto { display:block; margin-top:10px; font-size:13px; color:#E6E3F2; line-height:1.5; }
 /* el boton sigue verde: va a WhatsApp, y ahi el verde no decora, avisa */
 .s2b .s2b-promo-cta { position:relative; z-index:2; color:#fff;
   background:linear-gradient(150deg,#4AE083,#1FA855 62%,#128C7E);
   box-shadow:0 14px 34px -14px rgba(18,140,126,.9), inset 0 1px 0 rgba(255,255,255,.3); }
 .s2b-promo-cta .s2b-wa-ico { width:17px; height:17px; }
+
+/* lo incluido y el adicional */
+.s2b-ia-incluye { position:relative; z-index:2; list-style:none; margin:16px 0 18px; padding:14px 0 0; display:grid; gap:10px;
+  border-top:1px solid rgba(255,255,255,.16); }
+.s2b-ia-incluye li { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:600; color:#fff; }
+.s2b-ia-incluye li > svg { color:#7CFFB2; flex:none; }
+.s2b-ia-incluye li.is-extra { color:var(--text); font-weight:500; }
+.s2b-ia-incluye li.is-extra > svg { color:var(--lilac); }
+.s2b-ia-extra { display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;
+  padding:10px 12px; border-radius:12px; border:1px dashed rgba(255,255,255,.3); background:rgba(255,255,255,.03);
+  transition:border-color .2s, background .2s; }
+.s2b-ia-extra:hover { border-color:rgba(255,255,255,.55); }
+.s2b-ia-extra.is-on { border-style:solid; border-color:#7CFFB2; background:rgba(124,255,178,.08); }
+.s2b-ia-extra input { position:absolute; opacity:0; width:1px; height:1px; }
+.s2b-ia-extra:focus-within { outline:2px solid var(--violet); outline-offset:3px; }
+.s2b-ia-extra-caja { width:24px; height:24px; flex:none; border-radius:7px; display:grid; place-items:center;
+  border:1.5px solid rgba(255,255,255,.5); color:#fff; }
+.s2b-ia-extra.is-on .s2b-ia-extra-caja { background:#7CFFB2; border-color:#7CFFB2; color:#0B0718; }
+.s2b-ia-extra span:last-child { display:grid; line-height:1.3; }
+.s2b-ia-extra small { font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:500; margin-top:2px; }
 
 /* el sello de nuevo: es lo que hace que alguien que ya conoce el sitio
    frene y lo lea en vez de pasarlo de largo */
@@ -3167,6 +3185,9 @@ const IA_DEMO = "https://ntg-business.vercel.app/";
 
 const IA_SETUP = 1200;
 const IA_MES = 70;
+/* El abono mensual no se muestra por ahora: se habla en la llamada y no traba
+   la decision en la pagina. Con true vuelve a aparecer en todos lados. */
+const MOSTRAR_MES = false;
 
 /* ==================================================================
    La promocion.
@@ -3196,6 +3217,35 @@ const PROMO = {
 };
 const promoVigente = () => PROMO.activa && (!PROMO.hasta || Date.now() <= Date.parse(PROMO.hasta + "T23:59:59"));
 const pesosAR = (n) => "$" + n.toLocaleString("es-AR");
+/* el precio del paquete en una linea, para el menu: la promo si esta vigente,
+   y el abono solo si se muestra */
+const precioIACorto = (t) =>
+  (promoVigente()
+    ? (PROMO.desde ? t("desde ", "from ") : "") + pesosAR(PROMO.pesos)
+    : "US$ " + IA_SETUP.toLocaleString("es-AR"))
+  + (MOSTRAR_MES ? " + " + IA_MES + t("/mes", "/mo") : "");
+
+/* Lo que va incluido y el adicional, debajo del precio. El adicional se
+   cotiza aparte: depende de que datos haya que guardar y que tiene que
+   hacer la IA con ellos. */
+function IncluyeIA({ t, extra, setExtra }) {
+  return (
+    <ul className="s2b-ia-incluye">
+      <li><Check size={15} /> {t("Dominio incluido", "Domain included")}</li>
+      {setExtra ? (
+        <li>
+          <label className={"s2b-ia-extra" + (extra ? " is-on" : "")}>
+            <input type="checkbox" checked={extra} onChange={(e) => setExtra(e.target.checked)} />
+            <span className="s2b-ia-extra-caja" aria-hidden="true">{extra ? <Check size={13} /> : <Plus size={13} />}</span>
+            <span>{t("Sumar base de datos + IA", "Add database + AI")}<small>{t("opcional · se cotiza aparte", "optional · quoted separately")}</small></span>
+          </label>
+        </li>
+      ) : (
+        <li className="is-extra"><Plus size={15} /> {t("Opcional: base de datos + IA", "Optional: database + AI")}</li>
+      )}
+    </ul>
+  );
+}
 
 const modulosIA = (t) => [
   {
@@ -5700,6 +5750,8 @@ export default function StudioB2B() {
      direccion sale del origen donde esta corriendo y no escrita a mano,
      asi el boton sirve igual en una preview o en local. */
   const [copiadoIA, setCopiadoIA] = useState(false);
+  /* el adicional de base de datos + IA, marcado o no, viaja en el mensaje */
+  const [extraIA, setExtraIA] = useState(false);
   const copiarIA = useCallback(() => {
     const url = window.location.origin + RUTAS["paquete-ia"];
     const listo = () => { setCopiadoIA(true); setTimeout(() => setCopiadoIA(false), 2200); };
@@ -5737,7 +5789,7 @@ export default function StudioB2B() {
       pie: "",
       items: [
         { ic: Bot, tt: t("App web inteligente + IA", "Smart web app + AI"), to: "paquete-ia",
-          d: "US$ " + IA_SETUP.toLocaleString("es-AR") + " + " + IA_MES + t("/mes · lista en 7 días", "/mo · ready in 7 days"),
+          d: precioIACorto(t) + t(" · lista en 7 días", " · ready in 7 days"),
           listo: t("Lo más pedido · ya armado", "Most requested · ready made") },
         { ic: Globe, tt: t("Aplicaciones web", "Web applications"), to: "aplicaciones",
           d: t("SaaS, paneles y portales · desde US$ 950", "SaaS, dashboards and portals · from US$ 950") },
@@ -5760,7 +5812,7 @@ export default function StudioB2B() {
         { ic: Globe, tt: t("Aplicaciones web a medida", "Custom web apps"), to: "aplicaciones",
           d: "US$ " + APPWEB_DESDE.toLocaleString("es-AR") + " – " + APPWEB_HASTA.toLocaleString("es-AR") },
         { ic: Bot, tt: t("App web inteligente + IA", "Smart web app + AI"), to: "paquete-ia",
-          d: "US$ " + IA_SETUP.toLocaleString("es-AR") + " + " + IA_MES + t("/mes", "/mo") },
+          d: precioIACorto(t) },
         { ic: Code2, tt: t("Proyectos a medida", "Custom projects"), to: "proyectos",
           d: t("MVP, apps y sistemas", "MVP, apps and systems") },
       ],
@@ -6566,20 +6618,15 @@ export default function StudioB2B() {
               <span className="s2b-ia-num">
                 {promoVigente() && PROMO.desde && <i className="s2b-promo-desde">{t("desde", "from")}</i>}
                 <b>{promoVigente() ? pesosAR(PROMO.pesos) : "US$ " + IA_SETUP.toLocaleString("es-AR")}</b>
-                <em>
-                  {t("la puesta en marcha, una sola vez", "setup, one time")}
-                  {promoVigente() && <> · <s>US$ {IA_SETUP.toLocaleString("es-AR")}</s></>}
-                </em>
+                {!promoVigente() && <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>}
               </span>
-              {promoVigente() && (
-                <span className="s2b-promo-pago-corto">
-                  {t("40% al comenzar y el resto al finalizar", "40% to start and the rest on delivery")}
+              {MOSTRAR_MES && (
+                <span className="s2b-ia-num s2b-ia-num--mes">
+                  <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
+                  <em>{t("para que siga andando", "to keep it running")}</em>
                 </span>
               )}
-              <span className="s2b-ia-num s2b-ia-num--mes">
-                <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
-                <em>{t("para que siga andando", "to keep it running")}</em>
-              </span>
+              <IncluyeIA t={t} />
               <button className="s2b-btn s2b-btn--primary" onClick={() => goTo("paquete-ia")}>
                 {t("Ver el servicio", "See the service")} <ArrowRight size={16} />
               </button>
@@ -6693,8 +6740,8 @@ export default function StudioB2B() {
               <span className="s2b-ia-nuevo">{t("Nuevo", "New")}</span>
               <div className="s2b-eyebrow">{t("App web inteligente + IA", "Smart web app + AI")}</div>
               <h3 className="s2b-ia-tt">
-                {t("Tu web hoy es un folleto.", "Your site today is a brochure.")}{" "}
-                <b>{t("La convertimos en un vendedor.", "We turn it into a salesperson.")}</b>
+                {t("Obtené tu app web inteligente.", "Get your smart web app.")}{" "}
+                <b>{t("Que venda por vos, las 24 horas.", "One that sells for you, 24/7.")}</b>
               </h3>
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing.")}
@@ -6716,31 +6763,19 @@ export default function StudioB2B() {
                 {promoVigente() ? (
                   <>
                     <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>
+                    {/* Solo el piso. Los pagos y el precio final dependen de la
+                        magnitud del proyecto y se explican en la llamada: en la
+                        pagina una cuota escrita se lee como el precio cerrado. */}
                     <span className="s2b-ia-num">
                       {PROMO.desde && <i className="s2b-promo-desde">{t("desde", "from")}</i>}
                       <b>{pesosAR(PROMO.pesos)}</b>
-                      <em>
-                        {t("la puesta en marcha, una sola vez", "setup, one time")}
-                        {" · "}
-                        <s>US$ {IA_SETUP.toLocaleString("es-AR")}</s>
-                      </em>
                     </span>
-                    {/* los dos pagos calculados, no escritos: si cambia la
-                        cifra de arriba, estos cambian solos */}
-                    <ul className="s2b-promo-pagos">
-                      <li>
-                        <b>{pesosAR(Math.round(PROMO.pesos * PROMO.senia))}</b>
-                        <em>{t("al comenzar", "to start")} · {Math.round(PROMO.senia * 100)}%</em>
-                      </li>
-                      <li>
-                        <b>{pesosAR(PROMO.pesos - Math.round(PROMO.pesos * PROMO.senia))}</b>
-                        <em>{t("al finalizar", "on delivery")}</em>
-                      </li>
-                    </ul>
-                    <span className="s2b-ia-num s2b-ia-num--mes">
-                      <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
-                      <em>{t("para que siga andando", "to keep it running")}</em>
-                    </span>
+                    {MOSTRAR_MES && (
+                      <span className="s2b-ia-num s2b-ia-num--mes">
+                        <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
+                        <em>{t("para que siga andando", "to keep it running")}</em>
+                      </span>
+                    )}
                   </>
                 ) : (
                   <>
@@ -6748,15 +6783,22 @@ export default function StudioB2B() {
                       <b>US$ {IA_SETUP.toLocaleString("es-AR")}</b>
                       <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>
                     </span>
-                    <span className="s2b-ia-num s2b-ia-num--mes">
-                      <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
-                      <em>{t("para que siga andando", "to keep it running")}</em>
-                    </span>
+                    {MOSTRAR_MES && (
+                      <span className="s2b-ia-num s2b-ia-num--mes">
+                        <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
+                        <em>{t("para que siga andando", "to keep it running")}</em>
+                      </span>
+                    )}
                   </>
                 )}
+                <IncluyeIA t={t} extra={extraIA} setExtra={setExtraIA} />
+                {/* si marco el adicional, el mensaje ya lo dice: asi no hay que
+                    repetirlo en el chat */}
                 <a
                   className="s2b-btn s2b-btn--primary s2b-promo-cta"
-                  href={waLink(t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI."))}
+                  href={waLink(extraIA
+                    ? t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA, con base de datos + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI, with the database + AI add-on.")
+                    : t("Hola Studio B2B, quiero solicitar el demo gratis de la app web inteligente + IA.", "Hi Studio B2B, I'd like to request the free demo of the smart web app + AI."))}
                   target="_blank" rel="noopener noreferrer"
                 >
                   <WhatsappGlyph /> {t("Solicitá tu demo gratis", "Request your free demo")}
