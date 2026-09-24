@@ -2276,6 +2276,19 @@ const CSS = `
 .s2b-quieto .s2b-tm-halo,
 .s2b-quieto .s2b-luz { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .s2b-nav { transition: none; } }
+/* en el celular el menu no cambia de tamano ni de lugar al bajar: una sola
+   barra fija, siempre igual, con fondo solido para que el texto que pasa por
+   detras no se lea a traves */
+@media (max-width: 899px) {
+  /* pegado arriba de todo, de lado a lado, en el violeta de la marca */
+  .s2b .s2b-nav, .s2b .s2b-nav.is-stuck { padding-top: 0; transform: none; transition: none;
+    background: linear-gradient(180deg, #2E1C72 0%, #231457 100%);
+    box-shadow: 0 1px 0 rgba(167,140,255,.22), 0 10px 28px -14px rgba(0,0,0,.8); }
+  .s2b .s2b-nav .s2b-brand, .s2b .s2b-nav.is-stuck .s2b-brand { --mark: 50px; }
+  .s2b .s2b-nav .s2b-nav-in, .s2b .s2b-nav.is-stuck .s2b-nav-in {
+    background: none; border: 0; border-radius: 0; box-shadow: none; padding: 8px 14px 8px 16px;
+    backdrop-filter: none; -webkit-backdrop-filter: none; transition: none; }
+}
 .s2b-nav.is-stuck { background: none; box-shadow: none; backdrop-filter: none; padding-top: 8px; }
 .s2b-nav-in { padding: 8px 10px; border-radius: 18px; border: 1px solid transparent;
   transition: background .35s, border-color .35s, box-shadow .35s, padding .35s; }
@@ -6454,6 +6467,13 @@ export default function StudioB2B() {
       /* con el menu abierto no se esconde: al cerrarlo el nav tiene que estar
          donde la persona lo dejo */
       if (drawerRef.current) { tramo = 0; return; }
+      /* en el celular el menu queda siempre puesto: esconderse y volver a
+         aparecer con el dedo era lo que lo hacia bajar y tapar el contenido */
+      if (window.innerWidth < 900) {
+        if (oculto) { oculto = false; setNavOculto(false); }
+        tramo = 0;
+        return;
+      }
       let quiere = oculto;
       if (y < 120) { quiere = false; tramo = 0; }
       else if (dif !== 0) {
