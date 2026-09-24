@@ -218,6 +218,7 @@ void main() {
 const LUNA_REAL_F = /* glsl */ `
 precision highp float;
 uniform vec3 uLuz;
+uniform vec4 uImpacto;   // direccion del golpe y cuanto calor le queda
 varying vec3 vN; varying vec3 vP; varying vec3 vV;
 vec3 hash3(vec3 p) {
   p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
@@ -268,6 +269,14 @@ void main() {
   vec3 fin = col * (0.03 + luz * 1.05);
   // un reflejo apenas azulado de la tierra en la cara oscura
   fin += vec3(0.05, 0.06, 0.1) * (1.0 - luz) * 0.5;
+  // el punto del golpe queda incandescente y se enfria: blanco, naranja, rojo
+  float g = max(dot(n, normalize(uImpacto.xyz + 1e-4)), 0.0);
+  float nucleo = pow(g, 900.0), aura = pow(g, 160.0);
+  float calor = uImpacto.w;
+  vec3 brasa = mix(vec3(0.9, 0.18, 0.05), vec3(1.0, 0.7, 0.35), calor);
+  fin += brasa * (nucleo * 2.4 + aura * 0.6) * calor * calor;
+  // y deja una mancha oscura de material eyectado alrededor
+  fin *= 1.0 - smoothstep(0.985, 0.998, g) * 0.35 * (1.0 - calor * 0.5) * step(0.001, uImpacto.w + 0.001);
   gl_FragColor = vec4(fin, 1.0);
 }
 `;
@@ -461,8 +470,8 @@ void main() {
   vec3 brazo = mix(vec3(0.55, 0.62, 1.0), vec3(0.62, 0.45, 1.0), dato.z);
   vColor = mix(nucleo, brazo, smoothstep(0.0, 0.45, r));
   vColor = mix(vColor, vec3(1.0, 0.55, 0.8), step(0.965, dato.w));
-  vA = (0.24 + dato.w * 0.45) * (1.0 - smoothstep(0.7, 1.0, r) * 0.75) * (0.55 + smoothstep(0.0, 0.3, r) * 0.45);
-  gl_PointSize = (1.2 + dato.w * 2.2 + (1.0 - smoothstep(0.0, 0.2, r)) * 1.5) * uDpr * (78.0 / -mv.z);
+  vA = (0.24 + dato.w * 0.45) * (1.0 - smoothstep(0.7, 1.0, r) * 0.75) * (0.3 + smoothstep(0.0, 0.3, r) * 0.7);
+  gl_PointSize = (1.2 + dato.w * 2.2) * uDpr * (78.0 / -mv.z);
 }
 `;
 const GAL_F = /* glsl */ `
@@ -481,7 +490,7 @@ varying vec3 vColor; varying float vA;
 void main() {
   float d = length(gl_PointCoord - 0.5) * 2.0;
   if (d > 1.0) discard;
-  gl_FragColor = vec4(vec3(1.0, 0.9, 0.78), pow(1.0 - d, 3.0) * 0.22);
+  gl_FragColor = vec4(vec3(1.0, 0.88, 0.72), pow(1.0 - d, 3.0) * 0.14);
 }
 `;
 
@@ -628,7 +637,7 @@ export default function FondoIA() {
       ].forEach((l) => {
         const m = new Mesh(gl, {
           geometry: geoLuna,
-          program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ } } }),
+          program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ }, uImpacto: { value: [0, 0, 1, 0] } } }),
         });
         m.scale.set(l.r);
         m.setParent(sistema);
@@ -672,7 +681,7 @@ export default function FondoIA() {
       /* la luna grande: la que se lleva el golpe */
       luna = new Mesh(gl, {
         geometry: new Sphere(gl, { radius: 1, widthSegments: 72, heightSegments: 48 }),
-        program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ } } }),
+        program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ }, uImpacto: { value: [0, 0, 1, 0] } } }),
       });
       luna.scale.set(0.56);
       zonaLuna = new Transform();
@@ -721,6 +730,7 @@ export default function FondoIA() {
       parts.push({ x, y, z, vx, vy, vz, vida: 0, dura, tam, tipo, freno, crece });
     };
     let ast = null;
+    let calor = 0;
     let proxAst = quieto ? Infinity : 3.5;
 
     const lanzar = () => {
@@ -773,6 +783,12 @@ export default function FondoIA() {
       if (!luna) return;
       const lp = lunaEn(reloj);
       luna.position.set(...lp);
+      /* el crater se enfria en unos seis segundos; la marca queda */
+      if (calor > 0) {
+        calor = Math.max(0, calor - dt / 6);
+        const u = luna.program.uniforms.uImpacto.value;
+        luna.program.uniforms.uImpacto.value = [u[0], u[1], u[2], calor];
+      }
       luna.rotation.y = reloj * 0.08;
 
       proxAst -= dt;
@@ -796,6 +812,8 @@ export default function FondoIA() {
         if (Math.random() < 0.35) soltar(...pos, ast.d[0] * 0.08, ast.d[1] * 0.08, ast.d[2] * 0.08, azar(1.2, 2), azar(5, 9), 1, 0.4, 1);
         if (k >= 1) {
           chocar(dest, ast.d);
+          luna.program.uniforms.uImpacto.value = [...ast.d, 1];
+          calor = 1;
           roca.visible = false;
           ast = null;
           proxAst = azar(10, 15);

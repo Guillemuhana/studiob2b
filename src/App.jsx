@@ -1239,7 +1239,7 @@ const CSS = `
 /* la caja del precio */
 .s2b-ia-tilt { transform-style: preserve-3d; }
 .s2b-ia-caja--viva { position: relative; isolation: isolate; backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
-.s2b-ia-caja--viva > :not(.s2b-ia-haz):not(.s2b-ia-foco):not(.s2b-promo-sello) { position: relative; z-index: 2; }
+.s2b-ia-caja--viva > :not(.s2b-ia-haz):not(.s2b-ia-foco):not(.s2b-promo-sello):not(.s2b-ia-cosmos) { position: relative; z-index: 2; }
 .s2b-ia-caja--viva > .s2b-promo-sello { z-index: 3; }
 @property --s2b-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 /* el haz: un conico que gira, recortado para que solo se vea en el borde */
@@ -1265,6 +1265,42 @@ const CSS = `
   .s2b-iah-aurora { opacity: .6; }
 }
 
+
+
+/* ---------- la caja del precio, ventana al espacio ----------
+   Tres capas de estrellas hechas con degrades -sin imagenes- que viajan a
+   distinta velocidad: las cercanas mas rapido, como mirar por una ventanilla.
+   Encima una nebulosa que respira y, alrededor del precio, una orbita con un
+   planetita que la recorre. */
+.s2b-ia-cosmos { position: absolute; inset: 0; z-index: 0; border-radius: inherit; overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 85% 0%, rgba(109,74,255,.22), transparent 60%),
+    radial-gradient(90% 60% at 0% 100%, rgba(63,169,255,.12), transparent 60%); }
+.s2b-ia-cosmos::after { content: ''; position: absolute; inset: -20%;
+  background: radial-gradient(40% 30% at 70% 30%, rgba(167,140,255,.16), transparent 70%),
+              radial-gradient(35% 28% at 25% 70%, rgba(127,211,255,.1), transparent 70%);
+  animation: s2b-cosmos-respira 9s ease-in-out infinite alternate; }
+@keyframes s2b-cosmos-respira { to { transform: translate(-4%, 3%) scale(1.08); opacity: .7; } }
+.s2b-ia-cosmos > i { position: absolute; inset: 0; background-repeat: repeat; animation: s2b-cosmos-viaja linear infinite; }
+.s2b-ia-cosmos > i:nth-child(1) { background-size: 140px 140px; opacity: .55; animation-duration: 80s;
+  background-image: radial-gradient(1px 1px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 90px 80px, #cfe0ff, transparent),
+    radial-gradient(1px 1px at 120px 20px, #fff, transparent), radial-gradient(1px 1px at 50px 115px, #d8ccff, transparent); }
+.s2b-ia-cosmos > i:nth-child(2) { background-size: 220px 220px; opacity: .7; animation-duration: 50s;
+  background-image: radial-gradient(1.5px 1.5px at 40px 60px, #fff, transparent), radial-gradient(1.5px 1.5px at 170px 140px, #bcd4ff, transparent),
+    radial-gradient(1.2px 1.2px at 110px 190px, #fff, transparent); }
+.s2b-ia-cosmos > i:nth-child(3) { background-size: 330px 330px; opacity: .9; animation-duration: 30s;
+  background-image: radial-gradient(2px 2px at 70px 90px, #fff, transparent), radial-gradient(2px 2px at 250px 260px, #e6dcff, transparent);
+  filter: drop-shadow(0 0 2px rgba(255,255,255,.8)); }
+@keyframes s2b-cosmos-viaja { from { background-position: 0 0; } to { background-position: 0 -660px; } }
+
+.s2b .s2b-ia-caja--viva .s2b-ia-orbitado { position: relative; display: inline-block; isolation: isolate; }
+.s2b-ia-precio-txt { position: relative; z-index: 1; }
+.s2b-ia-orbita { position: absolute; z-index: 0; left: 50%; top: 52%; width: 138%; height: auto; transform: translate(-50%, -50%);
+  overflow: visible; pointer-events: none; filter: drop-shadow(0 0 6px rgba(167,140,255,.6)); }
+@media (prefers-reduced-motion: reduce) {
+  .s2b-ia-cosmos > i, .s2b-ia-cosmos::after { animation: none; }
+  .s2b-ia-orbita { display: none; }
+}
 
 /* ---------- el formulario de la promo ---------- */
 .s2b-leadf { position: relative; margin-top: clamp(8px,2vw,20px); border-radius: 26px; padding: 1.5px;
@@ -7251,6 +7287,9 @@ export default function StudioB2B() {
               >
                 <i className="s2b-ia-haz" aria-hidden="true" />
                 <i className="s2b-ia-foco" aria-hidden="true" />
+                {/* la ventana al espacio: tres capas de estrellas que viajan a
+                    distinta velocidad, y una nebulosa que respira */}
+                <i className="s2b-ia-cosmos" aria-hidden="true"><i /><i /><i /></i>
                 {promoVigente() ? (
                   <>
                     <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>
@@ -7259,7 +7298,35 @@ export default function StudioB2B() {
                         pagina una cuota escrita se lee como el precio cerrado. */}
                     <span className="s2b-ia-num">
                       {PROMO.desde && <i className="s2b-promo-desde">{t("desde", "from")}</i>}
-                      <b>{pesosAR(PROMO.pesos)}</b>
+                      <b className="s2b-ia-orbitado">
+                        {/* la orbita alrededor del precio: un planetita la recorre
+                            y pasa por detras del numero en la mitad de atras */}
+                        <svg className="s2b-ia-orbita" viewBox="0 0 320 120" aria-hidden="true">
+                          <defs>
+                            <radialGradient id="s2bPlanetita" cx="35%" cy="35%" r="70%">
+                              <stop offset="0" stopColor="#FFFFFF" />
+                              <stop offset=".45" stopColor="#B9A6FF" />
+                              <stop offset="1" stopColor="#4B2FD6" />
+                            </radialGradient>
+                            <linearGradient id="s2bTrazo" x1="0" x2="1">
+                              <stop offset="0" stopColor="#A78CFF" stopOpacity=".35" />
+                              <stop offset=".5" stopColor="#CFE8FF" stopOpacity="1" />
+                              <stop offset="1" stopColor="#A78CFF" stopOpacity=".35" />
+                            </linearGradient>
+                          </defs>
+                          <ellipse cx="160" cy="60" rx="150" ry="34" fill="none" stroke="url(#s2bTrazo)" strokeWidth="1.6" transform="rotate(-8 160 60)" />
+                          <ellipse cx="160" cy="60" rx="150" ry="34" fill="none" stroke="#CFE8FF" strokeOpacity=".16" strokeWidth="5" transform="rotate(-8 160 60)" />
+                          <g transform="rotate(-8 160 60)">
+                            <circle r="7" fill="url(#s2bPlanetita)">
+                              <animateMotion dur="9s" repeatCount="indefinite" path="M310,60 A150,34 0 1,1 10,60 A150,34 0 1,1 310,60" />
+                            </circle>
+                            <circle r="15" fill="#A78CFF" opacity=".3">
+                              <animateMotion dur="9s" repeatCount="indefinite" path="M310,60 A150,34 0 1,1 10,60 A150,34 0 1,1 310,60" />
+                            </circle>
+                          </g>
+                        </svg>
+                        <span className="s2b-ia-precio-txt">{pesosAR(PROMO.pesos)}</span>
+                      </b>
                     </span>
                     {MOSTRAR_MES && (
                       <span className="s2b-ia-num s2b-ia-num--mes">
