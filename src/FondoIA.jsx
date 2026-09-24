@@ -1026,17 +1026,22 @@ export default function FondoIA() {
          la pantalla y no numeros sueltos. */
       const vis = (z) => { const hh = Math.tan((35 * Math.PI) / 360) * (12 - z); return [hh * (w / h), hh]; };
       if (w / h < 0.9) {
-        let [ww, hh] = vis(-9);
-        sistema.position.set(ww * 0.66, hh * 0.78, -9);
-        sistema.scale.set(hh * 0.085);
-        [ww, hh] = vis(-3);
-        zonaLuna.position.set(ww * 0.02, hh * 0.84, -3);
-        zonaLuna.scale.set(hh * 0.1);
-        [ww, hh] = vis(-26);
-        galaxia.position.set(-ww * 0.05, hh * 0.55, -26);
-        galaxia.scale.set(hh * 0.62);
-        [ww, hh] = vis(-14);
-        solBase = { ww, hh, R: hh * 0.2, y: hh * 0.84 };
+        /* En el celular el lienzo es altisimo -titular, texto, precio- asi
+           que las posiciones van en pixeles: todo en la franja libre de
+           arriba, entre el menu y el "NUEVO", chico y separado. Sin sol: en
+           una pantalla angosta tapaba el titular y cargaba la escena. */
+        const px = (x, z) => { const [ww] = vis(z); return ww * (2 * x / w - 1); };
+        const py = (y, z) => { const [, hh] = vis(z); return hh * (1 - 2 * y / h); };
+        const pxw = (n, z) => { const [, hh] = vis(z); return n * 2 * hh / h; };
+        const tope = 120 + 46;   // el lienzo arranca 120 px arriba del bloque
+        sistema.position.set(px(w * 0.8, -9), py(tope, -9), -9);
+        sistema.scale.set(pxw(20, -9));
+        zonaLuna.position.set(px(w * 0.2, -3), py(tope + 4, -3), -3);
+        zonaLuna.scale.set(pxw(15, -3) / 0.56);
+        galaxia.position.set(px(w * 0.5, -26), py(tope, -26), -26);
+        galaxia.scale.set(pxw(62, -26));
+        const [ww, hh] = vis(-14);
+        solBase = { ww, hh, R: hh * 0.2, y: hh * 0.84, oculto: true };
       } else {
         let [ww, hh] = vis(-9);
         sistema.position.set(ww * 0.8, hh * 0.64, -9);
@@ -1116,6 +1121,7 @@ export default function FondoIA() {
           const { ww, R, y } = solBase;
           /* asoma poco: en el punto maximo se ve apenas una franja del borde */
           solG.position.set(-ww - R * 1.9 + asoma * R * 0.97, y, -14);
+          solG.visible = !solBase.oculto;
           sol.rotation.y = reloj * 0.035;
           sol.program.uniforms.uTime.value = reloj;
           corona.program.uniforms.uTime.value = reloj;

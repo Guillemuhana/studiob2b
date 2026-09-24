@@ -1373,7 +1373,9 @@ const CSS = `
    ocupen el ancho entero y los botones queden grandes para el pulgar. */
 @media (max-width: 600px) {
   .s2b .s2b-ia-tt--vivo { font-size: clamp(34px, 10.4vw, 44px); line-height: 1.04; }
-  .s2b-iah { padding-top: 18px; padding-bottom: 26px; }
+  .s2b-iah { padding-top: 92px; padding-bottom: 26px; }
+  /* menos carga en el celular: la red de estrellas fugaces y la nebulosa bajan */
+  .s2b-iah-aurora { opacity: .75; }
   .s2b-ia-d { font-size: 15px; text-align: left; }
   .s2b-ia-caja--viva { padding: 22px 18px !important; }
   .s2b-ia-caja--viva .s2b-ia-num b { font-size: 44px; }
