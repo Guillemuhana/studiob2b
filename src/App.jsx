@@ -1267,6 +1267,22 @@ const CSS = `
 
 
 
+
+/* ---------- la invitacion del encabezado ---------- */
+.s2b .s2b-idea { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; width: 100%; max-width: 460px;
+  margin: 22px 0 14px; padding: 14px 18px; border-radius: 18px; text-align: left; color: #fff;
+  border: 1px solid rgba(255,214,120,.45);
+  background: linear-gradient(120deg, rgba(255,200,90,.14), rgba(109,74,255,.18) 60%, rgba(10,8,22,.6));
+  box-shadow: 0 18px 44px -24px rgba(255,190,80,.6); transition: transform .25s, border-color .25s, box-shadow .25s; }
+.s2b .s2b-idea:hover { transform: translateY(-2px); border-color: rgba(255,214,120,.8); box-shadow: 0 22px 50px -22px rgba(255,190,80,.8); }
+.s2b-idea-ic { width: 42px; height: 42px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #1A1204;
+  background: linear-gradient(135deg, #FFE7A3, #FFB547); box-shadow: 0 0 22px rgba(255,190,80,.5); }
+.s2b-idea-txt { display: grid; line-height: 1.25; flex: 1; }
+.s2b-idea-txt b { font-family: var(--display); font-size: 18px; font-weight: 600; }
+.s2b-idea-txt small { font-size: 14.5px; color: #E6DFFF; margin-top: 2px; }
+.s2b-idea-fl { flex: none; color: #FFD27A; transition: transform .25s; }
+.s2b .s2b-idea:hover .s2b-idea-fl { transform: translateX(4px); }
+
 /* ---------- la caja del precio, ventana al espacio ----------
    Tres capas de estrellas hechas con degrades -sin imagenes- que viajan a
    distinta velocidad: las cercanas mas rapido, como mirar por una ventanilla.
@@ -7270,6 +7286,15 @@ export default function StudioB2B() {
                 {/* El boton de "ver una andando" se saco: la captura de abajo
                     ya es el link, y dos puertas a lo mismo hacen dudar cual
                     es la buena. Queda solo el de compartir, que es otra cosa. */}
+                {/* la invitacion, bien a la vista: lleva al formulario */}
+                <button className="s2b-idea" onClick={() => document.getElementById("quiero-mi-app")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                  <span className="s2b-idea-ic"><Lightbulb size={18} /></span>
+                  <span className="s2b-idea-txt">
+                    <b>{t("¿Tenés una idea?", "Got an idea?")}</b>
+                    <small>{t("Contanos y te pasamos un demo gratis", "Tell us and we'll send you a free demo")}</small>
+                  </span>
+                  <ArrowRight size={18} className="s2b-idea-fl" />
+                </button>
                 <button className="s2b-appweb-link" onClick={copiarIA}>
                   {copiadoIA ? <Check size={14} /> : <Share2 size={14} />}
                   {copiadoIA ? t("Link copiado", "Link copied") : t("Copiar el link para pasárselo a alguien", "Copy the link to send it to someone")}
