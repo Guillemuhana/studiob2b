@@ -6425,17 +6425,36 @@ export default function StudioB2B() {
   useEffect(() => {
     let anterior = window.scrollY;
     let raf = 0;
+    /* El recorrido se acumula mientras se sigue en la misma direccion y se
+       decide recien a los 48 px. Con el umbral por cuadro, en el celular el
+       nav subia y bajaba solo: un scroll lento son pasitos de 2 o 3 px, el
+       rebote de iOS y la barra del navegador que se esconde mueven la pagina
+       sin que la persona cambie de direccion. */
+    let tramo = 0;
+    let oculto = false;
+    let pegado = false;
     const mirar = () => {
       raf = 0;
-      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      /* el rebote elastico de arriba y de abajo no cuenta */
+      const y = Math.min(Math.max(window.scrollY, 0), Math.max(max, 0));
       const dif = y - anterior;
-      setStuck(y > 20);
+      anterior = y;
+      /* con histeresis: se pega pasando 24 px y se suelta volviendo a 8 */
+      const nuevoPegado = pegado ? y > 8 : y > 24;
+      if (nuevoPegado !== pegado) { pegado = nuevoPegado; setStuck(pegado); }
       /* con el menu abierto no se esconde: al cerrarlo el nav tiene que estar
          donde la persona lo dejo */
-      if (drawerRef.current) { anterior = y; return; }
-      if (y < 120) setNavOculto(false);
-      else if (Math.abs(dif) > 6) setNavOculto(dif > 0);
-      anterior = y;
+      if (drawerRef.current) { tramo = 0; return; }
+      let quiere = oculto;
+      if (y < 120) { quiere = false; tramo = 0; }
+      else if (dif !== 0) {
+        if ((dif > 0) !== (tramo > 0)) tramo = 0;
+        tramo += dif;
+        if (tramo > 48) quiere = true;
+        else if (tramo < -48) quiere = false;
+      }
+      if (quiere !== oculto) { oculto = quiere; setNavOculto(quiere); }
     };
     const alMover = () => { if (!raf) raf = requestAnimationFrame(mirar); };
     window.addEventListener("scroll", alMover, { passive: true });
