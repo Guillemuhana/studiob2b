@@ -304,7 +304,7 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix * mv;
   vA = dato.x; vTipo = dato.z;
-  gl_PointSize = dato.y * uDpr * (24.0 / -mv.z);
+  gl_PointSize = dato.y * uDpr * (13.0 / -mv.z);
 }
 `;
 const CHISPA_F = /* glsl */ `
@@ -328,6 +328,52 @@ void main() {
 }
 `;
 
+/* ---------- la galaxia ----------
+   Una espiral de miles de estrellas en la placa de video. Cada una sabe su
+   radio y su angulo de partida; el shader la hace girar con rotacion
+   diferencial -el centro da la vuelta mas rapido que los brazos-, que es
+   como giran las galaxias de verdad y lo que hace que los brazos se vean
+   enroscarse despacio en vez de girar como un disco rigido. */
+const GAL_V = /* glsl */ `
+attribute vec3 position; attribute vec4 dato;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix;
+uniform float uTime; uniform float uDpr;
+varying vec3 vColor; varying float vA;
+void main() {
+  float r = dato.x;
+  float ang = dato.y + uTime * 0.035 / (0.25 + r);
+  vec3 p = vec3(cos(ang) * r, position.y, sin(ang) * r) + vec3(position.x, 0.0, position.z) * (0.35 + r);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  // nucleo amarillento y brazos azul violeta, con alguna estrella rosada suelta
+  vec3 nucleo = vec3(1.0, 0.86, 0.66);
+  vec3 brazo = mix(vec3(0.55, 0.62, 1.0), vec3(0.62, 0.45, 1.0), dato.z);
+  vColor = mix(nucleo, brazo, smoothstep(0.0, 0.45, r));
+  vColor = mix(vColor, vec3(1.0, 0.55, 0.8), step(0.965, dato.w));
+  vA = (0.24 + dato.w * 0.45) * (1.0 - smoothstep(0.7, 1.0, r) * 0.75) * (0.55 + smoothstep(0.0, 0.3, r) * 0.45);
+  gl_PointSize = (1.2 + dato.w * 2.2 + (1.0 - smoothstep(0.0, 0.2, r)) * 1.5) * uDpr * (78.0 / -mv.z);
+}
+`;
+const GAL_F = /* glsl */ `
+precision highp float;
+varying vec3 vColor; varying float vA;
+void main() {
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  if (d > 1.0) discard;
+  gl_FragColor = vec4(vColor, pow(1.0 - d, 2.0) * vA);
+}
+`;
+/* el resplandor del centro, un solo punto grande y suave */
+const NUCLEO_F = /* glsl */ `
+precision highp float;
+varying vec3 vColor; varying float vA;
+void main() {
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  if (d > 1.0) discard;
+  gl_FragColor = vec4(vec3(1.0, 0.9, 0.78), pow(1.0 - d, 3.0) * 0.22);
+}
+`;
+
 export default function FondoIA() {
   const host = useRef(null);
   const glHost = useRef(null);
@@ -344,7 +390,7 @@ export default function FondoIA() {
     let renderer, gl, camera, scene, nebulosa, estrellas, planeta, halo, anillo, sistema;
     const lunas = [];
     let satelite = null;
-    let luna = null, roca = null, chispas = null;
+    let luna = null, roca = null, chispas = null, zonaLuna = null, galaxia = null;
     const CAP = 700;
     const pPos = new Float32Array(CAP * 3), pDat = new Float32Array(CAP * 4);
     let parts = [];
@@ -379,7 +425,7 @@ export default function FondoIA() {
         for (let k = 0; k < 4; k++) rnd[i * 4 + k] = Math.random();
       }
       const progEst = new Program(gl, {
-        vertex: EST_V, fragment: EST_F, transparent: true, depthTest: false, depthWrite: false,
+        vertex: EST_V, fragment: EST_F, transparent: true, depthTest: true, depthWrite: false,
         uniforms: { uTime: { value: 0 }, uDpr: { value: dpr } },
       });
       progEst.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
@@ -389,6 +435,50 @@ export default function FondoIA() {
         program: progEst,
       });
       estrellas.setParent(scene);
+
+      /* la galaxia, lejos de todo */
+      {
+        const NG = chico ? 6000 : 14000, BRAZOS = 3;
+        const gp = new Float32Array(NG * 3), gd = new Float32Array(NG * 4);
+        for (let i = 0; i < NG; i++) {
+          const r0 = Math.pow(Math.random(), 1.7);
+          const brazo = i % BRAZOS;
+          /* el angulo sigue la espiral; la dispersion es mayor cerca del
+             centro, donde las estrellas se amontonan en el bulbo */
+          const ang = (brazo / BRAZOS) * Math.PI * 2 + r0 * 5.2 + (Math.random() - 0.5) * (0.5 + (1 - r0) * 1.6);
+          const g = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+          gp[i * 3] = g() * 0.07;
+          gp[i * 3 + 1] = g() * 0.05 * (1.4 - r0);
+          gp[i * 3 + 2] = g() * 0.07;
+          gd[i * 4] = r0; gd[i * 4 + 1] = ang; gd[i * 4 + 2] = Math.random(); gd[i * 4 + 3] = Math.random();
+        }
+        const progGal = new Program(gl, {
+          vertex: GAL_V, fragment: GAL_F, transparent: true, depthTest: true, depthWrite: false,
+          uniforms: { uTime: { value: 0 }, uDpr: { value: dpr } },
+        });
+        progGal.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+        galaxia = new Transform();
+        galaxia.setParent(scene);
+        const brazos = new Mesh(gl, {
+          mode: gl.POINTS,
+          geometry: new Geometry(gl, { position: { size: 3, data: gp }, dato: { size: 4, data: gd } }),
+          program: progGal,
+        });
+        brazos.setParent(galaxia);
+        const progNuc = new Program(gl, {
+          vertex: GAL_V, fragment: NUCLEO_F, transparent: true, depthTest: true, depthWrite: false,
+          uniforms: { uTime: { value: 0 }, uDpr: { value: dpr * 9 } },
+        });
+        progNuc.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+        const nucleo = new Mesh(gl, {
+          mode: gl.POINTS,
+          geometry: new Geometry(gl, { position: { size: 3, data: new Float32Array(3) }, dato: { size: 4, data: new Float32Array([0, 0, 0, 1]) } }),
+          program: progNuc,
+        });
+        nucleo.setParent(galaxia);
+        galaxia.rotation.set(0.72, 0, 0.5);
+        galaxia.programas = [progGal, progNuc];
+      }
 
       /* el sistema: planeta, halo, anillo y lunas, inclinado como en una foto */
       sistema = new Transform();
@@ -474,15 +564,17 @@ export default function FondoIA() {
         program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: [0.8, 0.79, 0.86] } } }),
       });
       luna.scale.set(0.3);
-      luna.setParent(sistema);
+      zonaLuna = new Transform();
+      zonaLuna.setParent(scene);
+      luna.setParent(zonaLuna);
 
       roca = new Mesh(gl, {
         geometry: new Sphere(gl, { radius: 1, widthSegments: 22, heightSegments: 16 }),
         program: new Program(gl, { vertex: ROCA_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: [0.5, 0.42, 0.36] }, uSemilla: { value: 0 } } }),
       });
-      roca.scale.set(0.09);
+      roca.scale.set(0.045);
       roca.visible = false;
-      roca.setParent(sistema);
+      roca.setParent(zonaLuna);
 
       const geoChispas = new Geometry(gl, { position: { size: 3, data: pPos }, dato: { size: 4, data: pDat } });
       const progChispas = new Program(gl, {
@@ -492,7 +584,7 @@ export default function FondoIA() {
       progChispas.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
       chispas = new Mesh(gl, { mode: gl.POINTS, geometry: geoChispas, program: progChispas });
       chispas.frustumCulled = false;
-      chispas.setParent(sistema);
+      chispas.setParent(zonaLuna);
 
       sistema.rotation.z = 0.32;
       sistema.rotation.x = 0.22;
@@ -506,7 +598,7 @@ export default function FondoIA() {
        precio y el choque no lo veria nadie- con un vaiven lento */
     const lunaEn = (tt) => {
       const a = tt * 0.18;
-      return [-1.95 + Math.cos(a) * 0.1, 1.2 + Math.sin(a * 1.3) * 0.07, 0.6];
+      return [Math.cos(a) * 0.1, Math.sin(a * 1.3) * 0.07, 0];
     };
     const azar = (a, b) => a + Math.random() * (b - a);
     const esfera = () => {
@@ -639,19 +731,32 @@ export default function FondoIA() {
       renderer.setSize(w, h);
       camera.perspective({ aspect: w / h });
       nebulosa.program.uniforms.uRes.value = [w, h];
-      /* el planeta se acomoda al lienzo: a la derecha en la compu, asomando
-         arriba en el celular, donde no tapa el titular */
-      /* medio alto y medio ancho visibles a la profundidad del planeta */
-      const z = -4;
-      const altoVis = Math.tan((35 * Math.PI) / 360) * (12 - z);
-      const anchoVis = altoVis * (w / h);
+      /* Cada cuerpo a su distancia, y separados: el planeta lejos arriba a la
+         derecha, la luna mas cerca en el hueco entre el titular y el precio,
+         la galaxia al fondo de todo. vis(z) da el medio alto y el medio ancho
+         que se ven a esa profundidad, asi las posiciones son proporciones de
+         la pantalla y no numeros sueltos. */
+      const vis = (z) => { const hh = Math.tan((35 * Math.PI) / 360) * (12 - z); return [hh * (w / h), hh]; };
       if (w / h < 0.9) {
-        sistema.position.set(anchoVis * 0.7, altoVis * 0.88, z);
-        sistema.scale.set(altoVis * 0.13);
+        let [ww, hh] = vis(-9);
+        sistema.position.set(ww * 0.62, hh * 0.84, -9);
+        sistema.scale.set(hh * 0.12);
+        [ww, hh] = vis(-3);
+        zonaLuna.position.set(-ww * 0.62, hh * 0.9, -3);
+        zonaLuna.scale.set(hh * 0.12);
+        [ww, hh] = vis(-26);
+        galaxia.position.set(-ww * 0.05, hh * 0.55, -26);
+        galaxia.scale.set(hh * 0.62);
       } else {
-        /* arriba a la derecha, asomando por encima de la caja del precio */
-        sistema.position.set(anchoVis * 0.74, altoVis * 0.6, z);
-        sistema.scale.set(altoVis * 0.27);
+        let [ww, hh] = vis(-9);
+        sistema.position.set(ww * 0.8, hh * 0.64, -9);
+        sistema.scale.set(hh * 0.19);
+        [ww, hh] = vis(-3);
+        zonaLuna.position.set(ww * 0.17, hh * 0.64, -3);
+        zonaLuna.scale.set(hh * 0.16);
+        [ww, hh] = vis(-26);
+        galaxia.position.set(-ww * 0.02, hh * 0.64, -26);
+        galaxia.scale.set(hh * 0.78);
       }
     };
 
@@ -708,6 +813,7 @@ export default function FondoIA() {
 
         estrellas.program.uniforms.uTime.value = reloj;
         estrellas.rotation.z = reloj * 0.004;
+        if (galaxia) galaxia.programas.forEach((pg) => { pg.uniforms.uTime.value = reloj; });
         planeta.program.uniforms.uTime.value = reloj;
         planeta.rotation.y = reloj * 0.06;
         anillo.rotation.z = reloj * 0.02;
