@@ -1265,6 +1265,71 @@ const CSS = `
   .s2b-iah-aurora { opacity: .6; }
 }
 
+
+/* ---------- el formulario de la promo ---------- */
+.s2b-leadf { position: relative; margin-top: clamp(8px,2vw,20px); border-radius: 26px; padding: 1.5px;
+  background: linear-gradient(135deg, rgba(167,140,255,.75), rgba(127,211,255,.35) 40%, rgba(255,255,255,.08) 60%, rgba(109,74,255,.7)); }
+.s2b-leadf-in { position: relative; overflow: hidden; border-radius: 25px; padding: clamp(22px,4vw,44px);
+  display: grid; gap: clamp(22px,4vw,48px);
+  background:
+    radial-gradient(600px circle at 0% 0%, rgba(109,74,255,.28), transparent 60%),
+    radial-gradient(500px circle at 100% 100%, rgba(127,211,255,.12), transparent 60%),
+    linear-gradient(160deg, #130E2C, #0A0816 70%); }
+.s2b-leadf-rot { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: #7CFFB2; margin-bottom: 14px; }
+.s2b .s2b-leadf-txt h3 { font-size: clamp(27px,3.6vw,42px); line-height: 1.08; letter-spacing: -.03em; text-wrap: balance; }
+.s2b .s2b-leadf-txt h3 b { font-weight: 600; background: linear-gradient(100deg, #A78CFF, #FFFFFF 55%, #9EDBFF);
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.s2b .s2b-leadf-txt p { margin-top: 14px; color: var(--muted); font-size: 15.5px; line-height: 1.6; max-width: 44ch; }
+.s2b-leadf-txt ul { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 10px; }
+.s2b-leadf-txt li { display: flex; gap: 9px; align-items: flex-start; color: #fff; font-size: 14.5px; font-weight: 500; }
+.s2b-leadf-txt li svg { color: #7CFFB2; flex: none; margin-top: 3px; }
+.s2b-leadf-form { display: grid; gap: 2px; }
+.s2b-leadf-fila { display: grid; gap: 0 14px; }
+.s2b-leadf .s2b-f label em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--muted); opacity: .8; }
+/* 16px en el celular: con menos, Safari hace zoom al tocar el campo */
+.s2b-leadf .s2b-f input, .s2b-leadf .s2b-f textarea { font-size: 16px; padding: 14px 16px; min-height: 52px; }
+.s2b-leadf .s2b-f textarea { min-height: 76px; }
+.s2b-leadf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.s2b .s2b-leadf-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid rgba(167,140,255,.3); background: rgba(6,4,14,.5); color: #D9D3F2; font-size: 14px; font-weight: 500;
+  transition: border-color .2s, background .2s, color .2s; }
+.s2b .s2b-leadf-chip:hover { border-color: rgba(167,140,255,.7); }
+.s2b .s2b-leadf-chip.is-on { border-color: #7CFFB2; background: rgba(124,255,178,.1); color: #fff; }
+.s2b-leadf-chip svg { color: #7CFFB2; }
+.s2b-leadf-trampa { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.s2b .s2b-leadf-err { color: #FF8A9A; font-size: 14px; margin: 4px 0 10px; }
+.s2b .s2b-leadf-btn { width: 100%; justify-content: center; min-height: 56px; font-size: 16px; margin-top: 6px; }
+.s2b .s2b-leadf-pie { text-align: center; margin-top: 12px; font-size: 13.5px; color: var(--muted); }
+.s2b .s2b-leadf-pie a { color: #7CFFB2; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.s2b-leadf-ok { display: grid; justify-items: center; text-align: center; align-content: center; gap: 12px; padding: 20px 6px; }
+.s2b-leadf-ok-ic { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: #0B0718;
+  background: #7CFFB2; box-shadow: 0 0 40px rgba(124,255,178,.45); }
+.s2b .s2b-leadf-ok h4 { font-size: 24px; }
+.s2b .s2b-leadf-ok p { color: var(--muted); max-width: 40ch; line-height: 1.6; }
+@media (min-width: 900px) {
+  .s2b-leadf-in { grid-template-columns: .9fr 1.1fr; align-items: center; }
+  .s2b-leadf-fila { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- el encabezado en el celular ----------
+   En una pantalla angosta todo va en una columna: titular, texto, precio y
+   formulario. Se achican los margenes para que la caja y el formulario
+   ocupen el ancho entero y los botones queden grandes para el pulgar. */
+@media (max-width: 600px) {
+  .s2b .s2b-ia-tt--vivo { font-size: clamp(34px, 10.4vw, 44px); line-height: 1.04; }
+  .s2b-iah { padding-top: 18px; padding-bottom: 26px; }
+  .s2b-ia-d { font-size: 15px; text-align: left; }
+  .s2b-ia-caja--viva { padding: 22px 18px !important; }
+  .s2b-ia-caja--viva .s2b-ia-num b { font-size: 44px; }
+  .s2b .s2b-promo-cta { width: 100%; justify-content: center; min-height: 54px; font-size: 16px; }
+  .s2b-ia-extra { padding: 12px; }
+  .s2b-leadf { border-radius: 22px; }
+  .s2b-leadf-in { border-radius: 21px; padding: 22px 16px; }
+  .s2b-leadf-chips { gap: 7px; }
+  .s2b .s2b-leadf-chip { flex: 1 1 auto; justify-content: center; }
+}
+
 /* ---- la promo ----
    Blanca y no de color: sobre el fondo oscuro del sitio el blanco es lo que
    mas resalta, y no compite con el violeta de la marca ni con el verde de
@@ -3344,6 +3409,173 @@ function IncluyeIA({ t, extras, setExtras }) {
             <li className="is-extra" key={x.id}><Plus size={15} /> {t("Opcional: ", "Optional: ") + x.tt.charAt(0).toLowerCase() + x.tt.slice(1)}</li>
           ))}
     </ul>
+  );
+}
+
+
+/* ==================================================================
+   El formulario de la promo
+   Quien llega desde un anuncio de Instagram o Facebook tiene que poder
+   dejar sus datos sin salir de la pagina. Pide lo minimo -nombre y
+   WhatsApp- porque cada campo obligatorio de mas es gente que abandona; el
+   resto es opcional. Llega al mismo mail que el formulario del sitio, con un
+   asunto propio y el origen de la visita, para saber que anuncio la trajo.
+   ================================================================== */
+const LEAD_VACIO = { nombre: "", tel: "", email: "", negocio: "", web: "", nota: "" };
+
+/* De donde vino: los parametros utm del anuncio, o las marcas que agregan
+   Facebook e Instagram al link, o el sitio anterior. */
+function origenVisita() {
+  try {
+    const q = new URLSearchParams(location.search);
+    const utm = ["utm_source", "utm_medium", "utm_campaign", "utm_content"].map((k) => q.get(k)).filter(Boolean);
+    let red = "";
+    const fuente = (q.get("utm_source") || "") + " " + document.referrer;
+    if (/instagram|ig\b/i.test(fuente) || q.has("igshid")) red = "Instagram";
+    else if (/facebook|fb\b|meta/i.test(fuente) || q.has("fbclid")) red = "Facebook";
+    return { red: red || (document.referrer ? new URL(document.referrer).hostname : "Directo"), utm: utm.join(" · ") || "-" };
+  } catch {
+    return { red: "-", utm: "-" };
+  }
+}
+
+function FormIA({ t, waLink, extras, setExtras }) {
+  const [f, setF] = useState(LEAD_VACIO);
+  const [estado, setEstado] = useState("");   // "", "enviando", "listo"
+  const [err, setErr] = useState("");
+  const [trampa, setTrampa] = useState("");   // lo llenan solo los robots
+  const set = (k) => (e) => { setF((x) => ({ ...x, [k]: e.target.value })); if (err) setErr(""); };
+  const lista = EXTRAS_IA(t);
+  const alternar = (id) => setExtras((xs) => (xs.includes(id) ? xs.filter((x) => x !== id) : [...xs, id]));
+
+  const enviar = async (e) => {
+    e.preventDefault();
+    if (f.nombre.trim().length < 2 || f.tel.replace(/\D/g, "").length < 8) {
+      setErr(t("Necesitamos tu nombre y un WhatsApp para escribirte.", "We need your name and a WhatsApp number to reach you."));
+      return;
+    }
+    if (trampa) { setEstado("listo"); return; }
+    setEstado("enviando");
+    const o = origenVisita();
+    try {
+      const r = await fetch("https://formsubmit.co/ajax/" + FORM_TO, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          _subject: "Lead App web inteligente · " + f.nombre.trim() + (o.red !== "Directo" ? " · " + o.red : ""),
+          _template: "table",
+          _captcha: "false",
+          Nombre: f.nombre.trim(),
+          WhatsApp: f.tel.trim(),
+          Email: f.email.trim() || "-",
+          Negocio: f.negocio.trim() || "-",
+          "Tiene web": f.web || "-",
+          Adicionales: lista.filter((x) => extras.includes(x.id)).map((x) => x.msj).join(", ") || "-",
+          Comentario: f.nota.trim() || "-",
+          "Llegó desde": o.red,
+          Campaña: o.utm,
+          Página: location.href,
+        }),
+      });
+      if (!r.ok) throw new Error("status " + r.status);
+      setEstado("listo");
+    } catch {
+      setEstado("");
+      setErr(t("No pudimos enviarlo. Escribinos por WhatsApp y lo vemos al instante.", "We couldn't send it. Message us on WhatsApp and we'll take it from there."));
+    }
+  };
+
+  const msjWa = t(
+    `Hola Studio B2B, soy ${f.nombre.trim() || "..."} y quiero el demo gratis de la app web inteligente.`,
+    `Hi Studio B2B, I'm ${f.nombre.trim() || "..."} and I'd like the free demo of the smart web app.`
+  );
+
+  return (
+    <div className="s2b-leadf" id="quiero-mi-app">
+      <div className="s2b-leadf-in">
+        <div className="s2b-leadf-txt">
+          <span className="s2b-leadf-rot"><Sparkles size={13} /> {t("Demo gratis · sin compromiso", "Free demo · no commitment")}</span>
+          <h3>{t("¿La querés ver funcionando", "Want to see it working")} <b>{t("con tu negocio?", "with your business?")}</b></h3>
+          <p>{t("Dejanos tus datos y te armamos una demo con tu rubro. Te escribimos por WhatsApp para coordinar.", "Leave your details and we'll build a demo for your line of business. We'll message you on WhatsApp to set it up.")}</p>
+          <ul>
+            <li><Check size={15} /> {t("Desde $750.000, con dominio y servidor propio", "From $750,000, with domain and your own server")}</li>
+            <li><Check size={15} /> {t("SEO optimizado con IA y máxima velocidad", "AI-optimized SEO and top speed")}</li>
+            <li><Check size={15} /> {t("La primera charla no se cobra", "The first call is free")}</li>
+          </ul>
+        </div>
+
+        {estado === "listo" ? (
+          <div className="s2b-leadf-ok" role="status">
+            <span className="s2b-leadf-ok-ic"><Check size={26} /></span>
+            <h4>{t("¡Listo, ya tenemos tus datos!", "Done, we've got your details!")}</h4>
+            <p>{t("Te vamos a escribir por WhatsApp para coordinar tu demo. Si querés adelantarte, mandanos un mensaje ahora.", "We'll message you on WhatsApp to set up your demo. If you'd rather not wait, send us a message now.")}</p>
+            <a className="s2b-btn s2b-btn--primary s2b-promo-cta" href={waLink(msjWa)} target="_blank" rel="noopener noreferrer">
+              <WhatsappGlyph /> {t("Escribir por WhatsApp", "Message on WhatsApp")}
+            </a>
+          </div>
+        ) : (
+          <form className="s2b-leadf-form" onSubmit={enviar} noValidate>
+            <div className="s2b-leadf-fila">
+              <div className="s2b-f">
+                <label htmlFor="l1">{t("Nombre y apellido", "Full name")} *</label>
+                <input id="l1" value={f.nombre} onChange={set("nombre")} autoComplete="name" autoCapitalize="words" placeholder={t("Cómo te llamás", "Your name")} required />
+              </div>
+              <div className="s2b-f">
+                <label htmlFor="l2">WhatsApp *</label>
+                <input id="l2" type="tel" inputMode="tel" autoComplete="tel" value={f.tel} onChange={set("tel")} placeholder="+54 9 351 ..." required />
+              </div>
+            </div>
+            <div className="s2b-leadf-fila">
+              <div className="s2b-f">
+                <label htmlFor="l3">Email <em>{t("(opcional)", "(optional)")}</em></label>
+                <input id="l3" type="email" inputMode="email" autoComplete="email" value={f.email} onChange={set("email")} placeholder="tu@empresa.com" />
+              </div>
+              <div className="s2b-f">
+                <label htmlFor="l4">{t("Tu negocio o rubro", "Your business")} <em>{t("(opcional)", "(optional)")}</em></label>
+                <input id="l4" value={f.negocio} onChange={set("negocio")} autoComplete="organization" placeholder={t("Ej: inmobiliaria, clínica, taller", "E.g. real estate, clinic, workshop")} />
+              </div>
+            </div>
+            <div className="s2b-f">
+              <label>{t("¿Ya tenés web?", "Do you already have a website?")}</label>
+              <div className="s2b-leadf-chips" role="radiogroup">
+                {[t("No", "No"), t("Sí", "Yes"), t("Tengo, pero no me sirve", "Yes, but it doesn't work for me")].map((o) => (
+                  <button type="button" key={o} role="radio" aria-checked={f.web === o}
+                    className={"s2b-leadf-chip" + (f.web === o ? " is-on" : "")}
+                    onClick={() => setF((x) => ({ ...x, web: x.web === o ? "" : o }))}>{o}</button>
+                ))}
+              </div>
+            </div>
+            <div className="s2b-f">
+              <label>{t("¿Querés sumar algo?", "Want to add anything?")} <em>{t("(opcional)", "(optional)")}</em></label>
+              <div className="s2b-leadf-chips">
+                {lista.map((x) => (
+                  <button type="button" key={x.id} aria-pressed={extras.includes(x.id)}
+                    className={"s2b-leadf-chip" + (extras.includes(x.id) ? " is-on" : "")}
+                    onClick={() => alternar(x.id)}>
+                    {extras.includes(x.id) ? <Check size={14} /> : <Plus size={14} />} {x.tt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="s2b-f">
+              <label htmlFor="l5">{t("¿Algo que quieras contarnos?", "Anything you'd like to tell us?")} <em>{t("(opcional)", "(optional)")}</em></label>
+              <textarea id="l5" rows={2} value={f.nota} onChange={set("nota")} placeholder={t("Qué te gustaría que haga tu web", "What you'd like your site to do")} />
+            </div>
+            {/* invisible para las personas; si viene lleno, es un robot */}
+            <input className="s2b-leadf-trampa" tabIndex={-1} autoComplete="off" aria-hidden="true" value={trampa} onChange={(e) => setTrampa(e.target.value)} name="_honey" />
+
+            {err && <p className="s2b-leadf-err" role="alert">{err}</p>}
+            <button className="s2b-btn s2b-btn--primary s2b-btn--aura s2b-leadf-btn" type="submit" disabled={estado === "enviando"}>
+              {estado === "enviando" ? t("Enviando…", "Sending…") : <>{t("Quiero mi demo gratis", "I want my free demo")} <ArrowRight size={17} /></>}
+            </button>
+            <p className="s2b-leadf-pie">
+              {t("O escribinos directo por ", "Or message us directly on ")}
+              <a href={waLink(msjWa)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            </p>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -6844,8 +7076,8 @@ export default function StudioB2B() {
               <span className="s2b-ia-nuevo"><i className="s2b-ia-nuevo-luz" aria-hidden="true" />{t("Nuevo", "New")}</span>
               <div className="s2b-eyebrow">{t("App web inteligente + IA", "Smart web app + AI")}</div>
               <h3 className="s2b-ia-tt s2b-ia-tt--vivo">
-                <Palabras texto={t("Obtené tu app web inteligente.", "Get your smart web app.")} />
-                <b className="s2b-ia-brillo"><Palabras texto={t("Que venda por vos, las 24 horas.", "One that sells for you, 24/7.")} desde={4} /></b>
+                <Palabras texto={t("Obtené tu", "Get your")} />
+                <b className="s2b-ia-brillo"><Palabras texto={t("app web inteligente.", "smart web app.")} desde={2} /></b>
               </h3>
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar, y que además te hace aparecer en Google: incluye posicionamiento SEO profesional, optimizado con IA. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono. Y lo construimos con las últimas tecnologías.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call, and gets you found on Google: professional SEO, optimized with AI, is included. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing. And we build it with the latest technology.")}
@@ -6925,6 +7157,8 @@ export default function StudioB2B() {
               </Tilt>
             </div>
             </div>
+
+            <FormIA t={t} waLink={waLink} extras={extrasIA} setExtras={setExtrasIA} />
 
             {/* El cambio se decide comparando, no leyendo. Dos columnas con
                 la misma pregunta contestada de las dos maneras: a la
