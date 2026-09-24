@@ -78,8 +78,7 @@ void main() {
   // el sol lejano, de donde viene la luz
   vec2 sol = vec2(0.1 * asp, 0.92);
   float d = distance(p, sol);
-  col += vec3(1.0, 0.92, 0.85) * (0.018 / (d + 0.02)) * 0.5;
-  a += 0.4 / (1.0 + d * 18.0);
+  col += vec3(1.0, 0.8, 0.6) * (0.006 / (d + 0.02)) * 0.3;
   // se funde arriba y abajo con la pagina
   float vi = smoothstep(0.0, 0.25, vUv.y) * smoothstep(1.0, 0.8, vUv.y);
   gl_FragColor = vec4(col, clamp(a * vi, 0.0, 1.0));
@@ -497,6 +496,79 @@ void main() {
 }
 `;
 
+/* ---------- el sol ----------
+   Una esfera emisiva, sin luz propia que le llegue de afuera: la luz es
+   ella. La superficie es granulacion -las celdas de plasma que hierven- con
+   ruido 3D animado, zonas activas mas brillantes y fibrillas, y el borde mas
+   oscuro y rojizo (limb darkening), que es lo que la vuelve una esfera y no
+   un circulo naranja. Detras va la corona: un plano que mira a la camara con
+   un resplandor que cae rapido y rayos de ruido que se mueven. */
+const SOL_F = /* glsl */ `
+precision highp float;
+uniform float uTime;
+varying vec3 vN; varying vec3 vP; varying vec3 vV;
+vec3 hs(vec3 p) {
+  p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
+  return fract(sin(p) * 43758.5453);
+}
+float rn(vec3 p) {
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hs(i).x, hs(i + vec3(1,0,0)).x, f.x), mix(hs(i + vec3(0,1,0)).x, hs(i + vec3(1,1,0)).x, f.x), f.y),
+             mix(mix(hs(i + vec3(0,0,1)).x, hs(i + vec3(1,0,1)).x, f.x), mix(hs(i + vec3(0,1,1)).x, hs(i + vec3(1,1,1)).x, f.x), f.y), f.z);
+}
+float fb(vec3 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * rn(p); p *= 2.1; a *= 0.5; } return v; }
+void main() {
+  vec3 n = normalize(vN);
+  vec3 q = normalize(vP);
+  float t = uTime * 0.06;
+  // granulacion: celdas chicas que hierven
+  float gr = fb(q * 22.0 + vec3(t * 1.3, -t, t * 0.7));
+  float gr2 = fb(q * 55.0 - vec3(t * 2.0));
+  // manchas grandes de temperatura y zonas activas
+  float big = fb(q * 3.2 + vec3(0.0, t * 0.4, 0.0));
+  float act = smoothstep(0.62, 0.82, fb(q * 5.5 - vec3(t * 0.25, 0.0, t * 0.2)));
+  float fib = pow(abs(sin((q.x + q.y * 1.7) * 60.0 + fb(q * 8.0) * 9.0)), 12.0) * act;
+  vec3 hondo = vec3(0.86, 0.26, 0.02);
+  vec3 medio = vec3(1.0, 0.55, 0.08);
+  vec3 claro = vec3(1.0, 0.86, 0.45);
+  vec3 col = mix(hondo, medio, smoothstep(0.25, 0.65, gr));
+  col = mix(col, claro, smoothstep(0.55, 0.85, gr * 0.7 + gr2 * 0.3 + big * 0.35));
+  col += vec3(1.0, 0.95, 0.8) * (act * 0.55 + fib * 0.9);
+  // borde oscuro y rojizo: el limb darkening de las fotos
+  float mu = max(dot(n, normalize(vV)), 0.0);
+  col *= mix(0.42, 1.0, pow(mu, 0.45));
+  col = mix(col * vec3(1.0, 0.5, 0.2), col, smoothstep(0.0, 0.45, mu));
+  gl_FragColor = vec4(col * 1.2, 1.0);
+}
+`;
+const CORONA_V = /* glsl */ `
+attribute vec3 position; attribute vec2 uv;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix;
+varying vec2 vUv;
+void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+`;
+const CORONA_F = /* glsl */ `
+precision highp float;
+uniform float uTime; uniform float uBorde;
+varying vec2 vUv;
+${RUIDO}
+void main() {
+  vec2 p = (vUv - 0.5) * 2.0;
+  float r = length(p);
+  if (r > 1.0) discard;
+  float a = atan(p.y, p.x);
+  float x = max(r - uBorde, 0.0);
+  float glow = exp(-x * 11.0) + exp(-x * 3.2) * 0.35;
+  // rayos y lenguas de plasma que se mueven despacio
+  float rayo = fbm(vec2(a * 4.0, x * 5.0 - uTime * 0.12)) * 0.5 + 0.5;
+  float lengua = smoothstep(0.62, 0.9, fbm(vec2(a * 9.0 + uTime * 0.03, x * 14.0 - uTime * 0.2)));
+  float c = glow * (0.55 + rayo * 0.7) + lengua * exp(-x * 7.0) * 1.3;
+  c *= 0.92 + 0.08 * sin(uTime * 1.7 + a * 3.0);
+  vec3 col = mix(vec3(1.0, 0.38, 0.06), vec3(1.0, 0.8, 0.45), clamp(exp(-x * 8.0), 0.0, 1.0));
+  gl_FragColor = vec4(col, clamp(c, 0.0, 1.0) * (1.0 - smoothstep(0.82, 1.0, r)));
+}
+`;
+
 export default function FondoIA() {
   const host = useRef(null);
   const glHost = useRef(null);
@@ -514,6 +586,7 @@ export default function FondoIA() {
     const lunas = [];
     let satelite = null;
     let luna = null, roca = null, chispas = null, zonaLuna = null, galaxia = null;
+    let solG = null, sol = null, corona = null, solBase = null;
     const CAP = 700;
     const pPos = new Float32Array(CAP * 3), pDat = new Float32Array(CAP * 4);
     let parts = [];
@@ -558,6 +631,23 @@ export default function FondoIA() {
         program: progEst,
       });
       estrellas.setParent(scene);
+
+      /* el sol, que asoma por la izquierda */
+      solG = new Transform();
+      solG.setParent(scene);
+      sol = new Mesh(gl, {
+        geometry: new Sphere(gl, { radius: 1, widthSegments: 96, heightSegments: 64 }),
+        program: new Program(gl, { vertex: CUERPO_V, fragment: SOL_F, uniforms: { uTime: { value: 0 } } }),
+      });
+      sol.setParent(solG);
+      const progCorona = new Program(gl, {
+        vertex: CORONA_V, fragment: CORONA_F, transparent: true, depthWrite: false, cullFace: null,
+        uniforms: { uTime: { value: 0 }, uBorde: { value: 1 / 2.8 } },
+      });
+      progCorona.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+      corona = new Mesh(gl, { geometry: new Plane(gl, { width: 2, height: 2 }), program: progCorona });
+      corona.scale.set(2.8);
+      corona.setParent(solG);
 
       /* la galaxia, lejos de todo */
       {
@@ -879,11 +969,13 @@ export default function FondoIA() {
         sistema.position.set(ww * 0.66, hh * 0.78, -9);
         sistema.scale.set(hh * 0.085);
         [ww, hh] = vis(-3);
-        zonaLuna.position.set(-ww * 0.62, hh * 0.8, -3);
-        zonaLuna.scale.set(hh * 0.13);
+        zonaLuna.position.set(ww * 0.02, hh * 0.84, -3);
+        zonaLuna.scale.set(hh * 0.1);
         [ww, hh] = vis(-26);
         galaxia.position.set(-ww * 0.05, hh * 0.55, -26);
         galaxia.scale.set(hh * 0.62);
+        [ww, hh] = vis(-14);
+        solBase = { ww, hh, R: hh * 0.2, y: hh * 0.84 };
       } else {
         let [ww, hh] = vis(-9);
         sistema.position.set(ww * 0.8, hh * 0.64, -9);
@@ -894,7 +986,10 @@ export default function FondoIA() {
         [ww, hh] = vis(-26);
         galaxia.position.set(-ww * 0.02, hh * 0.64, -26);
         galaxia.scale.set(hh * 0.78);
+        [ww, hh] = vis(-14);
+        solBase = { ww, hh, R: hh * 0.55, y: hh * 0.72 };
       }
+      solG.scale.set(solBase.R);
     };
 
     const fugaz = () => {
@@ -951,6 +1046,18 @@ export default function FondoIA() {
         estrellas.program.uniforms.uTime.value = reloj;
         estrellas.rotation.z = reloj * 0.004;
         if (galaxia) galaxia.programas.forEach((pg) => { pg.uniforms.uTime.value = reloj; });
+        if (solG && solBase) {
+          /* un ciclo de 42 s: asoma, se queda mostrando un tercio mientras
+             gira, y se vuelve a esconder detras del borde */
+          const ph = ((reloj + 3) % 42) / 42;
+          const suave = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+          const asoma = suave(0.0, 0.22, ph) * (1 - suave(0.72, 0.95, ph));
+          const { ww, R, y } = solBase;
+          solG.position.set(-ww - R * 1.9 + asoma * R * 1.45, y, -14);
+          sol.rotation.y = reloj * 0.035;
+          sol.program.uniforms.uTime.value = reloj;
+          corona.program.uniforms.uTime.value = reloj;
+        }
         planeta.program.uniforms.uTime.value = reloj;
         planeta.rotation.y = reloj * 0.06;
         anillo.rotation.z = reloj * 0.02;
