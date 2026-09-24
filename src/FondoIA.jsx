@@ -674,7 +674,7 @@ export default function FondoIA() {
         geometry: new Sphere(gl, { radius: 1, widthSegments: 72, heightSegments: 48 }),
         program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ } } }),
       });
-      luna.scale.set(0.42);
+      luna.scale.set(0.56);
       zonaLuna = new Transform();
       zonaLuna.setParent(scene);
       luna.setParent(zonaLuna);
@@ -724,7 +724,7 @@ export default function FondoIA() {
     let proxAst = quieto ? Infinity : 3.5;
 
     const lanzar = () => {
-      const dura = azar(2.2, 2.9);
+      const dura = azar(4.6, 5.6);
       const dest = lunaEn(reloj + dura);
       /* entra desde un costado y un poco hacia la camara, para que se vea venir */
       const dir = [azar(-1, 1), azar(0.35, 0.9), azar(0.2, 0.8)];
@@ -737,24 +737,24 @@ export default function FondoIA() {
     };
 
     const chocar = (centro, d) => {
-      const R = 0.42;
+      const R = 0.56;
       const p = centro.map((v, i) => v + d[i] * R);
       /* el destello */
-      soltar(...p, 0, 0, 0, 0.6, 170, 2, 0, 1.4);
-      soltar(...p, 0, 0, 0, 1.1, 110, 2, 0, 2.8);
-      soltar(...p, 0, 0, 0, 0.35, 60, 0, 0, 3);
+      soltar(...p, 0, 0, 0, 0.5, 80, 2, 0, 1.2);
+      soltar(...p, 0, 0, 0, 0.9, 50, 2, 0, 2);
+      soltar(...p, 0, 0, 0, 0.3, 30, 0, 0, 2);
       /* las esquirlas calientes, disparadas hacia afuera del crater */
       for (let i = 0; i < 140; i++) {
         const e = esfera();
-        const v = azar(0.6, 2.1);
+        const v = azar(0.25, 0.9);
         const dir = [d[0] * 0.9 + e[0], d[1] * 0.9 + e[1], d[2] * 0.9 + e[2]];
-        soltar(...p, dir[0] * v, dir[1] * v, dir[2] * v, azar(0.9, 2.1), azar(4, 9), 0, 1.5);
+        soltar(...p, dir[0] * v, dir[1] * v, dir[2] * v, azar(0.8, 1.6), azar(3, 6), 0, 1.8);
       }
       /* la nube de polvo que se abre despacio */
       for (let i = 0; i < 150; i++) {
         const e = esfera();
-        const v = azar(0.12, 0.55);
-        soltar(...p, (d[0] * 0.6 + e[0]) * v, (d[1] * 0.6 + e[1]) * v, (d[2] * 0.6 + e[2]) * v, azar(2.6, 4.6), azar(18, 38), 1, 0.7, 1.9);
+        const v = azar(0.05, 0.22);
+        soltar(...p, (d[0] * 0.6 + e[0]) * v, (d[1] * 0.6 + e[1]) * v, (d[2] * 0.6 + e[2]) * v, azar(2.2, 3.6), azar(9, 18), 1, 0.9, 1.2);
       }
       /* el anillo de la onda expansiva, sobre la superficie */
       const t1 = Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
@@ -763,9 +763,9 @@ export default function FondoIA() {
       const a2 = [d[1] * a1[2] - d[2] * a1[1], d[2] * a1[0] - d[0] * a1[2], d[0] * a1[1] - d[1] * a1[0]];
       for (let i = 0; i < 70; i++) {
         const th = (i / 70) * Math.PI * 2;
-        const v = azar(0.75, 0.95);
+        const v = azar(0.32, 0.42);
         const dir = a1.map((c, k) => c * Math.cos(th) + a2[k] * Math.sin(th));
-        soltar(...p, dir[0] * v, dir[1] * v, dir[2] * v, azar(1.4, 2.0), azar(12, 20), 1, 1.1, 1.3);
+        soltar(...p, dir[0] * v, dir[1] * v, dir[2] * v, azar(1.2, 1.7), azar(7, 11), 1, 1.3, 0.8);
       }
     };
 
@@ -798,7 +798,7 @@ export default function FondoIA() {
           chocar(dest, ast.d);
           roca.visible = false;
           ast = null;
-          proxAst = azar(7, 12);
+          proxAst = azar(10, 15);
         }
       }
 
