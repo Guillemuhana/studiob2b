@@ -640,7 +640,9 @@ export default function FondoIA() {
     const cv = lienzo.current;
     if (!box || !cv) return;
     const quieto = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    /* en el celular la placa de video es chica: menos pixeles por cuadro
+       es lo que deja al scroll andar suave */
+    const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.25 : 1.75);
     const chico = window.innerWidth < 700;
 
     let renderer, gl, camera, scene, nebulosa, estrellas, planeta, halo, anillo, sistema;
@@ -653,7 +655,7 @@ export default function FondoIA() {
     let parts = [];
     const LUZ = [-0.92, 0.38, 0.12];
     try {
-      renderer = new Renderer({ alpha: true, dpr, antialias: true, premultipliedAlpha: false });
+      renderer = new Renderer({ alpha: true, dpr, antialias: window.innerWidth >= 700, premultipliedAlpha: false, powerPreference: "low-power" });
       gl = renderer.gl;
       gl.clearColor(0, 0, 0, 0);
       glHost.current.appendChild(gl.canvas);
@@ -1025,7 +1027,7 @@ export default function FondoIA() {
          que se ven a esa profundidad, asi las posiciones son proporciones de
          la pantalla y no numeros sueltos. */
       const vis = (z) => { const hh = Math.tan((35 * Math.PI) / 360) * (12 - z); return [hh * (w / h), hh]; };
-      if (w / h < 0.9) {
+      if (w < 700 || w / h < 0.9) {
         /* En el celular el lienzo es altisimo -titular, texto, precio- asi
            que las posiciones van en pixeles: todo en la franja libre de
            arriba, entre el menu y el "NUEVO", chico y separado. Sin sol: en
@@ -1042,6 +1044,10 @@ export default function FondoIA() {
         galaxia.scale.set(pxw(62, -26));
         const [ww, hh] = vis(-14);
         solBase = { ww, hh, R: hh * 0.2, y: hh * 0.84, oculto: true };
+        /* en el celular no van los astros: solo el cielo, las estrellas y
+           las fugaces. En una pantalla angosta los cuerpos quedaban chicos
+           y amontonados debajo del menu */
+        sistema.visible = false; zonaLuna.visible = false; galaxia.visible = false;
       } else {
         let [ww, hh] = vis(-9);
         sistema.position.set(ww * 0.8, hh * 0.64, -9);
@@ -1054,6 +1060,7 @@ export default function FondoIA() {
         galaxia.scale.set(hh * 0.78);
         [ww, hh] = vis(-14);
         solBase = { ww, hh, R: hh * 0.55, y: hh * 0.72 };
+        sistema.visible = true; zonaLuna.visible = true; galaxia.visible = true;
       }
       solG.scale.set(solBase.R);
     };
@@ -1098,6 +1105,13 @@ export default function FondoIA() {
       raf = 0;
       const dt = Math.min(0.05, previo ? (ahora - previo) / 1000 : 0.016);
       previo = ahora;
+      /* mientras la persona arrastra la pagina no se pinta: el scroll y la
+         placa de video pelean por el mismo cuadro, y en el celular gana el
+         que no tiene que ganar. Se retoma solo al soltar. */
+      if (document.documentElement.classList.contains("s2b-quieto")) {
+        if (!quieto && visible && !document.hidden) raf = requestAnimationFrame(cuadro);
+        return;
+      }
       reloj += dt;
 
       if (renderer) {

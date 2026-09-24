@@ -1373,7 +1373,15 @@ const CSS = `
    ocupen el ancho entero y los botones queden grandes para el pulgar. */
 @media (max-width: 600px) {
   .s2b .s2b-ia-tt--vivo { font-size: clamp(34px, 10.4vw, 44px); line-height: 1.04; }
-  .s2b-iah { padding-top: 92px; padding-bottom: 26px; }
+  .s2b-iah { padding-top: 22px; padding-bottom: 26px; }
+}
+@media (max-width: 699px) {
+  /* en el celular el espacio ocupa solo la franja de arriba y no el bloque
+     entero: pintar 1500 px de alto por cuadro trababa el scroll */
+  .s2b-iah-fondo { bottom: auto; height: 440px; }
+  /* el vidrio esmerilado sobre un lienzo animado es lo mas caro de todo */
+  .s2b-ia-caja--viva, .s2b-seo-card { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .s2b-ia-caja--viva { background-color: rgba(12,10,26,.92); }
   /* menos carga en el celular: la red de estrellas fugaces y la nebulosa bajan */
   .s2b-iah-aurora { opacity: .75; }
   .s2b-ia-d { font-size: 15px; text-align: left; }
