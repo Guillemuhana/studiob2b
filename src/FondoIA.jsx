@@ -534,6 +534,12 @@ void main() {
   vec3 col = mix(hondo, medio, smoothstep(0.25, 0.65, gr));
   col = mix(col, claro, smoothstep(0.55, 0.85, gr * 0.7 + gr2 * 0.3 + big * 0.35));
   col += vec3(1.0, 0.95, 0.8) * (act * 0.55 + fib * 0.9);
+  // rios de plasma que se mueven como lava sobre la superficie
+  vec3 w = q * 6.0 + vec3(fb(q * 3.0 + t), fb(q * 3.0 - t), 0.0) * 2.4;
+  float rio = pow(fb(w + vec3(0.0, t * 0.6, 0.0)), 3.0);
+  col += vec3(1.0, 0.78, 0.35) * rio * 1.4;
+  // manchas activas que se encienden y apagan
+  col += vec3(1.0, 0.96, 0.85) * act * (0.5 + 0.5 * sin(uTime * 1.3 + fb(q * 4.0) * 20.0)) * 0.6;
   // borde oscuro y rojizo: el limb darkening de las fotos
   float mu = max(dot(n, normalize(vV)), 0.0);
   col *= mix(0.42, 1.0, pow(mu, 0.45));
@@ -547,25 +553,80 @@ uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix;
 varying vec2 vUv;
 void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
+/* La corona con lo que la hace un sol de verdad:
+   - PROTUBERANCIAS: arcos de plasma que salen del borde y vuelven a entrar,
+     siguiendo el campo magnetico. Cada una es una banda con filamentos de
+     ruido que suben por el arco, y sube y baja despacio.
+   - ESPICULAS: la "hierba" de chorritos finos que cubre todo el borde.
+   - FULGURACIONES: cada unos segundos un punto del borde se enciende blanco,
+     tira un chorro hacia afuera y se apaga. El lugar sale sorteado. */
 const CORONA_F = /* glsl */ `
 precision highp float;
 uniform float uTime; uniform float uBorde;
 varying vec2 vUv;
 ${RUIDO}
+float h1(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+
+// un arco entre dos angulos, con su altura maxima H
+float arco(float a, float r, float a1, float a2, float H, float s) {
+  if (a < a1 || a > a2) return 0.0;
+  float k = (a - a1) / (a2 - a1);
+  float respira = 0.8 + 0.2 * sin(uTime * 0.23 + s * 5.0);
+  float alt = uBorde + H * respira * sin(3.14159 * k);
+  float w = 0.004 + 0.012 * sin(3.14159 * k);
+  float d = abs(r - alt);
+  float banda = exp(-d * d / (w * w));
+  // filamentos que corren por el arco, como el plasma siguiendo el campo
+  float fil = fbm(vec2(k * 14.0 - uTime * 0.18 + s, (r - alt) * 90.0 + s * 3.0)) * 0.5 + 0.5;
+  // las patas del arco se funden con la superficie
+  float pie = smoothstep(uBorde - 0.004, uBorde + 0.012, r);
+  return banda * (0.35 + fil * 1.1) * pie;
+}
+
 void main() {
   vec2 p = (vUv - 0.5) * 2.0;
   float r = length(p);
   if (r > 1.0) discard;
   float a = atan(p.y, p.x);
   float x = max(r - uBorde, 0.0);
+  float fuera = step(uBorde, r);
+
+  // la corona suave, finita
   float glow = exp(-x * 18.0);
-  // rayos y lenguas de plasma que se mueven despacio
   float rayo = fbm(vec2(a * 4.0, x * 5.0 - uTime * 0.12)) * 0.5 + 0.5;
-  float lengua = smoothstep(0.62, 0.9, fbm(vec2(a * 9.0 + uTime * 0.03, x * 14.0 - uTime * 0.2)));
-  float c = glow * (0.4 + rayo * 0.5) + lengua * exp(-x * 14.0) * 0.6;
-  c *= 0.92 + 0.08 * sin(uTime * 1.7 + a * 3.0);
-  vec3 col = mix(vec3(1.0, 0.72, 0.4), vec3(1.0, 0.93, 0.78), clamp(exp(-x * 10.0), 0.0, 1.0));
-  gl_FragColor = vec4(col, clamp(c, 0.0, 1.0) * (1.0 - smoothstep(0.82, 1.0, r)));
+  float c = glow * (0.4 + rayo * 0.5);
+  vec3 e = mix(vec3(1.0, 0.7, 0.38), vec3(1.0, 0.93, 0.78), clamp(exp(-x * 10.0), 0.0, 1.0)) * c;
+
+  // espiculas: chorritos finos en todo el borde
+  float esp = pow(fbm(vec2(a * 160.0, uTime * 0.25)) * 0.5 + 0.5, 3.0);
+  e += vec3(1.0, 0.55, 0.2) * esp * exp(-x * 90.0) * 1.4 * fuera;
+
+  // protuberancias sobre el borde que se ve
+  float pr = arco(a, r, -0.52, -0.2, 0.085, 1.0)
+           + arco(a, r, 0.05, 0.3, 0.05, 2.0)
+           + arco(a, r, 0.28, 0.74, 0.13, 3.0) * 0.9
+           + arco(a, r, -0.9, -0.62, 0.06, 4.0);
+  // una protuberancia de "seto": plasma colgando sobre el borde
+  float seto = smoothstep(0.58, 0.85, fbm(vec2(a * 22.0, x * 30.0 - uTime * 0.1))) * exp(-x * 26.0)
+             * smoothstep(-0.05, 0.1, a) * (1.0 - smoothstep(0.2, 0.35, a));
+  vec3 plasma = mix(vec3(0.95, 0.22, 0.05), vec3(1.0, 0.6, 0.25), clamp(pr, 0.0, 1.0));
+  e += plasma * (pr + seto * 0.8) * fuera;
+
+  // fulguraciones: una cada 7 segundos, en un lugar sorteado del borde
+  float T = 7.0;
+  float n = floor(uTime / T);
+  float f = fract(uTime / T);
+  float ang = h1(n) * 1.3 - 0.65;
+  float env = smoothstep(0.0, 0.03, f) * exp(-f * 7.0);
+  vec2 punto = uBorde * vec2(cos(ang), sin(ang));
+  float dp = distance(p, punto);
+  float flash = exp(-dp * 70.0) * 2.2 + exp(-dp * 18.0) * 0.35;
+  float da = abs(a - ang);
+  float chorro = exp(-da * 55.0) * exp(-x * 10.0 / max(f * 3.0, 0.15)) * smoothstep(uBorde, uBorde + 0.01, r);
+  e += vec3(1.0, 0.95, 0.85) * flash * env + vec3(1.0, 0.7, 0.4) * chorro * env * 1.3;
+
+  e *= 1.0 - smoothstep(0.82, 1.0, r);
+  gl_FragColor = vec4(e, 1.0);
 }
 `;
 
