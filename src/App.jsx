@@ -1330,6 +1330,61 @@ const CSS = `
   .s2b .s2b-leadf-chip { flex: 1 1 auto; justify-content: center; }
 }
 
+
+/* ---------- el SEO con IA ---------- */
+.s2b-seo { margin-top: clamp(56px,8vw,96px); }
+.s2b-seo-cab { text-align: center; display: grid; justify-items: center; }
+.s2b-seo-rot { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: #7CFFB2; margin-bottom: 14px; }
+.s2b .s2b-seo-cab h3 { font-size: clamp(30px,4.6vw,54px); letter-spacing: -.035em; line-height: 1.04; text-wrap: balance; max-width: 18ch; }
+.s2b .s2b-seo-cab h3 b { font-weight: 600; background: linear-gradient(100deg, #A78CFF, #FFFFFF 50%, #9EDBFF);
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.s2b .s2b-seo-cab p { margin-top: 16px; color: var(--muted); font-size: clamp(15px,1.5vw,17px); line-height: 1.6; max-width: 62ch; }
+.s2b-seo-prob { margin: 34px auto 0; max-width: 860px; padding: 20px 24px; border-radius: 18px;
+  border: 1px solid rgba(255,120,140,.25); background: linear-gradient(160deg, rgba(255,90,120,.07), rgba(0,0,0,.25)); }
+.s2b-seo-prob > b { display: block; font-family: var(--display); color: #fff; font-size: 16px; margin-bottom: 12px; }
+.s2b-seo-prob ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.s2b-seo-prob li { display: flex; gap: 10px; align-items: flex-start; color: var(--text); font-size: 14.5px; line-height: 1.5; }
+.s2b-seo-prob li svg { color: #FF8A9A; flex: none; margin-top: 3px; }
+.s2b-seo-grid { display: grid; gap: 14px; margin-top: 30px; }
+.s2b-seo-card { position: relative; padding: 24px 22px; border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(167,140,255,.2); background: linear-gradient(160deg, rgba(109,74,255,.12), rgba(10,8,22,.7) 60%);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), border-color .35s, box-shadow .35s; }
+.s2b-seo-card::before { content: ''; position: absolute; inset: -40% -20% auto auto; width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(127,211,255,.18), transparent 70%); pointer-events: none; }
+.s2b-seo-card:hover { transform: translateY(-4px); border-color: rgba(167,140,255,.55); box-shadow: 0 24px 60px -30px rgba(109,74,255,.8); }
+.s2b-seo-ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, #6D4AFF, #3FA9FF); box-shadow: 0 10px 24px -10px rgba(109,74,255,.9); margin-bottom: 16px; }
+.s2b .s2b-seo-card h4 { font-size: 18px; margin-bottom: 8px; }
+.s2b .s2b-seo-card p { color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+.s2b-seo-pasos { margin-top: 44px; text-align: center; }
+.s2b-seo-pasos ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 10px; counter-reset: paso; }
+.s2b-seo-pasos li { position: relative; display: grid; justify-items: center; gap: 4px; padding: 18px 12px; border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
+.s2b-seo-n { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: #9EDBFF; }
+.s2b-seo-pasos b { font-family: var(--display); color: #fff; font-size: 16px; }
+.s2b-seo-pasos small { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.s2b-seo-faq { margin: 40px auto 0; max-width: 860px; display: grid; gap: 10px; }
+.s2b-seo-fi { border-radius: 16px; border: 1px solid rgba(167,140,255,.18); background: rgba(10,8,22,.55); overflow: hidden; }
+.s2b-seo-fi.is-on { border-color: rgba(167,140,255,.45); }
+.s2b .s2b-seo-fi button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 14px; text-align: left;
+  padding: 17px 20px; font-family: var(--display); font-weight: 600; font-size: 16px; color: #fff; min-height: 56px; }
+.s2b-seo-fi button svg { flex: none; color: var(--lilac); }
+.s2b .s2b-seo-fi p { padding: 0 20px 18px; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+.s2b-seo-cta { margin-top: 30px; display: flex; justify-content: center; }
+@media (min-width: 720px) { .s2b-seo-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1020px) {
+  .s2b-seo-grid { grid-template-columns: repeat(3, 1fr); }
+  .s2b-seo-pasos ol { grid-template-columns: repeat(5, 1fr); }
+  .s2b-seo-pasos li:not(:last-child)::after { content: ''; position: absolute; top: 50%; right: -9px; width: 8px; height: 1px;
+    background: linear-gradient(90deg, #A78CFF, #9EDBFF); }
+}
+@media (max-width: 600px) {
+  .s2b-seo-prob { padding: 18px 16px; }
+  .s2b .s2b-seo-cta .s2b-btn { width: 100%; justify-content: center; min-height: 54px; }
+}
+
 /* ---- la promo ----
    Blanca y no de color: sobre el fondo oscuro del sitio el blanco es lo que
    mas resalta, y no compite con el violeta de la marca ni con el verde de
@@ -3576,6 +3631,97 @@ function FormIA({ t, waLink, extras, setExtras }) {
         )}
       </div>
     </div>
+  );
+}
+
+/* ==================================================================
+   El SEO con IA, contado
+   "Posicionamiento SEO profesional, optimizado con IA" es uno de los
+   incluidos de la caja del precio. Aca se explica que es: que problema
+   resuelve, que hace la IA, en que orden se trabaja y las dudas de siempre.
+   Los textos son propios; la estructura sigue lo que la gente busca saber.
+   ================================================================== */
+const SEO_PROBLEMAS = (t) => [
+  t("Lo que la gente busca en Google cambia todo el tiempo, y tu web se queda con las palabras de hace dos años.", "What people search on Google changes constantly, and your site is stuck with the words from two years ago."),
+  t("Tu competencia publica y ajusta todas las semanas: si no te movés, te pasan.", "Your competitors publish and adjust every week: if you stand still, they overtake you."),
+  t("Una página que funcionaba bien pierde posiciones de a poco si nadie la actualiza.", "A page that used to rank slowly loses positions if nobody updates it."),
+  t("Errores técnicos -una página lenta, un link roto, algo que Google no puede leer- que nadie ve hasta que bajan las visitas.", "Technical errors -a slow page, a broken link, something Google can't read- that nobody sees until traffic drops."),
+];
+const SEO_CAPAS = (t) => [
+  { ic: ShieldCheck, tt: t("Auditoría automática", "Automatic audit"), d: t("La IA recorre la web entera y encuentra lo que frena a Google: páginas que no se indexan, lentitud, títulos repetidos, imágenes pesadas.", "AI crawls the whole site and finds what holds Google back: pages that don't get indexed, slowness, duplicate titles, heavy images.") },
+  { ic: Search, tt: t("Palabras clave que venden", "Keywords that sell"), d: t("No solo las más buscadas: las que busca alguien listo para comprar en tu rubro y tu zona, y las que recién empiezan a crecer.", "Not just the most searched: the ones someone ready to buy in your field and area searches for, and the ones just starting to grow.") },
+  { ic: FileText, tt: t("Contenido optimizado", "Optimized content"), d: t("Títulos, descripciones y textos reescritos para que Google entienda de qué se trata cada página y la gente quiera hacer clic.", "Titles, descriptions and copy rewritten so Google understands each page and people want to click.") },
+  { ic: Target, tt: t("Radar de la competencia", "Competitor radar"), d: t("Qué hacen los que te ganan en Google, con qué páginas y qué palabras, para saber dónde tenés lugar para pasarlos.", "What the ones beating you on Google do, with which pages and words, so you know where there's room to overtake them.") },
+  { ic: Network, tt: t("Enlaces y autoridad", "Links and authority"), d: t("Ordenamos cómo se enlazan tus páginas entre sí y revisamos quién te enlaza de afuera, que es lo que Google lee como confianza.", "We organize how your pages link to each other and check who links to you from outside, which Google reads as trust.") },
+  { ic: TrendingUp, tt: t("Seguimiento en vivo", "Live tracking"), d: t("Un panel con tus posiciones y visitas, y avisos automáticos si algo sube, baja o se rompe. Nada de enterarse tarde.", "A dashboard with your rankings and visits, and automatic alerts if something rises, drops or breaks. No finding out too late.") },
+];
+const SEO_PASOS = (t) => [
+  { tt: t("Diagnóstico", "Diagnosis"), d: t("Cómo está hoy tu web y cómo te ve Google.", "How your site is today and how Google sees it.") },
+  { tt: t("Investigación", "Research"), d: t("Palabras clave, intención de búsqueda y competencia.", "Keywords, search intent and competition.") },
+  { tt: t("Optimización", "Optimization"), d: t("Contenido y parte técnica, página por página.", "Content and technical side, page by page.") },
+  { tt: t("Medición", "Measurement"), d: t("Posiciones, visitas y consultas, mes a mes.", "Rankings, visits and inquiries, month by month.") },
+  { tt: t("Mejora continua", "Continuous improvement"), d: t("Se ajusta con lo que dicen los números.", "Adjusted based on what the numbers say.") },
+];
+const SEO_FAQ = (t) => [
+  { q: t("¿En qué se diferencia del SEO de siempre?", "How is it different from regular SEO?"), a: t("En la velocidad y el alcance. La IA analiza en minutos lo que a una persona le lleva semanas, y lo vuelve a mirar todo el tiempo. Las decisiones las seguimos tomando nosotros: la IA encuentra, el equipo decide.", "Speed and reach. AI analyzes in minutes what takes a person weeks, and keeps checking all the time. We still make the decisions: AI finds, the team decides.") },
+  { q: t("¿Cuándo se ven resultados?", "When do results show?"), a: t("Los arreglos técnicos se notan en pocas semanas. Subir posiciones en búsquedas competidas lleva más: el SEO es un trabajo que se sostiene en el tiempo, no un botón.", "Technical fixes show in a few weeks. Climbing competitive searches takes longer: SEO is ongoing work, not a button.") },
+  { q: t("¿Tengo que rehacer mi web?", "Do I have to rebuild my site?"), a: t("No. Si ya tenés web, se trabaja sobre la que tenés. Y si la hacemos nosotros, ya nace optimizada: rápida, ordenada y lista para Google.", "No. If you already have a site, we work on it. And if we build it, it's born optimized: fast, organized and ready for Google.") },
+];
+
+function SeoIA({ t, irAlForm }) {
+  const [abierta, setAbierta] = useState(0);
+  return (
+    <section className="s2b-seo" id="seo-con-ia">
+      <div className="s2b-seo-cab s2b-rv">
+        <span className="s2b-seo-rot"><Search size={13} /> {t("Incluido en tu app web", "Included in your web app")}</span>
+        <h3>{t("Posicionamiento SEO", "SEO,")} <b>{t("optimizado con IA", "optimized with AI")}</b></h3>
+        <p>{t("Una web linda que nadie encuentra no vende. Por eso cada app web inteligente sale lista para Google, y la IA la sigue cuidando: detecta oportunidades antes, prioriza lo que más rinde y te avisa cuando algo cambia.", "A beautiful site nobody finds doesn't sell. That's why every smart web app ships ready for Google, and AI keeps looking after it: it spots opportunities sooner, prioritizes what pays off most and alerts you when something changes.")}</p>
+      </div>
+
+      <div className="s2b-seo-prob s2b-rv">
+        <b>{t("Lo que le pasa a una web sin SEO", "What happens to a site without SEO")}</b>
+        <ul>{SEO_PROBLEMAS(t).map((x) => <li key={x}><X size={14} /> {x}</li>)}</ul>
+      </div>
+
+      <div className="s2b-seo-grid">
+        {SEO_CAPAS(t).map((c, i) => {
+          const I = c.ic;
+          return (
+            <article className="s2b-seo-card s2b-rv" key={c.tt} style={{ transitionDelay: i * 70 + "ms" }}>
+              <span className="s2b-seo-ic"><I size={20} /></span>
+              <h4>{c.tt}</h4>
+              <p>{c.d}</p>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="s2b-seo-pasos s2b-rv">
+        <span className="s2b-seo-rot">{t("Cómo lo trabajamos", "How we work it")}</span>
+        <ol>
+          {SEO_PASOS(t).map((p, i) => (
+            <li key={p.tt}><span className="s2b-seo-n">{String(i + 1).padStart(2, "0")}</span><b>{p.tt}</b><small>{p.d}</small></li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="s2b-seo-faq s2b-rv">
+        {SEO_FAQ(t).map((f, i) => (
+          <div className={"s2b-seo-fi" + (abierta === i ? " is-on" : "")} key={f.q}>
+            <button aria-expanded={abierta === i} onClick={() => setAbierta(abierta === i ? -1 : i)}>
+              {f.q} {abierta === i ? <Minus size={17} /> : <Plus size={17} />}
+            </button>
+            {abierta === i && <p>{f.a}</p>}
+          </div>
+        ))}
+      </div>
+
+      <div className="s2b-seo-cta s2b-rv">
+        <button className="s2b-btn s2b-btn--primary s2b-btn--aura" onClick={irAlForm}>
+          {t("Quiero aparecer en Google", "I want to show up on Google")} <ArrowRight size={16} />
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -7159,6 +7305,8 @@ export default function StudioB2B() {
             </div>
 
             <FormIA t={t} waLink={waLink} extras={extrasIA} setExtras={setExtrasIA} />
+
+            <SeoIA t={t} irAlForm={() => document.getElementById("quiero-mi-app")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
 
             {/* El cambio se decide comparando, no leyendo. Dos columnas con
                 la misma pregunta contestada de las dos maneras: a la
