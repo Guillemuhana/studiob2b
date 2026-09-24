@@ -23,6 +23,11 @@ const DiaDelProgramador = lazy(() => import("./DiaDelProgramador.jsx"));
    despues trae la maquina, con la galeria de la conduccion abajo. */
 const JugarPecifa = lazy(() => import("./JugarPecifa.jsx"));
 
+/* El fondo de la app web inteligente -aurora en WebGL y red de neuronas- se
+   lleva la libreria OGL: va en su propio archivo y solo lo baja quien entra
+   a esa pagina. */
+const FondoIA = lazy(() => import("./FondoIA.jsx"));
+
 /* El saludo dura un dia: el 13 de septiembre esta, el 14 la pagina vuelve a
    ser la de siempre. Con ?dia=1 en la URL se puede abrir fuera de fecha, para
    mostrarsela a alguien o revisarla sin esperar un ano. */
@@ -1187,6 +1192,77 @@ const CSS = `
 .s2b .s2b-ia-corto .s2b-link { margin-top: 16px; }
 @media (min-width: 760px) {
   .s2b-ia-corto { grid-template-columns: 1.35fr .65fr; gap: 40px; align-items: start; padding: 36px 34px; }
+}
+
+
+/* ==================================================================
+   El encabezado de la app web inteligente
+   Es la pagina que se pasa en publicidad, asi que el primer golpe de vista
+   tiene que ser distinto al resto del sitio: aurora y red de neuronas de
+   fondo, titular que entra palabra por palabra con un brillo que lo
+   recorre, y la caja del precio con un haz de luz dando vueltas al borde.
+   ================================================================== */
+.s2b-ia--pagina { margin-top: 0; padding-top: 0; border-top: 0; }
+.s2b-iah { position: relative; padding: clamp(28px,5vw,64px) 0 clamp(36px,5vw,70px); isolation: isolate; }
+.s2b-iah > .s2b-ia-cab { position: relative; z-index: 1; }
+/* a todo el ancho aunque el contenido vaya en la columna del sitio */
+.s2b-iah-fondo { position: absolute; z-index: 0; top: -120px; bottom: -40px; left: 50%; width: 100vw; transform: translateX(-50%);
+  pointer-events: none; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 80%, transparent);
+          mask-image: linear-gradient(180deg, transparent, #000 14%, #000 80%, transparent); }
+.s2b-iah-aurora, .s2b-iah-aurora canvas, .s2b-iah-red { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.s2b-iah-aurora { opacity: .95; mix-blend-mode: screen; }
+.s2b-iah-red { opacity: .9; }
+/* un velo detras del texto, para que la red no le ensucie la lectura */
+.s2b-iah::before { content: ''; position: absolute; z-index: 0; inset: 0 auto 0 -4%; width: 62%; pointer-events: none;
+  background: radial-gradient(70% 60% at 30% 50%, rgba(10,9,18,.72), transparent 70%); }
+
+/* el sello de nuevo con un reflejo que pasa */
+.s2b-ia-nuevo { position: relative; overflow: hidden; }
+.s2b-ia-nuevo-luz { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.75) 50%, transparent 70%);
+  transform: translateX(-120%); animation: s2b-nuevo-luz 3.6s ease-in-out 1.2s infinite; }
+@keyframes s2b-nuevo-luz { 0%, 55% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+
+/* el titular: palabra por palabra y un brillo que recorre la segunda mitad */
+.s2b .s2b-ia-tt--vivo { font-size: clamp(36px,6vw,74px); }
+.s2b-pal { display: inline-block; white-space: pre; opacity: 0; transform: translateY(.45em); filter: blur(10px);
+  animation: s2b-pal .9s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(.15s + var(--i) * 80ms); }
+@keyframes s2b-pal { to { opacity: 1; transform: none; filter: blur(0); } }
+.s2b .s2b-ia-tt b.s2b-ia-brillo { background: linear-gradient(100deg, #8B6BFF 0%, #C9B8FF 22%, #FFFFFF 32%, #9EDBFF 42%, #A78CFF 60%, #6D4AFF 100%);
+  background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: s2b-brillo 6s linear 1.4s infinite; }
+/* el texto de cada palabra hereda el recorte del degrade del padre */
+.s2b-ia-brillo .s2b-pal { background: inherit; background-size: inherit; -webkit-background-clip: text; background-clip: text; color: transparent; }
+@keyframes s2b-brillo { from { background-position: 110% 0; } to { background-position: -110% 0; } }
+
+/* la caja del precio */
+.s2b-ia-tilt { transform-style: preserve-3d; }
+.s2b-ia-caja--viva { position: relative; isolation: isolate; backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
+.s2b-ia-caja--viva > :not(.s2b-ia-haz):not(.s2b-ia-foco):not(.s2b-promo-sello) { position: relative; z-index: 2; }
+.s2b-ia-caja--viva > .s2b-promo-sello { z-index: 3; }
+@property --s2b-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+/* el haz: un conico que gira, recortado para que solo se vea en el borde */
+.s2b-ia-haz { position: absolute; inset: 0; z-index: 1; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--s2b-ang), transparent 0 62%, rgba(167,140,255,.0) 64%, #A78CFF 76%, #FFFFFF 82%, #7FD3FF 88%, transparent 94%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: s2b-haz 5s linear infinite; }
+@keyframes s2b-haz { to { --s2b-ang: 360deg; } }
+/* el foco: una luz suave que sigue al puntero adentro de la caja */
+.s2b-ia-foco { position: absolute; inset: 0; z-index: 1; border-radius: inherit; pointer-events: none; opacity: 0;
+  background: radial-gradient(340px circle at var(--fx, 50%) var(--fy, 30%), rgba(167,140,255,.2), transparent 60%);
+  transition: opacity .35s; }
+.s2b-ia-caja--viva:hover .s2b-ia-foco { opacity: 1; }
+.s2b-ia-caja--viva { box-shadow: 0 40px 90px -40px rgba(109,74,255,.75), 0 0 0 1px rgba(255,255,255,.08) inset; }
+
+@media (prefers-reduced-motion: reduce) {
+  .s2b-pal { opacity: 1; transform: none; filter: none; animation: none; }
+  .s2b .s2b-ia-tt b.s2b-ia-brillo, .s2b-ia-haz, .s2b-ia-nuevo-luz { animation: none; }
+}
+@media (max-width: 859px) {
+  .s2b-iah::before { width: 100%; inset: 0; background: linear-gradient(180deg, rgba(10,9,18,.55) 0%, rgba(10,9,18,.78) 30%, rgba(10,9,18,.5) 55%, transparent 75%); }
+  .s2b-iah-aurora { opacity: .6; }
 }
 
 /* ---- la promo ----
@@ -3217,6 +3293,15 @@ const PROMO = {
 };
 const promoVigente = () => PROMO.activa && (!PROMO.hasta || Date.now() <= Date.parse(PROMO.hasta + "T23:59:59"));
 const pesosAR = (n) => "$" + n.toLocaleString("es-AR");
+
+/* Un titular que entra palabra por palabra: cada una sube desde abajo con un
+   desenfoque que se aclara. Van en spans con su turno en una variable, asi la
+   animacion es CSS pura y no hace falta cargar un motor para esto. */
+function Palabras({ texto, desde = 0 }) {
+  return texto.split(" ").map((p, i) => (
+    <span className="s2b-pal" style={{ "--i": desde + i }} key={i}>{p}{" "}</span>
+  ));
+}
 /* el precio del paquete en una linea, para el menu: la promo si esta vigente,
    y el abono solo si se muestra */
 const precioIACorto = (t) =>
@@ -6749,14 +6834,18 @@ export default function StudioB2B() {
               sitio sin precio, por decision del manual: sin saber cuantas
               consultas entran y cuanto vale un cliente, cualquier numero es
               un invento. Eso se dice de frente, no se esconde. */}
-          <div className="s2b-ia" id="paquete-ia">
-            <div className="s2b-ia-cab s2b-rv">
+          <div className="s2b-ia s2b-ia--pagina" id="paquete-ia">
+            {/* El encabezado lleva su propio escenario: la aurora y la red de
+                neuronas de fondo, a todo el ancho de la pantalla. */}
+            <div className="s2b-iah">
+            <Suspense fallback={null}><FondoIA /></Suspense>
+            <div className="s2b-ia-cab">
               <div>
-              <span className="s2b-ia-nuevo">{t("Nuevo", "New")}</span>
+              <span className="s2b-ia-nuevo"><i className="s2b-ia-nuevo-luz" aria-hidden="true" />{t("Nuevo", "New")}</span>
               <div className="s2b-eyebrow">{t("App web inteligente + IA", "Smart web app + AI")}</div>
-              <h3 className="s2b-ia-tt">
-                {t("Obtené tu app web inteligente.", "Get your smart web app.")}{" "}
-                <b>{t("Que venda por vos, las 24 horas.", "One that sells for you, 24/7.")}</b>
+              <h3 className="s2b-ia-tt s2b-ia-tt--vivo">
+                <Palabras texto={t("Obtené tu app web inteligente.", "Get your smart web app.")} />
+                <b className="s2b-ia-brillo"><Palabras texto={t("Que venda por vos, las 24 horas.", "One that sells for you, 24/7.")} desde={4} /></b>
               </h3>
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar, y que además te hace aparecer en Google: incluye posicionamiento SEO profesional, optimizado con IA. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono. Y lo construimos con las últimas tecnologías.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call, and gets you found on Google: professional SEO, optimized with AI, is included. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing. And we build it with the latest technology.")}
@@ -6774,7 +6863,18 @@ export default function StudioB2B() {
                   web de arriba: cuanto sale es lo primero que se busca, y
                   tenerlo abajo de todo obligaba a leer el bloque entero
                   para enterarse. */}
-              <div className={"s2b-appweb-precio s2b-ia-caja" + (promoVigente() ? " is-promo" : "")}>
+              <Tilt className="s2b-ia-tilt" tiltMaxAngleX={5} tiltMaxAngleY={7} perspective={1100}
+                transitionSpeed={900} scale={1.01} tiltReverse gyroscope={false}>
+              <div
+                className={"s2b-appweb-precio s2b-ia-caja s2b-ia-caja--viva" + (promoVigente() ? " is-promo" : "")}
+                onPointerMove={(e) => {
+                  const b = e.currentTarget.getBoundingClientRect();
+                  e.currentTarget.style.setProperty("--fx", ((e.clientX - b.left) / b.width) * 100 + "%");
+                  e.currentTarget.style.setProperty("--fy", ((e.clientY - b.top) / b.height) * 100 + "%");
+                }}
+              >
+                <i className="s2b-ia-haz" aria-hidden="true" />
+                <i className="s2b-ia-foco" aria-hidden="true" />
                 {promoVigente() ? (
                   <>
                     <span className="s2b-promo-sello">{t("Promo", "Deal")}</span>
@@ -6822,6 +6922,8 @@ export default function StudioB2B() {
                   <WhatsappGlyph /> {t("Solicitá tu demo gratis", "Request your free demo")}
                 </a>
               </div>
+              </Tilt>
+            </div>
             </div>
 
             {/* El cambio se decide comparando, no leyendo. Dos columnas con
