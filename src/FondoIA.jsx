@@ -373,9 +373,9 @@ varying vec3 vN; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
 void main() {
   vec3 n = normalize(vN);
   if (!gl_FrontFacing) n = -n;
-  vec2 celda = fract(vUv * vec2(10.0, 4.0));
+  vec2 celda = fract(vUv * vec2(14.0, 4.0));
   float linea = step(celda.x, 0.06) + step(celda.y, 0.08);
-  float marco = step(vUv.x, 0.015) + step(0.985, vUv.x) + step(vUv.y, 0.04) + step(0.96, vUv.y);
+  float marco = step(vUv.x, 0.02) + step(0.98, vUv.x) + step(vUv.y, 0.07) + step(0.93, vUv.y);
   vec3 base = mix(vec3(0.08, 0.16, 0.45), vec3(0.16, 0.30, 0.70), vUv.y);
   vec3 l = normalize(uLuz);
   float dif = max(dot(n, l), 0.0);
@@ -656,14 +656,19 @@ export default function FondoIA() {
         m.setParent(sat);
         return m;
       };
-      const dorado = { uColor: { value: [0.93, 0.72, 0.32] }, uArruga: { value: 0.12 } };
+      /* como los de ahora: cuerpo blanco plateado y solo un modulo chico en
+         lamina dorada, no todo el satelite forrado */
+      const dorado = { uColor: { value: [0.88, 0.7, 0.36] }, uArruga: { value: 0.1 } };
       const aluminio = { uColor: { value: [0.82, 0.84, 0.9] }, uArruga: { value: 0.04 } };
-      pieza(new Box(gl, { width: 0.42, height: 0.34, depth: 0.34 }), METAL_F, dorado);
+      const blanco = { uColor: { value: [0.9, 0.91, 0.94] }, uArruga: { value: 0.03 } };
+      pieza(new Box(gl, { width: 0.36, height: 0.3, depth: 0.3 }), METAL_F, blanco);
+      const modulo = pieza(new Box(gl, { width: 0.26, height: 0.16, depth: 0.24 }), METAL_F, dorado);
+      modulo.position.set(0, -0.23, 0);
       /* el brazo que sostiene los paneles */
-      pieza(new Box(gl, { width: 1.9, height: 0.03, depth: 0.03 }), METAL_F, aluminio);
+      pieza(new Box(gl, { width: 2.3, height: 0.022, depth: 0.022 }), METAL_F, aluminio);
       [-1, 1].forEach((lado) => {
-        const panel = pieza(new Plane(gl, { width: 0.8, height: 0.36 }), PANEL_F, {}, null);
-        panel.position.x = lado * 0.66;
+        const panel = pieza(new Plane(gl, { width: 0.95, height: 0.28 }), PANEL_F, {}, null);
+        panel.position.x = lado * 0.72;
         panel.rotation.x = 0.25;
       });
       /* la parabolica, mirando hacia el planeta, con su antena al centro */
@@ -679,7 +684,7 @@ export default function FondoIA() {
       luz.position.set(0, 0.38, 0);
       luz.setParent(sat);
       satelite = { t: sat, luz, orbita: 2.5, vel: 0.09, fase: 3.7, incl: -0.35 };
-      sat.scale.set(0.95);
+      sat.scale.set(0.58);
 
       /* la luna grande: la que se lleva el golpe */
       luna = new Mesh(gl, {
