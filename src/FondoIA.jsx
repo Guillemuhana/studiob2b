@@ -558,13 +558,13 @@ void main() {
   if (r > 1.0) discard;
   float a = atan(p.y, p.x);
   float x = max(r - uBorde, 0.0);
-  float glow = exp(-x * 11.0) + exp(-x * 3.2) * 0.35;
+  float glow = exp(-x * 18.0);
   // rayos y lenguas de plasma que se mueven despacio
   float rayo = fbm(vec2(a * 4.0, x * 5.0 - uTime * 0.12)) * 0.5 + 0.5;
   float lengua = smoothstep(0.62, 0.9, fbm(vec2(a * 9.0 + uTime * 0.03, x * 14.0 - uTime * 0.2)));
-  float c = glow * (0.55 + rayo * 0.7) + lengua * exp(-x * 7.0) * 1.3;
+  float c = glow * (0.4 + rayo * 0.5) + lengua * exp(-x * 14.0) * 0.6;
   c *= 0.92 + 0.08 * sin(uTime * 1.7 + a * 3.0);
-  vec3 col = mix(vec3(1.0, 0.38, 0.06), vec3(1.0, 0.8, 0.45), clamp(exp(-x * 8.0), 0.0, 1.0));
+  vec3 col = mix(vec3(1.0, 0.72, 0.4), vec3(1.0, 0.93, 0.78), clamp(exp(-x * 10.0), 0.0, 1.0));
   gl_FragColor = vec4(col, clamp(c, 0.0, 1.0) * (1.0 - smoothstep(0.82, 1.0, r)));
 }
 `;
@@ -1054,7 +1054,7 @@ export default function FondoIA() {
           const asoma = suave(0.0, 0.22, ph) * (1 - suave(0.72, 0.95, ph));
           const { ww, R, y } = solBase;
           /* asoma poco: en el punto maximo se ve apenas una franja del borde */
-          solG.position.set(-ww - R * 1.9 + asoma * R * 1.08, y, -14);
+          solG.position.set(-ww - R * 1.9 + asoma * R * 0.97, y, -14);
           sol.rotation.y = reloj * 0.035;
           sol.program.uniforms.uTime.value = reloj;
           corona.program.uniforms.uTime.value = reloj;
