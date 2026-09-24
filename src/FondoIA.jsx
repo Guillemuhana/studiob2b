@@ -1053,7 +1053,8 @@ export default function FondoIA() {
           const suave = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
           const asoma = suave(0.0, 0.22, ph) * (1 - suave(0.72, 0.95, ph));
           const { ww, R, y } = solBase;
-          solG.position.set(-ww - R * 1.9 + asoma * R * 1.45, y, -14);
+          /* asoma poco: en el punto maximo se ve apenas una franja del borde */
+          solG.position.set(-ww - R * 1.9 + asoma * R * 1.08, y, -14);
           sol.rotation.y = reloj * 0.035;
           sol.program.uniforms.uTime.value = reloj;
           corona.program.uniforms.uTime.value = reloj;
