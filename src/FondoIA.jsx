@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Renderer, Camera, Transform, Program, Mesh, Geometry, Sphere, Plane, Triangle } from "ogl";
+import { Renderer, Camera, Transform, Program, Mesh, Geometry, Sphere, Plane, Triangle, Box, Cylinder } from "ogl";
 
 /* ==================================================================
    El fondo de la app web inteligente: un sistema solar en la placa de video.
@@ -210,6 +210,124 @@ void main() {
 }
 `;
 
+/* ---------- el satelite ----------
+   Armado con piezas simples, como los de verdad: un cuerpo forrado en lamina
+   dorada -la manta termica arrugada que se ve en las fotos-, dos paneles
+   solares con sus celdas, una antena parabolica y una luz que titila. */
+const PIEZA_V = /* glsl */ `
+attribute vec3 position; attribute vec3 normal; attribute vec2 uv;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix;
+varying vec3 vN; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
+void main() {
+  vN = normalize(normalMatrix * normal);
+  vP = position; vUv = uv;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vV = normalize(-mv.xyz);
+  gl_Position = projectionMatrix * mv;
+}
+`;
+/* metal: la lamina dorada del cuerpo o el aluminio de la antena */
+const METAL_F = /* glsl */ `
+precision highp float;
+uniform vec3 uLuz; uniform vec3 uColor; uniform float uArruga;
+varying vec3 vN; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
+${RUIDO}
+void main() {
+  vec3 n = normalize(vN);
+  // la lamina arrugada tuerce la normal y rompe el reflejo en manchas
+  float ar = snoise(vP.xy * 7.0 + vP.z * 5.0) * uArruga;
+  n = normalize(n + vec3(ar, -ar, ar * 0.5));
+  vec3 l = normalize(uLuz);
+  float dif = max(dot(n, l), 0.0);
+  vec3 h = normalize(l + vV);
+  float esp = pow(max(dot(n, h), 0.0), 28.0);
+  vec3 col = uColor * (0.08 + dif * 0.95) + vec3(1.0, 0.95, 0.85) * esp * 0.9;
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+/* los paneles: celdas azul oscuro con su grilla y un reflejo que se corre */
+const PANEL_F = /* glsl */ `
+precision highp float;
+uniform vec3 uLuz;
+varying vec3 vN; varying vec3 vP; varying vec3 vV; varying vec2 vUv;
+void main() {
+  vec3 n = normalize(vN);
+  if (!gl_FrontFacing) n = -n;
+  vec2 celda = fract(vUv * vec2(10.0, 4.0));
+  float linea = step(celda.x, 0.06) + step(celda.y, 0.08);
+  float marco = step(vUv.x, 0.015) + step(0.985, vUv.x) + step(vUv.y, 0.04) + step(0.96, vUv.y);
+  vec3 base = mix(vec3(0.08, 0.16, 0.45), vec3(0.16, 0.30, 0.70), vUv.y);
+  vec3 l = normalize(uLuz);
+  float dif = max(dot(n, l), 0.0);
+  vec3 h = normalize(l + vV);
+  float esp = pow(max(dot(n, h), 0.0), 60.0);
+  vec3 col = base * (0.45 + dif * 0.9) + vec3(0.6, 0.75, 1.0) * esp * 1.2;
+  col = mix(col, vec3(0.55, 0.6, 0.7) * (0.3 + dif), clamp(linea * 0.6 + marco, 0.0, 1.0));
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+const LUZ_F = /* glsl */ `
+precision highp float;
+uniform float uTime;
+void main() {
+  float on = step(0.82, fract(uTime * 0.7));
+  gl_FragColor = vec4(vec3(1.0, 0.25, 0.25) * (0.35 + on * 2.0), 1.0);
+}
+`;
+
+/* ---------- el asteroide y el choque ----------
+   La roca es una esfera deformada con ruido en la placa de video, asi no hay
+   dos iguales. Las chispas, la estela y el polvo son un solo sistema de
+   particulas: se mueven en el procesador y se pintan de una vez como puntos. */
+const ROCA_V = /* glsl */ `
+attribute vec3 position; attribute vec3 normal;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix;
+uniform float uSemilla;
+varying vec3 vN; varying vec3 vP; varying vec3 vV;
+${RUIDO}
+void main() {
+  float d = snoise(position.xy * 2.2 + position.z * 1.7 + uSemilla) * 0.28
+          + snoise(position.yz * 5.0 + uSemilla) * 0.08;
+  vec3 pos = position * (1.0 + d);
+  vN = normalize(normalMatrix * normal);
+  vP = pos;
+  vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+  vV = normalize(-mv.xyz);
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const CHISPA_V = /* glsl */ `
+attribute vec3 position; attribute vec4 dato;
+uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform float uDpr;
+varying float vA; varying float vTipo;
+void main() {
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mv;
+  vA = dato.x; vTipo = dato.z;
+  gl_PointSize = dato.y * uDpr * (24.0 / -mv.z);
+}
+`;
+const CHISPA_F = /* glsl */ `
+precision highp float;
+varying float vA; varying float vTipo;
+void main() {
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  if (d > 1.0 || vA <= 0.0) discard;
+  vec3 col; float a;
+  if (vTipo < 0.5) {            // fuego: blanco en el centro, naranja afuera
+    col = mix(vec3(1.0, 0.95, 0.85), vec3(1.0, 0.45, 0.12), d);
+    a = pow(1.0 - d, 1.6);
+  } else if (vTipo < 1.5) {     // polvo: una nube suave, gris lila
+    col = vec3(0.72, 0.68, 0.82);
+    a = pow(1.0 - d, 2.0) * 0.75;
+  } else {                      // destello del impacto
+    col = mix(vec3(1.0), vec3(0.65, 0.8, 1.0), d);
+    a = pow(1.0 - d, 2.0);
+  }
+  gl_FragColor = vec4(col, a * vA);
+}
+`;
+
 export default function FondoIA() {
   const host = useRef(null);
   const glHost = useRef(null);
@@ -225,6 +343,11 @@ export default function FondoIA() {
 
     let renderer, gl, camera, scene, nebulosa, estrellas, planeta, halo, anillo, sistema;
     const lunas = [];
+    let satelite = null;
+    let luna = null, roca = null, chispas = null;
+    const CAP = 700;
+    const pPos = new Float32Array(CAP * 3), pDat = new Float32Array(CAP * 4);
+    let parts = [];
     const LUZ = [-0.92, 0.38, 0.12];
     try {
       renderer = new Renderer({ alpha: true, dpr, antialias: true, premultipliedAlpha: false });
@@ -311,11 +434,192 @@ export default function FondoIA() {
         lunas.push({ ...l, m });
       });
 
+      /* el satelite: cada pieza es una malla colgada de un mismo grupo */
+      const sat = new Transform();
+      sat.setParent(sistema);
+      const pieza = (geometry, fragment, uniforms, cullFace) => {
+        const prog = new Program(gl, { vertex: PIEZA_V, fragment, uniforms: { uLuz: { value: LUZ }, ...uniforms }, cullFace });
+        const m = new Mesh(gl, { geometry, program: prog });
+        m.setParent(sat);
+        return m;
+      };
+      const dorado = { uColor: { value: [0.93, 0.72, 0.32] }, uArruga: { value: 0.12 } };
+      const aluminio = { uColor: { value: [0.82, 0.84, 0.9] }, uArruga: { value: 0.04 } };
+      pieza(new Box(gl, { width: 0.42, height: 0.34, depth: 0.34 }), METAL_F, dorado);
+      /* el brazo que sostiene los paneles */
+      pieza(new Box(gl, { width: 1.9, height: 0.03, depth: 0.03 }), METAL_F, aluminio);
+      [-1, 1].forEach((lado) => {
+        const panel = pieza(new Plane(gl, { width: 0.8, height: 0.36 }), PANEL_F, {}, null);
+        panel.position.x = lado * 0.66;
+        panel.rotation.x = 0.25;
+      });
+      /* la parabolica, mirando hacia el planeta, con su antena al centro */
+      const plato = pieza(new Cylinder(gl, { radiusTop: 0.2, radiusBottom: 0.02, height: 0.1, radialSegments: 28, openEnded: true }), METAL_F, aluminio, null);
+      plato.position.set(0, 0, 0.26);
+      plato.rotation.x = Math.PI / 2;
+      const antena = pieza(new Cylinder(gl, { radiusTop: 0.008, radiusBottom: 0.008, height: 0.22, radialSegments: 6 }), METAL_F, aluminio);
+      antena.position.set(0, 0.26, 0);
+      const luz = new Mesh(gl, {
+        geometry: new Sphere(gl, { radius: 0.025, widthSegments: 8, heightSegments: 6 }),
+        program: new Program(gl, { vertex: CUERPO_V, fragment: LUZ_F, uniforms: { uTime: { value: 0 } } }),
+      });
+      luz.position.set(0, 0.38, 0);
+      luz.setParent(sat);
+      satelite = { t: sat, luz, orbita: 2.5, vel: 0.09, fase: 3.7, incl: -0.35 };
+      sat.scale.set(0.95);
+
+      /* la luna grande: la que se lleva el golpe */
+      luna = new Mesh(gl, {
+        geometry: new Sphere(gl, { radius: 1, widthSegments: 48, heightSegments: 32 }),
+        program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: [0.8, 0.79, 0.86] } } }),
+      });
+      luna.scale.set(0.3);
+      luna.setParent(sistema);
+
+      roca = new Mesh(gl, {
+        geometry: new Sphere(gl, { radius: 1, widthSegments: 22, heightSegments: 16 }),
+        program: new Program(gl, { vertex: ROCA_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: [0.5, 0.42, 0.36] }, uSemilla: { value: 0 } } }),
+      });
+      roca.scale.set(0.09);
+      roca.visible = false;
+      roca.setParent(sistema);
+
+      const geoChispas = new Geometry(gl, { position: { size: 3, data: pPos }, dato: { size: 4, data: pDat } });
+      const progChispas = new Program(gl, {
+        vertex: CHISPA_V, fragment: CHISPA_F, transparent: true, depthWrite: false,
+        uniforms: { uDpr: { value: dpr } },
+      });
+      progChispas.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
+      chispas = new Mesh(gl, { mode: gl.POINTS, geometry: geoChispas, program: progChispas });
+      chispas.frustumCulled = false;
+      chispas.setParent(sistema);
+
       sistema.rotation.z = 0.32;
       sistema.rotation.x = 0.22;
     } catch {
       renderer = null;
     }
+
+    /* ---------- el asteroide ---------- */
+    /* la luna flota arriba a la izquierda del planeta, siempre a la vista
+       -si orbitara, la mitad del tiempo quedaria detras de la caja del
+       precio y el choque no lo veria nadie- con un vaiven lento */
+    const lunaEn = (tt) => {
+      const a = tt * 0.18;
+      return [-1.95 + Math.cos(a) * 0.1, 1.2 + Math.sin(a * 1.3) * 0.07, 0.6];
+    };
+    const azar = (a, b) => a + Math.random() * (b - a);
+    const esfera = () => {
+      const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, k = Math.sqrt(1 - u * u);
+      return [k * Math.cos(th), u, k * Math.sin(th)];
+    };
+    const soltar = (x, y, z, vx, vy, vz, dura, tam, tipo, freno = 0, crece = 0) => {
+      if (parts.length >= CAP) parts.shift();
+      parts.push({ x, y, z, vx, vy, vz, vida: 0, dura, tam, tipo, freno, crece });
+    };
+    let ast = null;
+    let proxAst = quieto ? Infinity : 3.5;
+
+    const lanzar = () => {
+      const dura = azar(2.2, 2.9);
+      const dest = lunaEn(reloj + dura);
+      /* entra desde un costado y un poco hacia la camara, para que se vea venir */
+      const dir = [azar(-1, 1), azar(0.35, 0.9), azar(0.2, 0.8)];
+      const m = Math.hypot(...dir);
+      const d = dir.map((v) => v / m);
+      const lejos = 6.5;
+      ast = { t0: reloj, dura, d, desde: dest.map((v, i) => v + d[i] * lejos), giro: esfera() };
+      roca.program.uniforms.uSemilla.value = Math.random() * 50;
+      roca.visible = true;
+    };
+
+    const chocar = (centro, d) => {
+      const R = 0.3;
+      const p = centro.map((v, i) => v + d[i] * R);
+      /* el destello */
+      soltar(...p, 0, 0, 0, 0.6, 170, 2, 0, 1.4);
+      soltar(...p, 0, 0, 0, 1.1, 110, 2, 0, 2.8);
+      soltar(...p, 0, 0, 0, 0.35, 60, 0, 0, 3);
+      /* las esquirlas calientes, disparadas hacia afuera del crater */
+      for (let i = 0; i < 140; i++) {
+        const e = esfera();
+        const v = azar(0.6, 2.1);
+        const dir = [d[0] * 0.9 + e[0], d[1] * 0.9 + e[1], d[2] * 0.9 + e[2]];
+        soltar(...p, dir[0] * v, dir[1] * v, dir[2] * v, azar(0.9, 2.1), azar(4, 9), 0, 1.5);
+      }
+      /* la nube de polvo que se abre despacio */
+      for (let i = 0; i < 150; i++) {
+        const e = esfera();
+        const v = azar(0.12, 0.55);
+        soltar(...p, (d[0] * 0.6 + e[0]) * v, (d[1] * 0.6 + e[1]) * v, (d[2] * 0.6 + e[2]) * v, azar(2.6, 4.6), azar(18, 38), 1, 0.7, 1.9);
+      }
+      /* el anillo de la onda expansiva, sobre la superficie */
+      const t1 = Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+      const a1 = [d[1] * t1[2] - d[2] * t1[1], d[2] * t1[0] - d[0] * t1[2], d[0] * t1[1] - d[1] * t1[0]];
+      const m1 = Math.hypot(...a1); a1.forEach((v, i) => (a1[i] = v / m1));
+      const a2 = [d[1] * a1[2] - d[2] * a1[1], d[2] * a1[0] - d[0] * a1[2], d[0] * a1[1] - d[1] * a1[0]];
+      for (let i = 0; i < 70; i++) {
+        const th = (i / 70) * Math.PI * 2;
+        const v = azar(0.75, 0.95);
+        const dir = a1.map((c, k) => c * Math.cos(th) + a2[k] * Math.sin(th));
+        soltar(...p, dir[0] * v, dir[1] * v, dir[2] * v, azar(1.4, 2.0), azar(12, 20), 1, 1.1, 1.3);
+      }
+    };
+
+    const moverAsteroide = (dt) => {
+      if (!luna) return;
+      const lp = lunaEn(reloj);
+      luna.position.set(...lp);
+      luna.rotation.y = reloj * 0.08;
+
+      proxAst -= dt;
+      if (!ast && proxAst <= 0) lanzar();
+      if (ast) {
+        const k = Math.min(1, (reloj - ast.t0) / ast.dura);
+        const e = Math.pow(k, 1.25);
+        const dest = lunaEn(ast.t0 + ast.dura);
+        const pos = ast.desde.map((v, i) => v + (dest[i] - v) * e);
+        roca.position.set(...pos);
+        roca.rotation.x += dt * 2.1 * ast.giro[0];
+        roca.rotation.y += dt * 2.1 * ast.giro[1];
+        /* la estela: se enciende a medida que entra */
+        const n = 6;
+        for (let i = 0; i < n; i++) {
+          const j = esfera();
+          soltar(pos[0] + j[0] * 0.02, pos[1] + j[1] * 0.02, pos[2] + j[2] * 0.02,
+            ast.d[0] * 0.25 + j[0] * 0.05, ast.d[1] * 0.25 + j[1] * 0.05, ast.d[2] * 0.25 + j[2] * 0.05,
+            azar(0.4, 0.8), azar(5, 10) * (0.5 + e), 0, 0.5);
+        }
+        if (Math.random() < 0.35) soltar(...pos, ast.d[0] * 0.08, ast.d[1] * 0.08, ast.d[2] * 0.08, azar(1.2, 2), azar(5, 9), 1, 0.4, 1);
+        if (k >= 1) {
+          chocar(dest, ast.d);
+          roca.visible = false;
+          ast = null;
+          proxAst = azar(7, 12);
+        }
+      }
+
+      /* las particulas */
+      parts = parts.filter((q) => {
+        q.vida += dt;
+        if (q.vida >= q.dura) return false;
+        const f = Math.max(0, 1 - q.freno * dt);
+        q.vx *= f; q.vy *= f; q.vz *= f;
+        q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt;
+        return true;
+      });
+      for (let i = 0; i < CAP; i++) {
+        const q = parts[i];
+        if (!q) { pDat[i * 4] = 0; continue; }
+        const k = q.vida / q.dura;
+        pPos[i * 3] = q.x; pPos[i * 3 + 1] = q.y; pPos[i * 3 + 2] = q.z;
+        pDat[i * 4] = q.tipo === 1 ? Math.sin(Math.PI * Math.min(1, k * 1.4 + 0.05)) * (1 - k) : Math.pow(1 - k, 1.4);
+        pDat[i * 4 + 1] = q.tam * (1 + q.crece * k);
+        pDat[i * 4 + 2] = q.tipo;
+      }
+      chispas.geometry.attributes.position.needsUpdate = true;
+      chispas.geometry.attributes.dato.needsUpdate = true;
+    };
 
     /* ---------- estrellas fugaces (2D) ---------- */
     const ctx = cv.getContext("2d");
@@ -407,6 +711,18 @@ export default function FondoIA() {
         planeta.program.uniforms.uTime.value = reloj;
         planeta.rotation.y = reloj * 0.06;
         anillo.rotation.z = reloj * 0.02;
+        moverAsteroide(dt);
+        if (satelite) {
+          const a = satelite.fase + reloj * satelite.vel;
+          satelite.t.position.set(Math.cos(a) * satelite.orbita, Math.sin(a) * satelite.orbita * satelite.incl - 0.15, Math.sin(a) * satelite.orbita);
+          /* gira despacio sobre si mismo, con un cabeceo leve */
+          /* los paneles miran siempre mas o menos a la camara, con un vaiven lento,
+             asi se leen las alas y no queda de canto */
+          satelite.t.rotation.y = -0.35 + Math.sin(reloj * 0.25) * 0.35;
+          satelite.t.rotation.x = 0.55 + Math.sin(reloj * 0.18) * 0.12;
+          satelite.t.rotation.z = -0.32 + Math.sin(reloj * 0.3) * 0.12;
+          satelite.luz.program.uniforms.uTime.value = reloj;
+        }
         lunas.forEach((l) => {
           const a = l.fase + reloj * l.vel;
           l.m.position.set(Math.cos(a) * l.orbita, Math.sin(a) * l.orbita * l.incl, Math.sin(a) * l.orbita);
@@ -426,6 +742,12 @@ export default function FondoIA() {
     const arrancar = () => { if (!raf && vivo) { previo = 0; raf = requestAnimationFrame(cuadro); } };
 
     medir();
+    /* ?espacio=N adelanta la escena N segundos: sirve para revisar el choque
+       sin esperarlo */
+    const salto = Number(new URLSearchParams(location.search).get("espacio")) || 0;
+    if (renderer && salto > 0) {
+      while (reloj < salto) { reloj += 1 / 60; moverAsteroide(1 / 60); }
+    }
     if (quieto) { reloj = 20; cuadro(performance.now()); } else arrancar();
 
     const zona = box.parentElement || box;
