@@ -1293,10 +1293,13 @@ const CSS = `
   filter: drop-shadow(0 0 2px rgba(255,255,255,.8)); }
 @keyframes s2b-cosmos-viaja { from { background-position: 0 0; } to { background-position: 0 -660px; } }
 
-.s2b .s2b-ia-caja--viva .s2b-ia-orbitado { position: relative; display: inline-block; isolation: isolate; }
+.s2b .s2b-ia-caja--viva .s2b-ia-num b.s2b-ia-orbitado { position: relative; display: inline-block; width: max-content; justify-self: start; isolation: isolate; }
 .s2b-ia-precio-txt { position: relative; z-index: 1; }
 .s2b-ia-orbita { position: absolute; z-index: 0; left: 50%; top: 52%; width: 138%; height: auto; transform: translate(-50%, -50%);
   overflow: visible; pointer-events: none; filter: drop-shadow(0 0 6px rgba(167,140,255,.6)); }
+/* la caja en tablet y celular va a todo el ancho: su contenido tambien */
+.s2b-ia-caja--viva .s2b-ia-incluye, .s2b-ia-caja--viva .s2b-ia-num, .s2b-ia-caja--viva .s2b-promo-pagos { width: 100%; }
+@media (max-width: 600px) { .s2b-ia-orbita { width: 118%; } }
 @media (prefers-reduced-motion: reduce) {
   .s2b-ia-cosmos > i, .s2b-ia-cosmos::after { animation: none; }
   .s2b-ia-orbita { display: none; }

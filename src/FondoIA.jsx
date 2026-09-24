@@ -466,11 +466,12 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
   // nucleo amarillento y brazos azul violeta, con alguna estrella rosada suelta
-  vec3 nucleo = vec3(1.0, 0.86, 0.66);
+  // el bulbo: estrellas viejas, amarillo anaranjadas, mas calidas hacia el centro
+  vec3 nucleo = mix(vec3(1.0, 0.55, 0.2), vec3(1.0, 0.78, 0.42), smoothstep(0.0, 0.22, r));
   vec3 brazo = mix(vec3(0.55, 0.62, 1.0), vec3(0.62, 0.45, 1.0), dato.z);
-  vColor = mix(nucleo, brazo, smoothstep(0.0, 0.45, r));
+  vColor = mix(nucleo, brazo, smoothstep(0.12, 0.5, r));
   vColor = mix(vColor, vec3(1.0, 0.55, 0.8), step(0.965, dato.w));
-  vA = (0.24 + dato.w * 0.45) * (1.0 - smoothstep(0.7, 1.0, r) * 0.75) * (0.3 + smoothstep(0.0, 0.3, r) * 0.7);
+  vA = (0.24 + dato.w * 0.45) * (1.0 - smoothstep(0.7, 1.0, r) * 0.75) * (0.3 + smoothstep(0.0, 0.32, r) * 0.7);
   gl_PointSize = (1.2 + dato.w * 2.2) * uDpr * (78.0 / -mv.z);
 }
 `;
@@ -490,7 +491,9 @@ varying vec3 vColor; varying float vA;
 void main() {
   float d = length(gl_PointCoord - 0.5) * 2.0;
   if (d > 1.0) discard;
-  gl_FragColor = vec4(vec3(1.0, 0.88, 0.72), pow(1.0 - d, 3.0) * 0.14);
+  // centro amarillo y halo naranja
+  vec3 c = mix(vec3(1.0, 0.8, 0.42), vec3(1.0, 0.4, 0.1), smoothstep(0.0, 0.6, d));
+  gl_FragColor = vec4(c, pow(1.0 - d, 1.8) * 0.95);
 }
 `;
 
@@ -587,7 +590,7 @@ export default function FondoIA() {
         brazos.setParent(galaxia);
         const progNuc = new Program(gl, {
           vertex: GAL_V, fragment: NUCLEO_F, transparent: true, depthTest: true, depthWrite: false,
-          uniforms: { uTime: { value: 0 }, uDpr: { value: dpr * 9 } },
+          uniforms: { uTime: { value: 0 }, uDpr: { value: dpr * 17 } },
         });
         progNuc.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
         const nucleo = new Mesh(gl, {
@@ -868,11 +871,11 @@ export default function FondoIA() {
       const vis = (z) => { const hh = Math.tan((35 * Math.PI) / 360) * (12 - z); return [hh * (w / h), hh]; };
       if (w / h < 0.9) {
         let [ww, hh] = vis(-9);
-        sistema.position.set(ww * 0.62, hh * 0.84, -9);
-        sistema.scale.set(hh * 0.12);
+        sistema.position.set(ww * 0.66, hh * 0.78, -9);
+        sistema.scale.set(hh * 0.085);
         [ww, hh] = vis(-3);
-        zonaLuna.position.set(-ww * 0.62, hh * 0.9, -3);
-        zonaLuna.scale.set(hh * 0.12);
+        zonaLuna.position.set(-ww * 0.62, hh * 0.8, -3);
+        zonaLuna.scale.set(hh * 0.13);
         [ww, hh] = vis(-26);
         galaxia.position.set(-ww * 0.05, hh * 0.55, -26);
         galaxia.scale.set(hh * 0.62);
