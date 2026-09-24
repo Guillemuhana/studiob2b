@@ -130,6 +130,10 @@ void main() {
   gl_Position = projectionMatrix * mv;
 }
 `;
+/* Un gigante gaseoso como los de las fotos de la NASA: muchas bandas finas en
+   tonos crema, arena y violeta, con turbulencia donde se tocan -el viento
+   corre para lados opuestos en bandas vecinas-, una tormenta ovalada, el
+   borde oscurecido (limb darkening) y la noche que entra suave. */
 const PLANETA_F = /* glsl */ `
 precision highp float;
 uniform float uTime; uniform vec3 uLuz;
@@ -137,41 +141,58 @@ varying vec3 vN; varying vec3 vP; varying vec3 vV;
 ${RUIDO}
 void main() {
   vec3 n = normalize(vN);
-  // bandas de gas que corren con la rotacion, y tormentas encima
-  float lon = atan(vP.z, vP.x) + uTime * 0.05;
-  float lat = vP.y;
-  float turb = fbm(vec2(lon * 1.1, lat * 3.2) + vec2(uTime * 0.01, 0.0));
-  float bandas = sin(lat * 9.0 + turb * 2.1) * 0.5 + 0.5;
-  float tormenta = smoothstep(0.55, 0.9, fbm(vec2(lon * 3.0, lat * 9.0) - uTime * 0.02));
-  vec3 a = vec3(0.20, 0.12, 0.52);
-  vec3 b = vec3(0.58, 0.46, 0.98);
-  vec3 c = vec3(0.62, 0.86, 1.00);
-  vec3 sup = mix(a, b, bandas);
-  sup = mix(sup, c, tormenta * 0.55);
-  sup = mix(sup, vec3(0.95, 0.9, 1.0), smoothstep(0.82, 1.0, bandas) * 0.25);
-  // luz de costado: la linea de la noche es suave, como en una foto
-  float dif = dot(n, normalize(uLuz));
-  float luz = smoothstep(-0.18, 0.55, dif);
-  vec3 col = sup * (0.06 + luz * 1.15);
-  // brillo del sol sobre la superficie
-  vec3 h = normalize(normalize(uLuz) + vV);
-  col += vec3(0.9, 0.85, 1.0) * pow(max(dot(n, h), 0.0), 40.0) * 0.25 * luz;
-  // la atmosfera se nota en el borde iluminado
-  float borde = pow(1.0 - max(dot(n, vV), 0.0), 3.0);
-  col += vec3(0.55, 0.62, 1.0) * borde * (0.25 + luz * 0.9);
+  vec3 q = normalize(vP);
+  float lat = q.y;
+  float lon = atan(q.z, q.x);
+  // cada banda gira a su velocidad: eso tuerce los bordes entre bandas
+  float corr = sin(lat * 23.0) * 0.08;
+  float lonV = lon + uTime * (0.02 + corr);
+  float turb = fbm(vec2(lonV * 2.2, lat * 18.0)) * 0.6 + fbm(vec2(lonV * 6.0, lat * 40.0)) * 0.2;
+  float y = lat + turb * 0.045;
+  float b1 = sin(y * 26.0) * 0.5 + 0.5;
+  float b2 = sin(y * 61.0 + 1.7) * 0.5 + 0.5;
+  float b3 = sin(y * 9.0 + 0.4) * 0.5 + 0.5;
+  vec3 crema  = vec3(0.90, 0.85, 0.80);
+  vec3 arena  = vec3(0.70, 0.60, 0.58);
+  vec3 violeta = vec3(0.52, 0.44, 0.74);
+  vec3 hondo  = vec3(0.30, 0.25, 0.46);
+  vec3 sup = mix(violeta, crema, smoothstep(0.25, 0.85, b1));
+  sup = mix(sup, arena, smoothstep(0.4, 1.0, b3) * 0.45);
+  sup = mix(sup, hondo, smoothstep(0.7, 1.0, b2) * 0.35);
+  sup *= 0.92 + fbm(vec2(lonV * 12.0, lat * 70.0)) * 0.12;
+  // la tormenta: un ovalo en el hemisferio sur que gira con su banda
+  vec2 ct = vec2((mod(lonV + 3.14159, 6.28318) - 3.14159 - 0.6) * 0.55, (lat + 0.32) * 1.6);
+  float ov = length(ct * vec2(1.0, 1.8));
+  float remolino = fbm(vec2(atan(ct.y, ct.x) * 1.5 + ov * 6.0, ov * 4.0));
+  float torm = 1.0 - smoothstep(0.08, 0.14, ov);
+  sup = mix(sup, mix(vec3(0.78, 0.50, 0.58), vec3(0.95, 0.80, 0.78), remolino * 0.5 + 0.5), torm * 0.85);
+  // polos un poco mas oscuros y azulados
+  sup = mix(sup, vec3(0.34, 0.33, 0.52), smoothstep(0.72, 0.98, abs(lat)) * 0.6);
+
+  vec3 l = normalize(uLuz);
+  float dif = dot(n, l);
+  float luz = smoothstep(-0.12, 0.7, dif);
+  // limb darkening: el borde del disco se ve mas oscuro, como en las fotos reales
+  float mu = max(dot(n, normalize(vV)), 0.0);
+  float limbo = pow(mu, 0.42);
+  vec3 col = sup * luz * limbo * 1.12;
+  // un poco de dispersion azul en el borde iluminado, muy fina
+  float borde = pow(1.0 - mu, 5.0);
+  col += vec3(0.45, 0.55, 0.95) * borde * smoothstep(-0.2, 0.6, dif) * 0.55;
+  col += sup * 0.012;
   gl_FragColor = vec4(col, 1.0);
 }
 `;
+/* la atmosfera: una capa finita pegada al disco, solo del lado del sol */
 const HALO_F = /* glsl */ `
 precision highp float;
 uniform vec3 uLuz;
 varying vec3 vN; varying vec3 vP; varying vec3 vV;
 void main() {
   vec3 n = normalize(vN);
-  float f = pow(max(0.0, 1.0 - abs(dot(n, vV))), 2.2);
-  float lado = smoothstep(-0.6, 0.8, dot(n, normalize(uLuz)));
-  vec3 col = mix(vec3(0.42, 0.30, 1.0), vec3(0.6, 0.85, 1.0), lado);
-  gl_FragColor = vec4(col, f * (0.25 + lado * 0.75) * 0.9);
+  float f = pow(max(0.0, 1.0 - abs(dot(n, vV))), 5.0);
+  float lado = smoothstep(-0.2, 0.7, dot(n, normalize(uLuz)));
+  gl_FragColor = vec4(vec3(0.55, 0.65, 1.0), f * lado * 0.6);
 }
 `;
 const LUNA_F = /* glsl */ `
@@ -189,24 +210,114 @@ void main() {
 }
 `;
 
+/* ---------- la luna grande ----------
+   Como la de las fotos: mares oscuros y lisos, tierras altas claras llenas
+   de crateres -cada uno con el fondo en sombra y el borde iluminado del lado
+   del sol- y la linea de la noche que corta suave. El ruido es 3D sobre la
+   esfera, asi no hay costura. */
+const LUNA_REAL_F = /* glsl */ `
+precision highp float;
+uniform vec3 uLuz;
+varying vec3 vN; varying vec3 vP; varying vec3 vV;
+vec3 hash3(vec3 p) {
+  p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
+  return fract(sin(p) * 43758.5453);
+}
+float ruido3(vec3 p) {
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  float n = mix(mix(mix(hash3(i).x, hash3(i + vec3(1,0,0)).x, f.x), mix(hash3(i + vec3(0,1,0)).x, hash3(i + vec3(1,1,0)).x, f.x), f.y),
+                mix(mix(hash3(i + vec3(0,0,1)).x, hash3(i + vec3(1,0,1)).x, f.x), mix(hash3(i + vec3(0,1,1)).x, hash3(i + vec3(1,1,1)).x, f.x), f.y), f.z);
+  return n;
+}
+float fbm3(vec3 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * ruido3(p); p *= 2.07; a *= 0.5; } return v; }
+// crateres: celdas de voronoi; devuelve cuanto hunde y cuanto levanta el borde
+vec2 crateres(vec3 p) {
+  vec3 i = floor(p), f = fract(p);
+  float hundido = 0.0, borde = 0.0;
+  for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
+    vec3 g = vec3(float(x), float(y), float(z));
+    vec3 h = hash3(i + g);
+    if (h.z > 0.55) continue;            // no todas las celdas tienen crater
+    float rad = 0.18 + h.x * 0.28;
+    float d = length(g + h * 0.8 + 0.1 - f) / rad;
+    hundido = max(hundido, 1.0 - smoothstep(0.0, 1.0, d));
+    borde = max(borde, smoothstep(0.75, 1.0, d) * (1.0 - smoothstep(1.0, 1.25, d)));
+  }
+  return vec2(hundido, borde);
+}
+void main() {
+  vec3 n = normalize(vN);
+  vec3 q = normalize(vP);
+  // los mares: manchas grandes y oscuras
+  float mar = smoothstep(0.52, 0.62, fbm3(q * 1.6 + 3.0));
+  vec3 tierra = vec3(0.78, 0.77, 0.80);
+  vec3 maria = vec3(0.36, 0.36, 0.40);
+  vec3 col = mix(tierra, maria, mar);
+  col *= 0.85 + fbm3(q * 9.0) * 0.3;
+  // crateres en dos tamanos, menos sobre los mares
+  vec2 c1 = crateres(q * 4.0);
+  vec2 c2 = crateres(q * 11.0 + 7.0);
+  float hund = max(c1.x, c2.x * 0.7) * (1.0 - mar * 0.6);
+  float bord = max(c1.y, c2.y * 0.7) * (1.0 - mar * 0.6);
+  vec3 l = normalize(uLuz);
+  // el crater se sombrea del lado del sol y el borde se ilumina del otro
+  float lado = dot(n, l);
+  col *= 1.0 - hund * 0.35;
+  col += vec3(0.12) * bord;
+  float luz = smoothstep(-0.05, 0.6, lado);
+  vec3 fin = col * (0.03 + luz * 1.05);
+  // un reflejo apenas azulado de la tierra en la cara oscura
+  fin += vec3(0.05, 0.06, 0.1) * (1.0 - luz) * 0.5;
+  gl_FragColor = vec4(fin, 1.0);
+}
+`;
+
 /* ---------- el anillo ---------- */
+/* El anillo: decenas de bandas de hielo y polvo de distinta densidad, la
+   division de Cassini y la sombra del planeta cayendo sobre el. La sombra se
+   calcula de verdad: desde cada punto del anillo se tira un rayo hacia el sol
+   y, si choca con la esfera del planeta, ahi es de noche. */
 const ANILLO_V = /* glsl */ `
 attribute vec3 position; attribute vec2 uv;
 uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix;
-varying vec2 vUv;
-void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+varying vec2 vUv; varying vec3 vVista; varying vec3 vCentro; varying float vRadio;
+void main() {
+  vUv = uv;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vVista = mv.xyz;
+  vCentro = (modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  vRadio = length((modelViewMatrix * vec4(1.0, 0.0, 0.0, 0.0)).xyz);
+  gl_Position = projectionMatrix * mv;
+}
 `;
 const ANILLO_F = /* glsl */ `
 precision highp float;
-varying vec2 vUv;
+uniform vec3 uLuz;
+varying vec2 vUv; varying vec3 vVista; varying vec3 vCentro; varying float vRadio;
 void main() {
   float r = length(vUv - 0.5) * 2.0;
-  if (r < 0.56 || r > 0.98) discard;
-  float bandas = 0.55 + 0.45 * sin(r * 120.0) * sin(r * 37.0 + 1.3);
-  float borde = smoothstep(0.56, 0.62, r) * smoothstep(0.98, 0.9, r);
-  float hueco = 1.0 - smoothstep(0.74, 0.76, r) * (1.0 - smoothstep(0.78, 0.8, r)) * 0.85;
-  vec3 col = mix(vec3(0.62, 0.55, 1.0), vec3(0.85, 0.92, 1.0), r);
-  gl_FragColor = vec4(col, borde * bandas * hueco * 0.55);
+  if (r < 0.55 || r > 0.99) discard;
+  // densidad: bandas de varios tamanos, sumadas
+  float k = (r - 0.55) / 0.44;
+  /* pocas bandas y anchas: el anillo se ve casi de canto, y una banda fina
+     en el plano queda de un pixel en pantalla y se rompe en puntitos */
+  float d = 0.66 + 0.2 * sin(k * 21.0) + 0.1 * sin(k * 53.0 + 1.1);
+  // anillo interior tenue, el principal denso y el exterior mas finito
+  d *= mix(0.35, 1.0, smoothstep(0.0, 0.18, k));
+  d *= 1.0 - smoothstep(0.78, 1.0, k) * 0.55;
+  // la division de Cassini
+  d *= 1.0 - (smoothstep(0.58, 0.6, k) * (1.0 - smoothstep(0.65, 0.67, k))) * 0.92;
+  d *= smoothstep(0.0, 0.03, k) * (1.0 - smoothstep(0.97, 1.0, k));
+  vec3 col = mix(vec3(0.62, 0.56, 0.58), vec3(0.86, 0.82, 0.78), smoothstep(0.1, 0.7, k));
+  // la sombra del planeta
+  vec3 L = normalize(uLuz);
+  vec3 oc = vVista - vCentro;
+  float b = dot(oc, L);
+  float c = dot(oc, oc) - vRadio * vRadio;
+  float disc = b * b - c;
+  float sombra = (b < 0.0) ? smoothstep(-0.02, 0.06, disc / (vRadio * vRadio)) : 0.0;
+  col *= 1.0 - sombra * 0.9;
+  gl_FragColor = vec4(col * 1.05, clamp(d, 0.0, 1.0) * 0.9);
 }
 `;
 
@@ -498,13 +609,13 @@ export default function FondoIA() {
         uniforms: { uLuz: { value: LUZ } },
       });
       progHalo.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
-      halo = new Mesh(gl, { geometry: new Sphere(gl, { radius: 1.22, widthSegments: 64, heightSegments: 40 }), program: progHalo });
+      halo = new Mesh(gl, { geometry: new Sphere(gl, { radius: 1.035, widthSegments: 64, heightSegments: 40 }), program: progHalo });
       halo.setParent(sistema);
 
       const progAnillo = new Program(gl, {
         vertex: ANILLO_V, fragment: ANILLO_F, transparent: true, depthWrite: false, cullFace: null,
+        uniforms: { uLuz: { value: LUZ } },
       });
-      progAnillo.setBlendFunc(gl.SRC_ALPHA, gl.ONE);
       anillo = new Mesh(gl, { geometry: new Plane(gl, { width: 4.4, height: 4.4 }), program: progAnillo });
       anillo.rotation.x = -Math.PI / 2;
       anillo.setParent(sistema);
@@ -517,7 +628,7 @@ export default function FondoIA() {
       ].forEach((l) => {
         const m = new Mesh(gl, {
           geometry: geoLuna,
-          program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: l.color } } }),
+          program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ } } }),
         });
         m.scale.set(l.r);
         m.setParent(sistema);
@@ -560,10 +671,10 @@ export default function FondoIA() {
 
       /* la luna grande: la que se lleva el golpe */
       luna = new Mesh(gl, {
-        geometry: new Sphere(gl, { radius: 1, widthSegments: 48, heightSegments: 32 }),
-        program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: [0.8, 0.79, 0.86] } } }),
+        geometry: new Sphere(gl, { radius: 1, widthSegments: 72, heightSegments: 48 }),
+        program: new Program(gl, { vertex: CUERPO_V, fragment: LUNA_REAL_F, uniforms: { uLuz: { value: LUZ } } }),
       });
-      luna.scale.set(0.3);
+      luna.scale.set(0.42);
       zonaLuna = new Transform();
       zonaLuna.setParent(scene);
       luna.setParent(zonaLuna);
@@ -572,7 +683,7 @@ export default function FondoIA() {
         geometry: new Sphere(gl, { radius: 1, widthSegments: 22, heightSegments: 16 }),
         program: new Program(gl, { vertex: ROCA_V, fragment: LUNA_F, uniforms: { uLuz: { value: LUZ }, uColor: { value: [0.5, 0.42, 0.36] }, uSemilla: { value: 0 } } }),
       });
-      roca.scale.set(0.045);
+      roca.scale.set(0.022);
       roca.visible = false;
       roca.setParent(zonaLuna);
 
@@ -626,7 +737,7 @@ export default function FondoIA() {
     };
 
     const chocar = (centro, d) => {
-      const R = 0.3;
+      const R = 0.42;
       const p = centro.map((v, i) => v + d[i] * R);
       /* el destello */
       soltar(...p, 0, 0, 0, 0.6, 170, 2, 0, 1.4);
@@ -807,8 +918,8 @@ export default function FondoIA() {
            mas que las lejanas y el planeta gira un poco en perspectiva */
         puntero.sx += (puntero.x - puntero.sx) * Math.min(1, dt * 2);
         puntero.sy += (puntero.y - puntero.sy) * Math.min(1, dt * 2);
-        camera.position.x = puntero.sx * 0.9;
-        camera.position.y = puntero.sy * 0.55;
+        camera.position.x = 0;
+        camera.position.y = 0;
         camera.lookAt([0, 0, -4]);
 
         estrellas.program.uniforms.uTime.value = reloj;
@@ -835,7 +946,7 @@ export default function FondoIA() {
           l.m.rotation.y = reloj * 0.3;
         });
         nebulosa.program.uniforms.uTime.value = reloj;
-        nebulosa.program.uniforms.uMouse.value = [puntero.sx, puntero.sy];
+        nebulosa.program.uniforms.uMouse.value = [0, 0];
 
         renderer.autoClear = true;
         renderer.render({ scene: nebulosa });

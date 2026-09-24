@@ -7241,8 +7241,6 @@ export default function StudioB2B() {
                   web de arriba: cuanto sale es lo primero que se busca, y
                   tenerlo abajo de todo obligaba a leer el bloque entero
                   para enterarse. */}
-              <Tilt className="s2b-ia-tilt" tiltMaxAngleX={5} tiltMaxAngleY={7} perspective={1100}
-                transitionSpeed={900} scale={1.01} tiltReverse gyroscope={false}>
               <div
                 className={"s2b-appweb-precio s2b-ia-caja s2b-ia-caja--viva" + (promoVigente() ? " is-promo" : "")}
                 onPointerMove={(e) => {
@@ -7300,7 +7298,6 @@ export default function StudioB2B() {
                   <WhatsappGlyph /> {t("Solicitá tu demo gratis", "Request your free demo")}
                 </a>
               </div>
-              </Tilt>
             </div>
             </div>
 
