@@ -11,6 +11,7 @@ import {
   KeyRound, Network, Globe, Handshake, Eye, Clock, Share2,
 } from "lucide-react";
 import Tilt from "react-parallax-tilt";
+import SeoIAPage, { SEO_DESCRIPTION } from "./SeoIA.jsx";
 /* La seccion del Dia del Programador se lleva el resaltador de sintaxis, el
    motor de animacion y el confeti: casi 80 kB comprimidos para algo que vive
    abajo de todo. Va en su propio archivo, que el navegador busca cuando ya
@@ -2834,7 +2835,7 @@ const CSS = `
    AJUSTES POR ANCHO
    ================================================================== */
 @media (min-width: 900px) {
-  .s2b-doors { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .s2b-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .s2b-caos-grid { grid-template-columns: 1fr auto 1fr; gap: 26px; }
   .s2b-puente { padding: 0 4px; }
   /* de costado el recorrido va de izquierda a derecha, no hacia abajo */
@@ -3098,10 +3099,15 @@ const clientes = (t) => [
 
 
 /* ==================================================================
-   Tres necesidades guían la portada, el menú y el formulario.
+   Cuatro necesidades guían la portada, el menú y el formulario.
    Los detalles de cada solución viven en su propia página.
    ================================================================== */
 const ayuda = (t) => [
+  { id: "seo-ia", ic: Search, rot: t("SEO para IA", "SEO for AI search"),
+    tt: t("Que encuentren mi empresa", "Help people find my business"),
+    d: t("Posicionamiento profesional para buscadores y respuestas con IA, con una estrategia adaptada a tu negocio.", "Professional search and AI visibility with a strategy tailored to your business."),
+    pasos: [t("Diagnóstico y prioridades", "Assessment and priorities"), t("Contenido y mejoras técnicas", "Content and technical improvements"), t("Seguimiento de resultados", "Performance tracking")],
+    cta: t("Ver posicionamiento SEO para IA", "Explore SEO for AI search"), to: "seo-ia" },
   { id: "captacion", ic: MessageSquare, rot: t("Web y atención", "Website and enquiries"),
     tt: t("Recibir y atender consultas", "Receive and answer enquiries"),
     d: t("Una web para presentar tu negocio, responder consultas y dar seguimiento a los interesados.", "A website to present your business, answer enquiries and follow up with potential clients."),
@@ -4320,6 +4326,7 @@ const waChips = (t) => [
    ordenada para que cada visitante encuentre lo suyo sin leer treinta lineas. */
 const necesidades = (t) => [
   { g: t("¿Qué necesitás?", "What do you need?"), o: [
+    t("Posicionamiento SEO para IA", "SEO for AI search"),
     t("Recibir y atender consultas", "Receive and answer enquiries"),
     t("Organizar mi empresa", "Organize my business"),
     t("Desarrollar mi idea de app", "Build my app idea"),
@@ -6130,7 +6137,7 @@ function UiFlujo({ pasos = [] }) {
   );
 }
 
-const RUTAS = { idea: "/desarrollar-app", precios: "/precios", aplicaciones: "/aplicaciones-web", "paquete-ia": "/app-web-inteligente", proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
+const RUTAS = { "seo-ia": "/posicionamiento-seo-para-ia", idea: "/desarrollar-app", precios: "/precios", aplicaciones: "/aplicaciones-web", "paquete-ia": "/app-web-inteligente", proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
 
 /* Anclas del home que ademas tienen direccion propia, para poder pasar el
    link por WhatsApp y que caiga en la seccion.
@@ -6456,6 +6463,7 @@ export default function StudioB2B() {
      el que ve Google en el home; este es el que ve la persona mientras navega. */
   useEffect(() => {
     document.title =
+      vista === "seo-ia" ? t("Posicionamiento SEO para IA | Studio B2B", "SEO for AI search | Studio B2B") :
       vista === "idea" ? t("Desarrollo de apps | Studio B2B", "App development | Studio B2B") :
       vista === "proceso" ? t("El Proceso Studio B2B, paso a paso | Studio B2B", "The Studio B2B Process, step by step | Studio B2B") :
       vista === "precios" ? t("Precios | Studio B2B", "Pricing | Studio B2B") :
@@ -6466,7 +6474,7 @@ export default function StudioB2B() {
       t("Studio B2B | Webs, sistemas y apps para tu negocio",
         "Studio B2B | Websites, systems and apps for your business");
     const d = document.querySelector('meta[name="description"]');
-    if (d) d.setAttribute("content", t(
+    if (d) d.setAttribute("content", vista === "seo-ia" ? t(SEO_DESCRIPTION, "SEO for AI search and search engines. Audits, strategic content and technical improvements for your company's visibility.") : t(
       "Desarrollamos aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina.",
       "Custom software, mobile apps, CRM systems and AI solutions for businesses and entrepreneurs. Built from Córdoba, Argentina."));
   }, [vista, t]);
@@ -6892,6 +6900,10 @@ export default function StudioB2B() {
       </div>
 
       {/* ============ PROCESO (pagina aparte) ============ */}
+      {vista === "seo-ia" && <SeoIAPage t={t} onContact={() => {
+        setForm((f) => ({ ...f, tipo: t("Posicionamiento SEO para IA", "SEO for AI search") }));
+        goTo("contacto");
+      }} />}
       {vista === "proceso" && <div className="s2b-band s2b-band--dark" id="proceso">
         <section className="s2b-sec s2b-sec--sm">
           <div className="s2b-wrap">
@@ -7547,7 +7559,7 @@ export default function StudioB2B() {
       {vista === "home" && <>
       {/* ============ CÓMO PODEMOS AYUDARTE ============ */}
       {/* Va pegada al hero a proposito: quien llega de una publicidad tiene que
-          reconocerse en una de las tres opciones antes de seguir bajando. */}
+          reconocerse en una de las opciones antes de seguir bajando. */}
       <section className="s2b-sec s2b-sec--sm s2b-amb" id="ayuda">
         <div className="s2b-wrap">
           <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
@@ -7555,7 +7567,7 @@ export default function StudioB2B() {
             <h2 className="s2b-h2" style={{ maxWidth: "16ch" }}>{t("¿Cómo podemos", "How can we")} <b>{t("ayudarte?", "help you?")}</b></h2>
           </div>
 
-          {/* Las mismas tres necesidades se usan en el menú y el formulario. */}
+          {/* Las mismas necesidades se usan en el menú y el formulario. */}
           <div className="s2b-doors s2b-rv">
             {AYUDA.map((a) => {
               const I = a.ic;

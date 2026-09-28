@@ -28,6 +28,13 @@ const DIST = "dist";
 
 const PAGINAS = [
   {
+    archivo: "posicionamiento-seo-para-ia.html",
+    ruta: "/posicionamiento-seo-para-ia",
+    titulo: "Posicionamiento SEO para IA | Studio B2B",
+    desc: "Posicionamiento SEO para IA y buscadores. Auditoría, contenido estratégico y mejoras técnicas para trabajar la visibilidad de tu empresa.",
+    img: "/og.png",
+  },
+  {
     archivo: "desarrollar-app.html",
     ruta: "/desarrollar-app",
     titulo: "Desarrollo de apps | De tu idea al producto | Studio B2B",

@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/posicionamiento-seo-para-ia",
+      "destination": "/posicionamiento-seo-para-ia.html"
+    },
+    {
       "source": "/desarrollar-app",
       "destination": "/desarrollar-app.html"
     },

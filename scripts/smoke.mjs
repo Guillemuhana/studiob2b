@@ -52,6 +52,7 @@ try {
   await esperarPuerto(URL);
 
   const pages = [
+    { path: "/posicionamiento-seo-para-ia", markers: ['id="seo-ia"', 'id="seo-alcance"', "s2b-seop-brief"], absent: ['id="ayuda"'] },
     { path: "/", markers: ["s2b-hero", "s2b-doors", 'id="clientes"', 'id="contacto"'], absent: ['id="camino"', 'id="servicios"', 'id="agentes"'] },
     { path: "/aplicaciones-web", markers: ['id="aplicaciones"', 'id="empresas"', 'id="servicios"', 'id="agentes"'] },
     { path: "/app-web-inteligente", markers: ["s2b-ia-cab", "s2b-plan-letra"] },
@@ -78,8 +79,8 @@ try {
     if (!ok) console.log({ error: r.error?.message, missing, unexpected, length: body.length });
     if (page.path === "/") {
       const count = (body.match(/class="s2b-door /g) || []).length;
-      console.log(`${count === 3 ? "OK" : "FAIL"} three solution choices (${count})`);
-      if (count !== 3) failures++;
+      console.log(`${count === 4 ? "OK" : "FAIL"} four solution choices (${count})`);
+      if (count !== 4) failures++;
     }
   }
   code = failures ? 1 : 0;
