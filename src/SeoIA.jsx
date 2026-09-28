@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowUpRight, Search } from "lucide-react";
 import "./SeoIA.css";
+import SeoSearchBackground from "./SeoSearchBackground.jsx";
 
 export const SEO_DESCRIPTION = "Posicionamiento SEO + IA profesional. Actualizamos tu web con contenido estratégico, mejoras técnicas y seguimiento para las nuevas formas de búsqueda.";
 
@@ -14,6 +15,7 @@ export default function SeoIA({ t, onContact }) {
   return (
     <article id="seo-ia" className="s2b-seop">
       <section className="s2b-sec s2b-seop-hero">
+        <SeoSearchBackground />
         <div className="s2b-wrap s2b-seop-intro">
           <div>
             <div className="s2b-eyebrow"><Search size={14} /> {t("Estrategia profesional para la nueva búsqueda", "Professional strategy for the new search landscape")}</div>
