@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpRight, Search, Check, ArrowRight } from "lucide-react";
+import { ArrowUpRight, Search } from "lucide-react";
 import "./SeoIA.css";
 
 export const SEO_DESCRIPTION = "Posicionamiento SEO para IA y buscadores. Auditoría, contenido estratégico y mejoras técnicas para trabajar la visibilidad de tu empresa.";
@@ -14,7 +14,7 @@ export default function SeoIA({ t, onContact }) {
   return (
     <article id="seo-ia" className="s2b-seop">
       <section className="s2b-sec s2b-seop-hero">
-        <div className="s2b-wrap s2b-seop-layout">
+        <div className="s2b-wrap s2b-seop-intro">
           <div>
             <div className="s2b-eyebrow"><Search size={14} /> {t("Posicionamiento SEO para IA", "SEO for AI search")}</div>
             <h1 className="s2b-h2">{t("Posicionamiento SEO", "SEO positioning")} <b>{t("+ IA", "+ AI")}</b></h1>
@@ -22,14 +22,6 @@ export default function SeoIA({ t, onContact }) {
             <button className="s2b-btn s2b-btn--chrome" onClick={onContact}>{t("Consultar por mi posicionamiento", "Discuss my search visibility")} <ArrowUpRight size={17} /></button>
             <p className="s2b-seop-caption">{t("Propuesta a medida según tu sitio, mercado y objetivos.", "A tailored proposal based on your site, market and goals.")}</p>
           </div>
-          <aside className="s2b-seop-map" aria-label={t("Enfoque del servicio", "Service approach")}>
-            <span className="s2b-seop-kicker">{t("DE LA BÚSQUEDA A LA CONSULTA", "FROM SEARCH TO ENQUIRY")}</span>
-            <div className="s2b-seop-question">“{t("¿Quién puede resolver lo que necesito?", "Who can solve what I need?") }”</div>
-            <div className="s2b-seop-channels"><span>Google</span><span>ChatGPT</span><span>Gemini</span><span>Perplexity</span></div>
-            <div className="s2b-seop-flow"><Search size={22} /><span>{t("Una pregunta concreta", "A specific question")}</span><ArrowRight size={18} /></div>
-            <div className="s2b-seop-flow"><Check size={22} /><span>{t("Tu conocimiento, bien explicado", "Your expertise, clearly explained")}</span></div>
-            <p className="s2b-seop-caption">{t("Nuestro foco: que cada visita encuentre una respuesta útil y un próximo paso claro.", "Our focus: a useful answer and a clear next step for every visitor.")}</p>
-          </aside>
         </div>
       </section>
       <section className="s2b-sec s2b-sec--sm" aria-labelledby="seo-alcance">
