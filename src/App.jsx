@@ -3105,7 +3105,7 @@ const clientes = (t) => [
 const ayuda = (t) => [
   { id: "seo-ia", ic: Search, rot: t("SEO para IA", "SEO for AI search"),
     tt: t("Posicionamiento SEO + IA", "SEO + AI positioning"),
-    d: t("Posicionamiento profesional para buscadores y respuestas con IA, con una estrategia adaptada a tu negocio.", "Professional search and AI visibility with a strategy tailored to your business."),
+    d: t("SEO profesional e inteligencia artificial para actualizar tu web y trabajar tu visibilidad en las nuevas formas de búsqueda.", "Professional SEO and artificial intelligence to update your website and work on visibility in new search experiences."),
     pasos: [t("Diagnóstico y prioridades", "Assessment and priorities"), t("Contenido y mejoras técnicas", "Content and technical improvements"), t("Seguimiento de resultados", "Performance tracking")],
     cta: t("Ver posicionamiento SEO para IA", "Explore SEO for AI search"), to: "seo-ia" },
   { id: "captacion", ic: MessageSquare, rot: t("Web y atención", "Website and enquiries"),
@@ -6474,7 +6474,7 @@ export default function StudioB2B() {
       t("Studio B2B | Webs, sistemas y apps para tu negocio",
         "Studio B2B | Websites, systems and apps for your business");
     const d = document.querySelector('meta[name="description"]');
-    if (d) d.setAttribute("content", vista === "seo-ia" ? t(SEO_DESCRIPTION, "SEO for AI search and search engines. Audits, strategic content and technical improvements for your company's visibility.") : t(
+    if (d) d.setAttribute("content", vista === "seo-ia" ? t(SEO_DESCRIPTION, "Professional SEO + AI. We update your website with strategic content, technical improvements and tracking for new search experiences.") : t(
       "Desarrollamos aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina.",
       "Custom software, mobile apps, CRM systems and AI solutions for businesses and entrepreneurs. Built from Córdoba, Argentina."));
   }, [vista, t]);
