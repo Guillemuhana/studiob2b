@@ -17,7 +17,7 @@ export default function SeoIA({ t, onContact }) {
         <div className="s2b-wrap s2b-seop-layout">
           <div>
             <div className="s2b-eyebrow"><Search size={14} /> {t("Posicionamiento SEO para IA", "SEO for AI search")}</div>
-            <h1 className="s2b-h2">{t("Tu experiencia merece", "Your expertise deserves")} <b>{t("ser encontrada.", "to be found.")}</b></h1>
+            <h1 className="s2b-h2">{t("Posicionamiento SEO", "SEO positioning")} <b>{t("+ IA", "+ AI")}</b></h1>
             <p className="s2b-lead">{t("Trabajamos la visibilidad de tu empresa en buscadores y respuestas con IA. Una estrategia que conecta lo que sabés hacer con lo que tus próximos clientes necesitan resolver.", "We work on your company's visibility in search engines and AI answers. A strategy connecting your expertise with what your next customers need to solve.")}</p>
             <button className="s2b-btn s2b-btn--chrome" onClick={onContact}>{t("Consultar por mi posicionamiento", "Discuss my search visibility")} <ArrowUpRight size={17} /></button>
             <p className="s2b-seop-caption">{t("Propuesta a medida según tu sitio, mercado y objetivos.", "A tailored proposal based on your site, market and goals.")}</p>
