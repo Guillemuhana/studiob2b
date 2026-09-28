@@ -3104,7 +3104,7 @@ const clientes = (t) => [
    ================================================================== */
 const ayuda = (t) => [
   { id: "seo-ia", ic: Search, rot: t("SEO para IA", "SEO for AI search"),
-    tt: t("Que encuentren mi empresa", "Help people find my business"),
+    tt: t("Posicionamiento SEO + IA", "SEO + AI positioning"),
     d: t("Posicionamiento profesional para buscadores y respuestas con IA, con una estrategia adaptada a tu negocio.", "Professional search and AI visibility with a strategy tailored to your business."),
     pasos: [t("Diagnóstico y prioridades", "Assessment and priorities"), t("Contenido y mejoras técnicas", "Content and technical improvements"), t("Seguimiento de resultados", "Performance tracking")],
     cta: t("Ver posicionamiento SEO para IA", "Explore SEO for AI search"), to: "seo-ia" },
