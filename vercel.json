@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/desarrollar-app",
+      "destination": "/desarrollar-app.html"
+    },
+    {
       "source": "/app-web-inteligente",
       "destination": "/app-web-inteligente.html"
     },

@@ -2442,6 +2442,7 @@ const CSS = `
 .s2b-door-rot { display: inline-flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 10.5px;
   letter-spacing: .19em; text-transform: uppercase; margin-bottom: 16px; }
 .s2b-door-rot::before { content: ""; width: 22px; height: 1px; background: currentColor; opacity: .5; }
+.s2b-door .s2b-btn { margin-top: auto; white-space: normal; }
 .s2b-door h3 { font-size: clamp(21px,2.5vw,30px); line-height: 1.16; margin-bottom: 13px; max-width: 17ch; }
 .s2b-door > .s2b-door-in > p { color: var(--muted); font-size: 15.3px; max-width: 42ch; }
 /* Los tres momentos de cada camino. Reemplazan a la pared de etiquetas:
@@ -2833,7 +2834,7 @@ const CSS = `
    AJUSTES POR ANCHO
    ================================================================== */
 @media (min-width: 900px) {
-  .s2b-doors { grid-template-columns: 1fr 1fr; }
+  .s2b-doors { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .s2b-caos-grid { grid-template-columns: 1fr auto 1fr; gap: 26px; }
   .s2b-puente { padding: 0 4px; }
   /* de costado el recorrido va de izquierda a derecha, no hacia abajo */
@@ -3097,40 +3098,25 @@ const clientes = (t) => [
 
 
 /* ==================================================================
-   Los dos caminos que tiene que reconocer alguien que llega de una
-   publicidad: "tengo una empresa" o "tengo una idea". Todo el home se
-   ordena alrededor de esa bifurcacion.
+   Tres necesidades guían la portada, el menú y el formulario.
+   Los detalles de cada solución viven en su propia página.
    ================================================================== */
 const ayuda = (t) => [
-  {
-    id: "empresas", ic: Building2,
-    rot: t("Para empresas", "For businesses"),
-    tt: t("Software diseñado alrededor de tu negocio.", "Software built around your business."),
-    d: t("Creamos sistemas personalizados para reemplazar procesos manuales, planillas de Excel, WhatsApp y herramientas desconectadas.", "We build custom systems to replace manual processes, spreadsheets and disconnected tools."),
-    /* Eran ocho etiquetas sueltas -CRM, Ventas, Dashboards- que nombran
-       piezas y no resultados. Tres frases de lo que la persona se lleva
-       dicen mas y se leen de un vistazo. */
-    pasos: [
-      t("Un solo lugar en vez de Excel, WhatsApp y planillas sueltas", "One place instead of spreadsheets, WhatsApp and scattered files"),
-      t("Tu equipo lo usa desde el primer día, sin capacitaciones eternas", "Your team uses it from day one, no endless training"),
-      t("Se conecta con las herramientas que ya tenés funcionando", "It connects to the tools you already have running"),
-    ],
-    cta: t("Quiero mejorar mi empresa", "Improve my business"), to: "empresas",
-  },
-  {
-    id: "idea", ic: Lightbulb,
-    rot: t("Tengo una idea", "I have an idea"),
-    tt: t("Convertí tu idea en un producto real.", "Turn your idea into a real product."),
-    d: t("Te acompañamos desde la definición de la idea hasta el diseño, el desarrollo y el lanzamiento.", "We help from concept and strategy through design, development and launch."),
-    /* Idem: "SaaS, MVP, Platform" es vocabulario nuestro, no de alguien que
-       recien tiene una idea. Se cambia por los tres momentos del camino. */
-    pasos: [
-      t("Definimos juntos qué construir primero y qué puede esperar", "We decide together what to build first and what can wait"),
-      t("Lo ves funcionando antes de poner toda la plata", "You see it working before putting in all the money"),
-      t("Salís a probarlo con usuarios de verdad, no con una maqueta", "You launch it with real users, not with a mockup"),
-    ],
-    cta: t("Quiero desarrollar mi idea", "Build my idea"), to: "idea",
-  },
+  { id: "captacion", ic: MessageSquare, rot: t("Web y atención", "Website and enquiries"),
+    tt: t("Recibir y atender consultas", "Receive and answer enquiries"),
+    d: t("Una web para presentar tu negocio, responder consultas y dar seguimiento a los interesados.", "A website to present your business, answer enquiries and follow up with potential clients."),
+    pasos: [t("Mostrá tus servicios", "Show your services"), t("Respondé con un asistente", "Answer with an assistant"), t("Organizá cada consulta", "Keep track of every enquiry")],
+    cta: t("Ver web y atención", "Explore websites"), to: "paquete-ia" },
+  { id: "empresas", ic: Building2, rot: t("Sistemas de gestión", "Business systems"),
+    tt: t("Organizar mi empresa", "Organize my business"),
+    d: t("Un sistema para centralizar la información y las tareas que hoy resolvés con planillas y herramientas separadas.", "A system to bring together information and tasks currently managed in spreadsheets and separate tools."),
+    pasos: [t("Clientes y presupuestos", "Customers and quotes"), t("Stock y tareas del equipo", "Inventory and team tasks"), t("Conexión con tus herramientas", "Connections to your tools")],
+    cta: t("Ver sistemas de gestión", "Explore business systems"), to: "aplicaciones" },
+  { id: "idea", ic: Lightbulb, rot: t("Desarrollo de apps", "App development"),
+    tt: t("Desarrollar mi idea de app", "Build my app idea"),
+    d: t("Te acompañamos desde la definición de tu idea hasta el diseño, el desarrollo y el lanzamiento.", "We help you define your idea, design it, develop it and launch it."),
+    pasos: [t("Definimos qué construir primero", "Decide what to build first"), t("Diseñamos y probamos el producto", "Design and test the product"), t("Lanzamos una primera versión", "Launch a first version")],
+    cta: t("Ver desarrollo de apps", "Explore app development"), to: "idea" },
 ];
 
 /* ==================================================================
@@ -3424,7 +3410,7 @@ const sieteDias = (t) => [
    Cubre el catalogo completo, que es lo que alguien viene a mirar:
    quiere encontrar lo suyo en la lista, aunque el precio diga consultar. */
 /* ==================================================================
-   El servicio "App web inteligente + IA".
+   El servicio "Web con asistente de IA".
 
    OJO, no confundir con las "Aplicaciones web inteligentes" de mas
    arriba, que son otra cosa y se quedan como estaban: aquellas son la
@@ -3506,7 +3492,7 @@ const precioIACorto = (t) =>
   (promoVigente()
     ? (PROMO.desde ? t("desde ", "from ") : "") + pesosAR(PROMO.pesos)
     : "US$ " + IA_SETUP.toLocaleString("es-AR"))
-  + (MOSTRAR_MES ? " + " + IA_MES + t("/mes", "/mo") : "");
+  + (MOSTRAR_MES ? " + US$ " + IA_MES + t("/mes", "/mo") : "");
 
 /* Lo que va incluido y los adicionales, debajo del precio. Los adicionales
    se cotizan aparte: dependen de que datos haya que guardar, que tiene que
@@ -4333,59 +4319,12 @@ const waChips = (t) => [
    Reemplaza a la lista suelta de tipos de app: la misma informacion, pero
    ordenada para que cada visitante encuentre lo suyo sin leer treinta lineas. */
 const necesidades = (t) => [
-  {
-    g: t("Para mi empresa", "For my business"),
-    o: [
-      t("Software a medida para mi empresa", "Custom software for my business"),
-      t("CRM para clientes y ventas", "CRM for clients and sales"),
-      t("Sistema de gestión empresarial", "Business management system"),
-      t("Sistema administrativo interno", "Internal admin system"),
-      t("Facturación y presupuestos", "Invoicing and quotes"),
-      t("Control de stock e inventario", "Stock and inventory control"),
-      t("Turnos y reservas", "Appointments and bookings"),
-      t("Administración de empleados", "Employee management"),
-      t("Automatización de procesos", "Process automation"),
-      t("Dashboards e informes", "Dashboards and reports"),
-      t("Portal para clientes o proveedores", "Client or supplier portal"),
-      t("Integración con otras herramientas", "Integration with other tools"),
-      t("Mejoras en un sistema existente", "Improvements to an existing system"),
-    ],
-  },
-  {
-    g: t("Tengo una idea", "I have an idea"),
-    o: [
-      t("Tengo una idea para una app", "I have an idea for an app"),
-      t("Aplicación móvil", "Mobile app"),
-      t("Aplicación web", "Web app"),
-      t("Marketplace", "Marketplace"),
-      t("Plataforma SaaS", "SaaS platform"),
-      t("MVP: primera versión funcional", "MVP: first working version"),
-      t("Tienda online / E-commerce", "Online store / E-commerce"),
-      t("Delivery y pedidos", "Delivery and orders"),
-      t("Plataforma de cursos", "Course platform"),
-      t("Sistema de membresías", "Membership system"),
-      t("Red social o comunidad", "Social network or community"),
-      t("Aplicación para eventos", "Events app"),
-      t("Aplicación inmobiliaria", "Real estate app"),
-      t("Aplicación de transporte o logística", "Transport or logistics app"),
-    ],
-  },
-  {
-    g: t("Inteligencia Artificial", "Artificial intelligence"),
-    o: [
-      t("Agente de IA", "AI agent"),
-      t("Chatbot o asistente virtual", "Chatbot or virtual assistant"),
-      t("Aplicación con inteligencia artificial", "App with artificial intelligence"),
-      t("IA conectada con WhatsApp", "AI connected to WhatsApp"),
-    ],
-  },
-  {
-    g: t("Otro", "Other"),
-    o: [
-      t("Todavía no lo sé, necesito asesoramiento", "Not sure yet, I need advice"),
-      t("Otro", "Other"),
-    ],
-  },
+  { g: t("¿Qué necesitás?", "What do you need?"), o: [
+    t("Recibir y atender consultas", "Receive and answer enquiries"),
+    t("Organizar mi empresa", "Organize my business"),
+    t("Desarrollar mi idea de app", "Build my app idea"),
+    t("Todavía no lo sé, necesito asesoramiento", "Not sure yet, I need advice"),
+  ] },
 ];
 
 const etapasProyecto = (t) => [
@@ -4409,23 +4348,10 @@ const presupuestos = (t) => [
 ];
 
 const navLinks = (t) => [
-  /* Solo Precios abre un desplegable -lo declara `pop`-: adentro estan las
-     tres formas de comprar, y una de ellas lleva a la seccion de
-     aplicaciones web. Tenerla ademas suelta en el menu era decir lo mismo
-     dos veces en la misma barra.
-
-     Precios va adelante y no en el medio: es lo que mas se busca y lo que
-     hace que alguien se quede o se vaya. Perdido entre otros cuatro no se
-     encuentra, que es lo mismo que no estar. */
-  { id: "precios", label: t("Precios", "Pricing"), pop: "precios" },
-  { id: "servicios", label: t("Servicios", "Services"), pop: "servicios" },
-  { id: "proceso", label: t("Proceso", "Process") },
-  { id: "clientes", label: t("Clientes", "Clients") },
-  { id: "preguntas", label: t("Preguntas frecuentes", "FAQ") },
-  /* "Jugar" sale del menu por ahora. La ruta /jugar sigue viva y la maquina
-     funciona igual: lo unico que se saco es la entrada del menu, asi que el
-     link se puede seguir compartiendo y basta devolver esta linea para que
-     vuelva a aparecer. */
+  { id: "ayuda", label: t("Soluciones", "Solutions"), pop: "servicios" },
+  { id: "clientes", label: t("Proyectos", "Projects") },
+  { id: "proceso", label: t("Cómo trabajamos", "How we work") },
+  { id: "precios", label: t("Precios", "Pricing") },
 ];
 
 /* ================= utilidades ================= */
@@ -5928,7 +5854,7 @@ function AppWeb({ t, grupos, goTo, waLink, compacto = false }) {
           <div>
             <div className="s2b-eyebrow">{t("Lo que más hacemos", "What we build most")}</div>
             <h3 className="s2b-appweb-tt">
-              {t("Aplicaciones web", "Smart web")} <b>{t("inteligentes", "applications")}</b>
+              {t("Sistemas de gestión", "Business systems")} <b>{t("a medida", "built for you")}</b>
             </h3>
             <p className="s2b-appweb-d">
               {t("Administrar, automatizar y hacer crecer tu negocio desde una sola plataforma, que entra desde el celular, la tablet o la computadora.", "Run, automate and grow your business from a single platform, reachable from a phone, a tablet or a desktop.")}
@@ -5949,7 +5875,7 @@ function AppWeb({ t, grupos, goTo, waLink, compacto = false }) {
         <div>
           <div className="s2b-eyebrow">{t("Lo que más hacemos", "What we build most")}</div>
           <h3 className="s2b-appweb-tt">
-            {t("Aplicaciones web", "Smart web")} <b>{t("inteligentes", "applications")}</b>
+            {t("Sistemas de gestión", "Business systems")} <b>{t("a medida", "built for you")}</b>
           </h3>
           <p className="s2b-appweb-d">
             {t("Aplicaciones modernas y rápidas para administrar, automatizar y hacer crecer tu negocio desde una sola plataforma. Entran desde el celular, la tablet o la computadora, sin descargar nada de ninguna tienda.", "Modern, fast applications to run, automate and grow your business from a single platform. They open on a phone, a tablet or a desktop, with nothing to download from any store.")}
@@ -6204,7 +6130,7 @@ function UiFlujo({ pasos = [] }) {
   );
 }
 
-const RUTAS = { precios: "/precios", aplicaciones: "/aplicaciones-web", "paquete-ia": "/app-web-inteligente", proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
+const RUTAS = { idea: "/desarrollar-app", precios: "/precios", aplicaciones: "/aplicaciones-web", "paquete-ia": "/app-web-inteligente", proceso: "/proceso", preguntas: "/preguntas", jugar: "/jugar" };
 
 /* Anclas del home que ademas tienen direccion propia, para poder pasar el
    link por WhatsApp y que caiga en la seccion.
@@ -6220,7 +6146,7 @@ const ANCLAS = {};
 /* En que pagina vive cada ancla que no esta en el home. El formulario pasó a
    la pagina del proceso: es ahi donde se explica como trabajamos y donde el
    cliente decide, y de paso el home queda mas liviano. */
-const DUENO = { contacto: "proceso", proyectos: "precios" };
+const DUENO = { contacto: "proceso", proyectos: "precios", empresas: "aplicaciones", servicios: "aplicaciones", agentes: "aplicaciones" };
 const rutaActual = () => (typeof location === "undefined" ? "/" : location.pathname).replace(/\/+$/, "") || "/";
 const vistaDeUrl = () => {
   const p = rutaActual();
@@ -6341,23 +6267,9 @@ export default function StudioB2B() {
      escritos aca: si maniana cambia un precio, el menu cambia solo. */
   const POPS = useMemo(() => ({
     servicios: {
-      tt: t("Todo lo que hacemos", "Everything we do"),
+      tt: t("¿Qué necesitás resolver?", "What do you need to solve?"),
       pie: "",
-      items: [
-        { ic: Bot, tt: t("App web inteligente + IA", "Smart web app + AI"), to: "paquete-ia",
-          d: precioIACorto(t) + t(" · lista en 7 días", " · ready in 7 days"),
-          listo: t("Lo más pedido · ya armado", "Most requested · ready made") },
-        { ic: Globe, tt: t("Aplicaciones web", "Web applications"), to: "aplicaciones",
-          d: t("SaaS, paneles y portales · desde US$ 950", "SaaS, dashboards and portals · from US$ 950") },
-        { ic: Code2, tt: t("Software a medida", "Custom software"), to: "servicios",
-          d: t("Gestión, stock, facturación", "Operations, stock, invoicing") },
-        { ic: Smartphone, tt: t("Apps móviles", "Mobile apps"), to: "servicios",
-          d: t("iOS y Android desde una base", "iOS and Android from one codebase") },
-        { ic: Sparkles, tt: t("Agentes de IA", "AI agents"), to: "agentes",
-          d: t("Atienden adentro de tus herramientas", "They work inside your own tools") },
-        { ic: Plug, tt: t("Integraciones y automatizaciones", "Integrations and automations"), to: "proyectos",
-          d: t("Conectar lo que ya usás", "Connecting what you already use") },
-      ],
+      items: AYUDA.map((a) => ({ ic: a.ic, tt: a.tt, d: a.d, to: a.to })),
     },
     precios: {
       tt: t("Qué estás buscando", "What you're after"),
@@ -6365,15 +6277,15 @@ export default function StudioB2B() {
       items: [
         { ic: Repeat, tt: t("Planes mensuales", "Monthly plans"), to: "precios",
           d: t("desde", "from") + " US$ " + PLANES[0].mes + t(" por mes", " a month") },
-        { ic: Globe, tt: t("Aplicaciones web a medida", "Custom web apps"), to: "aplicaciones",
+        { ic: Globe, tt: t("Sistemas de gestión a medida", "Custom business systems"), to: "aplicaciones",
           d: "US$ " + APPWEB_DESDE.toLocaleString("es-AR") + " – " + APPWEB_HASTA.toLocaleString("es-AR") },
-        { ic: Bot, tt: t("App web inteligente + IA", "Smart web app + AI"), to: "paquete-ia",
+        { ic: Bot, tt: t("Web con asistente de IA", "Website with an AI assistant"), to: "paquete-ia",
           d: precioIACorto(t) },
         { ic: Code2, tt: t("Proyectos a medida", "Custom projects"), to: "proyectos",
           d: t("MVP, apps y sistemas", "MVP, apps and systems") },
       ],
     },
-  }), [t, APPWEB_GRUPOS, PLANES]);
+  }), [t, AYUDA, APPWEB_GRUPOS, PLANES]);
   const DOLORES = useMemo(() => dolores(t), [t]);
   const DISPERSOS = useMemo(() => dispersos(t), [t]);
   const IDEA_ENTRADAS = useMemo(() => ideaEntradas(t), [t]);
@@ -6544,14 +6456,15 @@ export default function StudioB2B() {
      el que ve Google en el home; este es el que ve la persona mientras navega. */
   useEffect(() => {
     document.title =
+      vista === "idea" ? t("Desarrollo de apps | Studio B2B", "App development | Studio B2B") :
       vista === "proceso" ? t("El Proceso Studio B2B, paso a paso | Studio B2B", "The Studio B2B Process, step by step | Studio B2B") :
       vista === "precios" ? t("Precios | Studio B2B", "Pricing | Studio B2B") :
-      vista === "aplicaciones" ? t("Aplicaciones web inteligentes | Studio B2B", "Smart web applications | Studio B2B") :
-      vista === "paquete-ia" ? t("App web inteligente + IA | Studio B2B", "Smart web app + AI | Studio B2B") :
+      vista === "aplicaciones" ? t("Sistemas de gestión a medida | Studio B2B", "Custom business systems | Studio B2B") :
+      vista === "paquete-ia" ? t("Web con asistente de IA | Studio B2B", "Website with an AI assistant | Studio B2B") :
       vista === "preguntas" ? t("Preguntas frecuentes | Studio B2B", "Frequently asked questions | Studio B2B") :
       vista === "jugar" ? t("Jugá con Pecifa Nacional | Ranking", "Play with Pecifa Nacional | Leaderboard") :
-      t("Studio B2B | Desarrollo de Apps, Software a Medida e Inteligencia Artificial",
-        "Studio B2B | Custom Software, Apps & AI Solutions");
+      t("Studio B2B | Webs, sistemas y apps para tu negocio",
+        "Studio B2B | Websites, systems and apps for your business");
     const d = document.querySelector('meta[name="description"]');
     if (d) d.setAttribute("content", t(
       "Desarrollamos aplicaciones, software a medida, CRM, sistemas empresariales y soluciones con inteligencia artificial para empresas y emprendedores. Desde Córdoba, Argentina.",
@@ -6953,22 +6866,20 @@ export default function StudioB2B() {
 
           <div className="s2b-wrap s2b-hero-copy">
             <div className="s2b-hero-in">
-              <div className="s2b-pill">{t("Sitios web · Aplicaciones · IA · Automatizaciones", "Websites · Apps · AI · Automations")}</div>
+              <div className="s2b-pill">{t("Studio B2B · Desarrollo digital", "Studio B2B · Digital development")}</div>
               <div className="s2b-sweep">
-                <h1>{t("Un solo equipo para toda tu", "One team for your whole")} <span>{t("operación digital", "digital operation")}</span></h1>
+                <h1>{t("Creamos webs, sistemas y apps", "We build websites, systems and apps")} <span>{t("para tu negocio", "for your business")}</span></h1>
               </div>
               <p>
-                {t("Diseñamos el sistema, lo armamos alrededor de cómo ya trabajás, lo conectamos con las herramientas que usás y lo seguimos manteniendo después de salir, para que no tengas que coordinar cuatro proveedores para un solo negocio.", "We design the system, build it around how you already work, connect it to the tools you use and keep maintaining it after launch, so you are not coordinating four vendors to run one business.")}
+                {t("Te ayudamos a recibir consultas, organizar el trabajo de tu empresa o convertir una idea en una aplicación. Contanos qué necesitás resolver y te orientamos.", "We help you receive enquiries, organize your business or turn an idea into an app. Tell us what you need to solve and we will guide you.")}
               </p>
               {/* Aca habia una segunda lista de servicios. Con la pildora de
                   arriba diciendo lo mismo, el titular quedaba entre dos
                   enumeraciones y el hero dejaba de ser una frase. Una sola
                   lista, arriba. */}
               <div className="s2b-hero-cta">
-                <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos tu proyecto", "Tell Us About Your Project")} <ArrowRight size={16} /></button>
-                <button className="s2b-btn s2b-btn--glass" onClick={() => goTo("idea")}>
-                  <Lightbulb size={15} /> {t("Tengo una idea de app", "I Have an App Idea")}
-                </button>
+                <button className="s2b-btn s2b-btn--chrome" onClick={() => goTo("contacto")}>{t("Contanos qué necesitás", "Tell us what you need")} <ArrowRight size={16} /></button>
+                <button className="s2b-btn s2b-btn--glass" onClick={() => goTo("ayuda")}>{t("Ver soluciones", "Explore solutions")} <ArrowDown size={16} /></button>
               </div>
               <p className="s2b-hero-pie">
                 <MapPin size={15} />
@@ -7118,13 +7029,15 @@ export default function StudioB2B() {
                 ninguna manera: parte los renglones parejos en vez de dejar
                 "sueltos" colgando solo abajo. */}
             <h2 className="s2b-h2" style={{ maxWidth: "none", textWrap: "balance" }}>
-              {t("Sistemas, no", "Systems, not")} <b>{t("proyectos sueltos", "one-off projects")}</b>
+              {t("Elegí según", "Choose based on")} <b>{t("lo que necesitás", "what you need")}</b>
             </h2>
             <p className="s2b-lead" style={{ textAlign: "center" }}>
-              {t("Una página sola es el punto de partida. Lo que la convierte en un sistema es lo que corre encima: el asistente, el CRM y las automatizaciones, mantenidos por el mismo equipo después de salir.", "A site on its own is the starting point. What turns it into a system is what runs on top: the assistant, the CRM and the automations, maintained by the same team after launch.")}
+              {t("Para tu web y la atención de consultas, compará los planes mensuales y la web con asistente de IA. Para gestionar tu empresa, mirá los sistemas a medida. Si querés desarrollar una app, consultá los precios por proyecto. Son alternativas: no necesitás contratar todo.", "For your website and enquiries, compare monthly plans and the website with an AI assistant. To run your business, explore custom business systems. For an app idea, see project pricing. These are alternatives: you do not need to buy everything.")}
             </p>
           </div>
 
+          <h3 style={{ marginTop: 36 }}>{t("Web y atención: planes mensuales", "Website and enquiries: monthly plans")}</h3>
+          <p className="s2b-lead">{t("Elegí el nivel de atención y mantenimiento que necesitás para tu web. Los sistemas internos y el desarrollo de una app se cotizan por proyecto.", "Choose the support and maintenance your website needs. Internal business systems and app development are quoted per project.")}</p>
           {/* mensual o anual: el precio mostrado es siempre por mes */}
           <div className="s2b-switch s2b-rv" role="group" aria-label={t("Forma de pago", "Billing period")}>
             <button className={anual ? "" : "is-on"} onClick={() => setAnual(false)} aria-pressed={!anual}>
@@ -7189,7 +7102,7 @@ export default function StudioB2B() {
           <div className="s2b-ia-corto s2b-rv">
             <div>
               <span className="s2b-ia-nuevo">{t("Nuevo", "New")}</span>
-              <h3>{t("App web inteligente + IA", "Smart web app + AI")}</h3>
+              <h3>{t("Web con asistente de IA", "Website with an AI assistant")}</h3>
               <p>{t("La web que atiende, califica y te entrega el cliente listo para llamar. Lista en 7 días.", "The site that answers, qualifies and hands you the client ready to call. Ready in 7 days.")}</p>
               <button className="s2b-link" onClick={() => goTo("paquete-ia")}>
                 {t("Ver todo lo que incluye", "See everything it includes")} <ArrowRight size={15} />
@@ -7202,6 +7115,7 @@ export default function StudioB2B() {
                 <b>{promoVigente() ? pesosAR(PROMO.pesos) : "US$ " + IA_SETUP.toLocaleString("es-AR")}</b>
                 {!promoVigente() && <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>}
               </span>
+              {!MOSTRAR_MES && <p className="s2b-plan-letra">{t("El precio corresponde a la puesta en marcha. El mantenimiento y los consumos se confirman por separado en la propuesta.", "This price covers setup. Maintenance and usage costs are confirmed separately in the proposal.")}</p>}
               {MOSTRAR_MES && (
                 <span className="s2b-ia-num s2b-ia-num--mes">
                   <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
@@ -7271,7 +7185,7 @@ export default function StudioB2B() {
             <div className="s2b-siete-cab s2b-rv">
               <div className="s2b-eyebrow">{t("De la primera charla a andando", "From the first call to live")}</div>
               <h3 className="s2b-siete-tt">
-                {t("Tu app web en", "Your web app in")} <b>{t("7 días", "7 days")}</b>
+                {t("Tu sistema web en", "Your business system in")} <b>{t("7 días", "7 days")}</b>
               </h3>
               <p className="s2b-siete-d">
                 {t("Cinco pasos repartidos en una semana. El día 7 está publicada y funcionando, y de ahí en más la mantenemos nosotros.", "Five steps across one week. On day 7 it's published and running, and from there on we keep it going.")}
@@ -7324,10 +7238,10 @@ export default function StudioB2B() {
             <div className="s2b-ia-cab">
               <div>
               <span className="s2b-ia-nuevo"><i className="s2b-ia-nuevo-luz" aria-hidden="true" />{t("Nuevo", "New")}</span>
-              <div className="s2b-eyebrow">{t("App web inteligente + IA", "Smart web app + AI")}</div>
+              <div className="s2b-eyebrow">{t("Web con asistente de IA", "Website with an AI assistant")}</div>
               <h3 className="s2b-ia-tt s2b-ia-tt--vivo">
                 <Palabras texto={t("Obtené tu", "Get your")} />
-                <b className="s2b-ia-brillo"><Palabras texto={t("app web inteligente.", "smart web app.")} desde={2} /></b>
+                <b className="s2b-ia-brillo"><Palabras texto={t("web con asistente de IA.", "website with an AI assistant.")} desde={2} /></b>
               </h3>
               <p className="s2b-ia-d">
                 {t("No es una página con un chatbot pegado. Es una web que atiende, califica y te entrega el cliente listo para llamar, y que además te hace aparecer en Google: incluye posicionamiento SEO profesional, optimizado con IA. Los cuatro módulos se venden juntos: por separado se desarman, porque el valor está en la cadena completa, desde que alguien entra hasta que suena tu teléfono. Y lo construimos con las últimas tecnologías.", "It's not a page with a chatbot bolted on. It's a site that answers, qualifies and hands you the client ready to call, and gets you found on Google: professional SEO, optimized with AI, is included. The four modules go together: apart they fall apart, because the value is the whole chain, from someone walking in to your phone ringing. And we build it with the latest technology.")}
@@ -7405,7 +7319,8 @@ export default function StudioB2B() {
                         <span className="s2b-ia-precio-txt">{pesosAR(PROMO.pesos)}</span>
                       </b>
                     </span>
-                    {MOSTRAR_MES && (
+                    {!MOSTRAR_MES && <p className="s2b-plan-letra">{t("El precio corresponde a la puesta en marcha. El mantenimiento y los consumos se confirman por separado en la propuesta.", "This price covers setup. Maintenance and usage costs are confirmed separately in the proposal.")}</p>}
+              {MOSTRAR_MES && (
                       <span className="s2b-ia-num s2b-ia-num--mes">
                         <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
                         <em>{t("para que siga andando", "to keep it running")}</em>
@@ -7418,7 +7333,8 @@ export default function StudioB2B() {
                       <b>US$ {IA_SETUP.toLocaleString("es-AR")}</b>
                       <em>{t("la puesta en marcha, una sola vez", "setup, one time")}</em>
                     </span>
-                    {MOSTRAR_MES && (
+                    {!MOSTRAR_MES && <p className="s2b-plan-letra">{t("El precio corresponde a la puesta en marcha. El mantenimiento y los consumos se confirman por separado en la propuesta.", "This price covers setup. Maintenance and usage costs are confirmed separately in the proposal.")}</p>}
+              {MOSTRAR_MES && (
                       <span className="s2b-ia-num s2b-ia-num--mes">
                         <b>+ US$ {IA_MES}<small>{t("/mes", "/mo")}</small></b>
                         <em>{t("para que siga andando", "to keep it running")}</em>
@@ -7456,7 +7372,7 @@ export default function StudioB2B() {
             <div className="s2b-ia-vs s2b-rv">
               <div className="s2b-ia-vs-cab">
                 <span>{t("Una web común", "A regular website")}</span>
-                <span className="is-nuestra">{t("App web inteligente + IA", "Smart web app + AI")}</span>
+                <span className="is-nuestra">{t("Web con asistente de IA", "Website with an AI assistant")}</span>
               </div>
               {[
                 [t("Muestra información y espera.", "Shows information and waits."),
@@ -7631,17 +7547,15 @@ export default function StudioB2B() {
       {vista === "home" && <>
       {/* ============ CÓMO PODEMOS AYUDARTE ============ */}
       {/* Va pegada al hero a proposito: quien llega de una publicidad tiene que
-          reconocerse en una de las dos puertas antes de seguir bajando. */}
+          reconocerse en una de las tres opciones antes de seguir bajando. */}
       <section className="s2b-sec s2b-sec--sm s2b-amb" id="ayuda">
         <div className="s2b-wrap">
           <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
-            <div className="s2b-eyebrow">{t("Dos caminos", "Two paths")}</div>
+            <div className="s2b-eyebrow">{t("Empezá por lo que necesitás", "Start with what you need")}</div>
             <h2 className="s2b-h2" style={{ maxWidth: "16ch" }}>{t("¿Cómo podemos", "How can we")} <b>{t("ayudarte?", "help you?")}</b></h2>
           </div>
 
-          {/* Pantalla partida en vez de dos tarjetas iguales: la mitad de la
-              empresa es oscura y muestra un panel; la de la idea es clara y
-              muestra un telefono. Se reconoce cual es cual sin leer. */}
+          {/* Las mismas tres necesidades se usan en el menú y el formulario. */}
           <div className="s2b-doors s2b-rv">
             {AYUDA.map((a) => {
               const I = a.ic;
@@ -7652,26 +7566,6 @@ export default function StudioB2B() {
                     <div className="s2b-door-rot"><I size={13} /> {a.rot}</div>
                     <h3>{a.tt}</h3>
                     <p>{a.d}</p>
-
-                    <div className="s2b-door-vis">
-                      {esEmpresa ? (
-                        <UiPanel
-                          titulo={t("Tu operación", "Your operations")}
-                          barras={[44, 66, 52, 78, 60, 90, 72]}
-                          filas={[
-                            { t: t("Presupuestos", "Quotes"), e: "OK" },
-                            { t: "CRM", e: "OK" },
-                            { t: t("Inventario", "Inventory"), e: "OK" },
-                          ]}
-                        />
-                      ) : (
-                        <UiTelefonoFoto
-                          src="/trabajos/idea-fewmin.jpg"
-                          alt={t("Fewmin, la app de pedidos que desarrollamos para Miami, funcionando en un teléfono", "Fewmin, the delivery app we built for Miami, running on a phone")}
-                          pie={t("Fewmin · de una idea a una app andando en Miami", "Fewmin · from an idea to a live app in Miami")}
-                        />
-                      )}
-                    </div>
 
                     <ul className="s2b-door-pasos">
                       {a.pasos.map((c) => (
@@ -7716,58 +7610,8 @@ export default function StudioB2B() {
         </div>
       </div>
 
-      {/* ============ LA CADENA COMERCIAL ============
-          Va antes que cualquier seccion tecnica a proposito. Quien llega no
-          sabe -ni tiene por que- si lo que necesita se llama SEO o CRM; sabe
-          que no lo encuentran y que los interesados se le escapan. Aca lee
-          eso, en su idioma, y recien despues aparece el nombre del servicio. */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb" id="camino">
-        <div className="s2b-wrap">
-          <div className="s2b-rv" style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
-      {/* ============ APLICACIONES WEB (resumen) ============
-          Lo que mas vendemos merece estar en el home, pero no entero: aca
-          va que es y cuanto sale, y el detalle vive en /aplicaciones-web. */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid">
-        <div className="s2b-wrap">
-          <AppWeb t={t} grupos={APPWEB_GRUPOS} goTo={goTo} waLink={waLink} compacto />
-        </div>
-      </section>
-            <div className="s2b-eyebrow">{t("De punta a punta", "End to end")}</div>
-            <h2 className="s2b-h2" style={{ maxWidth: "15ch" }}>
-              {t("Así te conseguimos", "This is how we get you")} <b>{t("más clientes", "more clients")}</b>
-            </h2>
-            <p className="s2b-lead" style={{ textAlign: "center" }}>
-              {t("Son cinco pasos, y cada uno necesita del anterior. Nos ocupamos de todos.", "Five steps, and each one needs the one before it. We take care of all of them.")}
-            </p>
-          </div>
-
-          <ol className="s2b-cadena">
-            {CADENA.map((c, i) => {
-              const I = c.ic;
-              return (
-                <li className="s2b-eslabon s2b-rv" key={c.n} style={{ transitionDelay: i * 90 + "ms" }}>
-                  <a
-                    className="s2b-eslabon-in"
-                    href={"#" + c.to}
-                    onClick={(e) => { e.preventDefault(); goTo(c.to); }}
-                  >
-                    <div className="s2b-eslabon-top">
-                      <span className="s2b-eslabon-ic"><I size={20} /></span>
-                      <span className="s2b-eslabon-n">{c.n}</span>
-                    </div>
-                    <h3 className="s2b-eslabon-t">{c.paso}</h3>
-                    <p className="s2b-eslabon-d">{c.d}</p>
-                    {/* el nombre tecnico va al final y en chico: es la respuesta
-                        a "¿y eso como se hace?", no el titulo */}
-                    <span className="s2b-eslabon-serv">{c.servicio}</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </section>
-
+      </>}
+      {vista === "aplicaciones" && <>
       {/* ============ EL PROBLEMA DE UNA EMPRESA ============ */}
       <section className="s2b-sec s2b-sec--sm s2b-amb s2b-amb--grid" id="empresas">
         <div className="s2b-wrap">
@@ -7820,60 +7664,6 @@ export default function StudioB2B() {
           </div>
         </div>
       </section>
-
-      {/* ============ TENGO UNA IDEA DE APP ============ */}
-      <div className="s2b-band s2b-band--dark" id="idea">
-        <section className="s2b-sec s2b-sec--sm">
-          <div className="s2b-wrap">
-            <div className="s2b-idea-grid">
-              <div className="s2b-rv">
-                <div className="s2b-eyebrow"><Lightbulb size={13} /> {t("Tengo una idea", "I have an idea")}</div>
-                <h2 className="s2b-h2">{t("¿Tenés una idea", "Have an idea")} <b>{t("para una app?", "for an app?")}</b></h2>
-                <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
-                  {t("Tu idea puede convertirse en un producto real. Ayudamos a emprendedores, profesionales y empresas a transformar ideas en aplicaciones que funcionan.", "Your idea can become a real product. We help entrepreneurs, professionals and companies turn ideas into applications that actually work.")}
-                </p>
-                <p style={{ color: "#BDB4E4", fontSize: 15.5, marginTop: 26 }}>
-                  <b style={{ color: "#fff", fontWeight: 600 }}>{t("No necesitás tener todo definido.", "You don't need to have it all figured out.")}</b>{" "}
-                  {t("Podés venir con:", "You can come with:")}
-                </p>
-                <ul className="s2b-idea-traes">
-                  {IDEA_ENTRADAS.map((x) => <li key={x}><Check size={16} />{x}</li>)}
-                </ul>
-                <p style={{ color: "#9E97C4", fontSize: 14.5, marginTop: 18 }}>
-                  {t("Nosotros te ayudamos a definir el producto.", "We help you define the product from there.")}
-                </p>
-                <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
-                  {t("Contanos tu idea", "Tell us your idea")} <ArrowUpRight size={16} />
-                </button>
-              </div>
-
-              <div className="s2b-rv">
-                <UiTelefono
-                  sub={t("Tu app", "Your app")}
-                  titulo={t("De la idea al producto", "From idea to product")}
-                  cards={[t("Pantalla principal", "Home screen"), t("Perfil", "Profile"), t("Pagos", "Payments")]}
-                  cta={t("Publicar", "Publish")}
-                />
-              </div>
-            </div>
-
-            {/* El recorrido de una idea. En la compu es un riel horizontal cuya
-                linea se dibuja sola al entrar en pantalla; en el celular el
-                mismo riel se pone de pie. Antes era una tira de pastillas. */}
-            <div className="s2b-journey" aria-label={t("De la idea al producto", "From idea to product")}>
-              <div className="s2b-journey-track">
-                {IDEA_FLUJO.map((x, i) => (
-                  <div className="s2b-jstep s2b-rv" key={x} style={{ transitionDelay: i * 70 + "ms" }}>
-                    <div className="s2b-jnodo">{String(i + 1).padStart(2, "0")}</div>
-                    <div className="s2b-jlbl">{x}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
 
       {/* ============ QUÉ DESARROLLAMOS ============ */}
       {/* El bento. Catorce capacidades que antes eran catorce tarjetas del
@@ -8002,6 +7792,65 @@ export default function StudioB2B() {
       </div>
 
 
+      </>}
+      {vista === "idea" && <>
+      {/* ============ TENGO UNA IDEA DE APP ============ */}
+      <div className="s2b-band s2b-band--dark" id="idea">
+        <section className="s2b-sec s2b-sec--sm">
+          <div className="s2b-wrap">
+            <div className="s2b-idea-grid">
+              <div className="s2b-rv">
+                <div className="s2b-eyebrow"><Lightbulb size={13} /> {t("Tengo una idea", "I have an idea")}</div>
+                <h1 className="s2b-h2">{t("¿Tenés una idea", "Have an idea")} <b>{t("para una app?", "for an app?")}</b></h1>
+                <p className="s2b-lead" style={{ color: "#BDB4E4" }}>
+                  {t("Tu idea puede convertirse en un producto real. Ayudamos a emprendedores, profesionales y empresas a transformar ideas en aplicaciones que funcionan.", "Your idea can become a real product. We help entrepreneurs, professionals and companies turn ideas into applications that actually work.")}
+                </p>
+                <p style={{ color: "#BDB4E4", fontSize: 15.5, marginTop: 26 }}>
+                  <b style={{ color: "#fff", fontWeight: 600 }}>{t("No necesitás tener todo definido.", "You don't need to have it all figured out.")}</b>{" "}
+                  {t("Podés venir con:", "You can come with:")}
+                </p>
+                <ul className="s2b-idea-traes">
+                  {IDEA_ENTRADAS.map((x) => <li key={x}><Check size={16} />{x}</li>)}
+                </ul>
+                <p style={{ color: "#9E97C4", fontSize: 14.5, marginTop: 18 }}>
+                  {t("Nosotros te ayudamos a definir el producto.", "We help you define the product from there.")}
+                </p>
+                <button className="s2b-btn s2b-btn--chrome s2b-btn--aura" style={{ marginTop: 30 }} onClick={() => goTo("contacto")}>
+                  {t("Contanos tu idea", "Tell us your idea")} <ArrowUpRight size={16} />
+                </button>
+              </div>
+
+              <div className="s2b-rv">
+                <UiTelefono
+                  sub={t("Tu app", "Your app")}
+                  titulo={t("De la idea al producto", "From idea to product")}
+                  cards={[t("Pantalla principal", "Home screen"), t("Perfil", "Profile"), t("Pagos", "Payments")]}
+                  cta={t("Publicar", "Publish")}
+                />
+              </div>
+            </div>
+
+            {/* El recorrido de una idea. En la compu es un riel horizontal cuya
+                linea se dibuja sola al entrar en pantalla; en el celular el
+                mismo riel se pone de pie. Antes era una tira de pastillas. */}
+            <div className="s2b-journey" aria-label={t("De la idea al producto", "From idea to product")}>
+              <div className="s2b-journey-track">
+                {IDEA_FLUJO.map((x, i) => (
+                  <div className="s2b-jstep s2b-rv" key={x} style={{ transitionDelay: i * 70 + "ms" }}>
+                    <div className="s2b-jnodo">{String(i + 1).padStart(2, "0")}</div>
+                    <div className="s2b-jlbl">{x}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+        <div className="s2b-wrap s2b-sec--sm"><button className="s2b-btn s2b-btn--line" onClick={() => goTo("proyectos")}>{t("Ver precios por proyecto", "See project pricing")} <ArrowRight size={16} /></button></div>
+      </>}
+      {vista === "home" && <>
       {/* ============ PORTFOLIO ============ */}
       <section className="s2b-sec s2b-sec--sm s2b-amb" id="clientes" style={{ background: "linear-gradient(180deg,#100E1C,var(--paper))" }}>
         <div className="s2b-wrap">
@@ -8091,78 +7940,18 @@ export default function StudioB2B() {
       </section>
 
 
-      {/* Las siete etapas tecnicas -"De la primera charla al producto
-          funcionando"- se fueron de aca: el home se estaba haciendo largo y ese
-          recorrido es el complemento natural del proceso comercial. Ahora vive
-          en /proceso, abajo del paso 7, que es justo donde se lo nombra. */}
-
-      {/* ============ POR QUÉ STUDIO B2B ============ */}
-      {/* Editorial, no tarjetas: el titulo se queda quieto de un lado mientras
-          del otro pasan las seis razones, separadas por un filete y nada mas. */}
-      <section className="s2b-sec s2b-sec--sm s2b-amb" style={{ background: "linear-gradient(180deg,var(--paper),#100E1C)" }}>
-        <div className="s2b-wrap s2b-porque">
-          <div className="s2b-porque-head s2b-rv">
-            <div className="s2b-eyebrow">{t("El equipo", "The team")}</div>
-            <h2 className="s2b-h2">{t("¿Por qué", "Why")} <b>Studio B2B</b>{t("?", "?")}</h2>
-          </div>
-          <div className="s2b-porque-lista">
-            {POR_QUE.map((c, i) => {
-              const I = c.ic;
-              return (
-                <article className="s2b-razon s2b-rv" key={c.t} style={{ transitionDelay: Math.min(i, 4) * 60 + "ms" }}>
-                  <div className="s2b-razon-ico"><I size={18} /></div>
-                  <div>
-                    <h3>{c.t}</h3>
-                    <p>{c.d}</p>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+      <section className="s2b-sec s2b-sec--sm">
+        <div className="s2b-wrap">
+          <div className="s2b-eyebrow">{t("Cómo trabajamos", "How we work")}</div>
+          <h2 className="s2b-h2">{t("Del primer contacto", "From the first conversation")} <b>{t("a la entrega", "to delivery")}</b></h2>
+          <ol className="s2b-orden-lista" style={{ marginTop: 28 }}>
+            <li>{t("1. Entendemos qué necesitás resolver.", "1. We understand what you need to solve.")}</li>
+            <li>{t("2. Definimos el alcance, el precio y los plazos.", "2. We agree on scope, price and timeline.")}</li>
+            <li>{t("3. Desarrollamos, probás y aprobás la entrega.", "3. We build, you test and approve delivery.")}</li>
+          </ol>
+          <button className="s2b-link" style={{ marginTop: 24 }} onClick={() => goTo("proceso")}>{t("Conocé el proceso completo", "See the full process")} <ArrowRight size={16} /></button>
         </div>
       </section>
-
-
-      {/* ============ DIA DEL PROGRAMADOR ============ */}
-      {/* El script que corre en nuestras terminales, puesto a la vista: se
-          ejecuta en pantalla y al lado se lee el archivo que lo hace. Solo el
-          13 de septiembre; el resto del ano ni se descarga. */}
-      {esDiaProg && (
-        <Suspense fallback={<div style={{ minHeight: 520 }} aria-hidden="true" />}>
-          <DiaDelProgramador t={t} />
-        </Suspense>
-      )}
-
-      {/* ============ PREGUNTAS FRECUENTES (resumen) ============ */}
-      {/* Las mas frecuentes quedan a mano en el home; el listado completo sigue
-          viviendo en su propia pagina, /preguntas.
-
-          En el celular no va: son las mismas seis preguntas que estan en
-          /preguntas, y ahi se llega desde el menu. Repetirlas costaba una
-          pantalla y media de scroll para no decir nada nuevo. */}
-      {!celular && <section className="s2b-sec s2b-sec--sm">
-        <div className="s2b-wrap" style={{ maxWidth: 900 }}>
-          <div className="s2b-rv">
-            <div className="s2b-eyebrow">{t("Preguntas", "Questions")}</div>
-            <h2 className="s2b-h2">{t("Lo que", "What")} <b>{t("suelen preguntarnos", "people usually ask us")}</b></h2>
-          </div>
-          <div className="s2b-faq">
-            {FAQS.slice(0, 6).map((f, i) => (
-              <div className="s2b-fi s2b-rv" key={f.q}>
-                <button className="s2b-fq" aria-expanded={faq === i} onClick={() => setFaq(faq === i ? -1 : i)}>
-                  {f.q}{faq === i ? <Minus size={19} /> : <Plus size={19} />}
-                </button>
-                <div className={"s2b-fa" + (faq === i ? " is-open" : "")}><p>{f.a}</p></div>
-              </div>
-            ))}
-          </div>
-          <div className="s2b-flow-volver s2b-rv" style={{ marginTop: 26 }}>
-            <button className="s2b-link" onClick={() => irA("preguntas")}>
-              {t("Ver todas las preguntas frecuentes", "See all frequently asked questions")} <ArrowRight size={15} />
-            </button>
-          </div>
-        </div>
-      </section>}
 
       {/* En el home el formulario estaba quedando sobre fondo claro, con los
           campos oscuros y el texto en lila: la misma banda que usa /proceso lo
@@ -8193,7 +7982,7 @@ export default function StudioB2B() {
               <div>
                 <h5>{t("Soluciones", "Solutions")}</h5>
                 <ul>
-                  {SOLUCIONES.map((s) => <li key={s.id}><a href={"#servicios"} onClick={(e) => { e.preventDefault(); goTo("servicios"); }}>{s.t}</a></li>)}
+                  {AYUDA.map((a) => <li key={a.id}><a href={RUTAS[a.to]} onClick={(e) => { e.preventDefault(); goTo(a.to); }}>{a.tt}</a></li>)}
                   <li><a href="/proceso" onClick={(e) => { e.preventDefault(); irA("proceso"); }}>{t("Cómo trabajamos", "How we work")}</a></li>
                 </ul>
               </div>

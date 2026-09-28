@@ -51,44 +51,39 @@ let code = 0;
 try {
   await esperarPuerto(URL);
 
-  const r = spawnSync(chrome, [
-    "--headless", "--disable-gpu", "--no-sandbox",
-    "--virtual-time-budget=6000", "--window-size=1440,900",
-    "--dump-dom", URL,
-  ], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-
-  const dom = r.stdout || "";
-  const i = dom.indexOf('id="root"');
-  const cuerpo = i === -1 ? "" : dom.slice(i);
-
-  const marcas = {
-    "hero renderizado": "Impulsamos tecnolog",
-    "nav con logo": "/logo.png",
-    "terminal de agentes": "agente-comercial",
-    /* La pared de logos de tecnologias salio del home: se miraba, no ayudaba
-       a decidir y costaba una pantalla entera. En su lugar se vigila lo que
-       si tiene que estar en el home. Ojo: el smoke mira solo "/", asi que
-       la marca tiene que existir en el home y no en otra pagina. */
-    "la cadena comercial": "conseguimos",
-    "aplicaciones web": "Aplicaciones web",
-    "burbuja de WhatsApp": "s2b-wa-fab",
-    "fondo neuronal": "s2b-neural",
-  };
-
-  let fallos = 0;
-  console.log(`contenido dentro de #root: ${cuerpo.length} caracteres\n`);
-  for (const [k, v] of Object.entries(marcas)) {
-    const ok = dom.includes(v);
-    if (!ok) fallos++;
-    console.log(`${ok ? "OK    " : "FALLA "}${k}`);
+  const pages = [
+    { path: "/", markers: ["s2b-hero", "s2b-doors", 'id="clientes"', 'id="contacto"'], absent: ['id="camino"', 'id="servicios"', 'id="agentes"'] },
+    { path: "/aplicaciones-web", markers: ['id="aplicaciones"', 'id="empresas"', 'id="servicios"', 'id="agentes"'] },
+    { path: "/app-web-inteligente", markers: ["s2b-ia-cab", "s2b-plan-letra"] },
+    { path: "/desarrollar-app", markers: ['id="idea"', "s2b-journey"], absent: ['id="ayuda"'] },
+    { path: "/precios", markers: ['id="precios"', "s2b-planes"] },
+    { path: "/proceso", markers: ['id="proceso"', 'id="contacto"'] },
+  ];
+  let failures = 0;
+  for (const page of pages) {
+    const r = spawnSync(chrome, [
+      "--headless", "--disable-gpu", "--no-sandbox", "--no-first-run",
+      "--timeout=10000", "--window-size=1440,900",
+      "--dump-dom", URL.slice(0, -1) + page.path,
+    ], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 30000 });
+    const dom = r.stdout || "";
+    // Restrict checks to rendered markup: CSS also contains class names.
+    const root = dom.indexOf('id="root"');
+    const body = root < 0 ? "" : dom.slice(root).replace(/<style[^>]*>[\s\S]*?<\/style>/g, "");
+    const missing = page.markers.filter((marker) => !body.includes(marker));
+    const unexpected = (page.absent || []).filter((marker) => body.includes(marker));
+    const ok = !r.error && body.length > 2000 && !missing.length && !unexpected.length;
+    if (!ok) failures++;
+    console.log(`${ok ? "OK" : "FAIL"} ${page.path}`);
+    if (!ok) console.log({ error: r.error?.message, missing, unexpected, length: body.length });
+    if (page.path === "/") {
+      const count = (body.match(/class="s2b-door /g) || []).length;
+      console.log(`${count === 3 ? "OK" : "FAIL"} three solution choices (${count})`);
+      if (count !== 3) failures++;
+    }
   }
-
-  if (cuerpo.length < 2000) {
-    console.error("\nLa app no pinto nada: #root quedo vacio (pantalla en blanco).");
-    fallos++;
-  }
-  code = fallos ? 1 : 0;
-  console.log(fallos ? `\n${fallos} problema(s).` : "\nTodo OK.");
+  code = failures ? 1 : 0;
+  console.log(failures ? `${failures} failures.` : "All routes OK.");
 } catch (e) {
   console.error(e.message);
   code = 2;

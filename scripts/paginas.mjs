@@ -28,17 +28,24 @@ const DIST = "dist";
 
 const PAGINAS = [
   {
+    archivo: "desarrollar-app.html",
+    ruta: "/desarrollar-app",
+    titulo: "Desarrollo de apps | De tu idea al producto | Studio B2B",
+    desc: "Definimos, diseñamos y desarrollamos tu idea de app. Alcance, precio y plazos acordados antes de empezar.",
+    img: "/og.png",
+  },
+  {
     archivo: "app-web-inteligente.html",
     ruta: "/app-web-inteligente",
-    titulo: "App web inteligente + IA | Tu web que atiende y califica | Studio B2B",
-    desc: "Obtené tu app web inteligente. Atiende en segundos, califica cada consulta y te la entrega lista para llamar. Desde $750.000, con dominio, servidor propio y SEO optimizado con IA incluidos. Solicitá tu demo gratis.",
+    titulo: "Web con asistente de IA | Atención de consultas | Studio B2B",
+    desc: "Web para presentar tu negocio, responder y organizar consultas. Puesta en marcha desde ARS 750.000. Mantenimiento y consumos a confirmar en la propuesta.",
     img: "/og-app-web-inteligente.png",
   },
   {
     archivo: "aplicaciones-web.html",
     ruta: "/aplicaciones-web",
-    titulo: "Aplicaciones web inteligentes desde US$ 950 | Studio B2B",
-    desc: "Aplicaciones web a medida para administrar, automatizar y hacer crecer tu negocio desde una sola plataforma. SEO, panel, roles y IA integrada. Lista en 7 días.",
+    titulo: "Sistemas de gestión a medida desde US$ 950 | Studio B2B",
+    desc: "Sistemas para centralizar clientes, presupuestos, stock y tareas. Desarrollo desde US$ 950 según el alcance del proyecto.",
     img: "/og.png",
   },
   {
